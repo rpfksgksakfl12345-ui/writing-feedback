@@ -1,20 +1,99 @@
+"use client";
+
 import Link from "next/link";
+import { useAuth } from "../components/auth-provider";
 
 export default function HomePage() {
+  const { isReady, user } = useAuth();
+  const isLoggedIn = isReady && Boolean(user);
+
   return (
-    <section className="rounded-xl bg-white p-8 shadow-sm">
-      <h1 className="text-2xl font-semibold">초등학생 글쓰기 피드백 웹앱</h1>
-      <p className="mt-3 text-sm text-slate-600">
-        교사는 주제를 만들고 피드백을 남기고, 학생은 글쓰기 사진을 업로드하고 기록을 확인합니다.
-      </p>
-      <div className="mt-6 flex gap-3">
-        <Link className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white" href="/login">
-          로그인하기
-        </Link>
-        <Link className="rounded-md bg-slate-200 px-4 py-2 text-sm" href="/teacher/topics">
-          교사 화면 보기
-        </Link>
-      </div>
-    </section>
+    <div className="space-y-6">
+      <section className="rounded-3xl bg-slate-900 px-8 py-10 text-white shadow-sm">
+        <p className="text-sm font-medium text-slate-300">초등 글쓰기 피드백 MVP</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+          교사는 빠르게 확인하고,
+          <br />
+          학생은 쉽게 제출하고 다시 볼 수 있게 정리했습니다.
+        </h1>
+        <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300">
+          주제 생성, 사진 업로드, 교사 피드백 저장, 학생 기록 확인 흐름을 기준으로 바로
+          이동할 수 있습니다.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          {isLoggedIn ? (
+            <Link
+              className="rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-slate-900"
+              href={user?.role === "TEACHER" ? "/teacher/topics" : "/student/upload"}
+            >
+              {user?.role === "TEACHER" ? "교사 작업 이어가기" : "학생 제출 이어가기"}
+            </Link>
+          ) : (
+            <Link
+              className="rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-slate-900"
+              href="/login"
+            >
+              체험 계정으로 로그인
+            </Link>
+          )}
+          <Link
+            className="rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-medium text-white"
+            href="/student/history"
+          >
+            학생 기록 화면 보기
+          </Link>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2">
+        <div className="rounded-2xl bg-white p-6 shadow-sm">
+          <p className="text-sm font-semibold text-slate-500">교사 동선</p>
+          <h2 className="mt-2 text-xl font-semibold">주제 만들기 후 제출 확인</h2>
+          <ol className="mt-4 space-y-3 text-sm text-slate-600">
+            <li>1. 학년별 글쓰기 주제를 등록합니다.</li>
+            <li>2. 학생이 올린 제출물을 확인합니다.</li>
+            <li>3. 피드백 저장 후 바로 목록으로 돌아갑니다.</li>
+          </ol>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link
+              className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white"
+              href="/teacher/topics"
+            >
+              교사 화면으로 이동
+            </Link>
+            <Link
+              className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700"
+              href="/teacher/submissions"
+            >
+              제출물 바로 보기
+            </Link>
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-white p-6 shadow-sm">
+          <p className="text-sm font-semibold text-slate-500">학생 동선</p>
+          <h2 className="mt-2 text-xl font-semibold">주제 선택 후 제출과 기록 확인</h2>
+          <ol className="mt-4 space-y-3 text-sm text-slate-600">
+            <li>1. 내 학년에 맞는 주제를 고릅니다.</li>
+            <li>2. 글쓰기 사진을 업로드합니다.</li>
+            <li>3. 기록 화면에서 피드백 상태를 확인합니다.</li>
+          </ol>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link
+              className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white"
+              href="/student/upload"
+            >
+              학생 제출하러 가기
+            </Link>
+            <Link
+              className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700"
+              href="/student/history"
+            >
+              내 기록 보기
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { NoticeBanner } from "../../../components/notice-banner";
+import { StatusPill } from "../../../components/status-pill";
 import { useAuth } from "../../../components/auth-provider";
 import { API_BASE_URL, apiFetch } from "../../../lib/api";
 
@@ -15,9 +18,11 @@ type SubmissionItem = {
 };
 
 export default function TeacherSubmissionsPage() {
+  const searchParams = useSearchParams();
   const { token, user, isReady } = useAuth();
   const [submissions, setSubmissions] = useState<SubmissionItem[]>([]);
   const [error, setError] = useState("");
+  const saved = searchParams.get("saved") === "1";
 
   useEffect(() => {
     if (!token) {
@@ -36,26 +41,63 @@ export default function TeacherSubmissionsPage() {
   }
 
   return (
-    <section className="rounded-xl bg-white p-6 shadow-sm">
-      <h1 className="text-xl font-semibold">제출물 목록</h1>
-      {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+    <section className="rounded-2xl bg-white p-6 shadow-sm">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">제출물 목록</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            학생 제출을 확인하고, 필요한 건만 상세 화면에서 피드백을 저장하면 됩니다.
+          </p>
+        </div>
+        <Link className="text-sm font-medium text-slate-600 hover:text-slate-900" href="/teacher/topics">
+          주제 관리로 이동
+        </Link>
+      </div>
+
+      {saved ? (
+        <div className="mt-4">
+          <NoticeBanner
+            tone="success"
+            title="피드백 저장 완료"
+            description="저장 후 다시 제출물 목록으로 돌아왔습니다."
+          />
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className="mt-4">
+          <NoticeBanner tone="error" title="제출물 불러오기 실패" description={error} />
+        </div>
+      ) : null}
+
       <div className="mt-4 space-y-4">
         {submissions.map((submission) => (
-          <div key={submission.id} className="grid gap-4 rounded-lg border border-slate-200 p-4 md:grid-cols-[120px_1fr_auto]">
+          <div
+            key={submission.id}
+            className="grid gap-4 rounded-2xl border border-slate-200 p-4 md:grid-cols-[120px_1fr_auto]"
+          >
             <img
               src={`${API_BASE_URL}${submission.imageUrl}`}
               alt="제출 이미지"
-              className="h-28 w-full rounded-md object-cover"
+              className="h-28 w-full rounded-xl object-cover"
             />
             <div>
               <p className="font-medium">{submission.topic.title}</p>
-              <p className="text-sm text-slate-600">
-                {submission.student.name} / {submission.student.grade ?? "-"}학년
+              <p className="mt-1 text-sm text-slate-600">
+                {submission.student.name} / {submission.student.grade ?? "-"}학년 /{" "}
+                {submission.topic.grade}학년 주제
               </p>
-              <p className="mt-1 text-sm text-slate-500">{submission.status}</p>
+              <div className="mt-3">
+                <StatusPill status={submission.status} />
+              </div>
             </div>
             <div className="flex items-center">
-              <Link href={`/teacher/submissions/${submission.id}`}>상세 보기</Link>
+              <Link
+                className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white"
+                href={`/teacher/submissions/${submission.id}`}
+              >
+                피드백 작성
+              </Link>
             </div>
           </div>
         ))}

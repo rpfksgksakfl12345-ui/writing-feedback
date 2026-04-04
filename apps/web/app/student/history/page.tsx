@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { NoticeBanner } from "../../../components/notice-banner";
+import { StatusPill } from "../../../components/status-pill";
 import { useAuth } from "../../../components/auth-provider";
 import { API_BASE_URL, apiFetch } from "../../../lib/api";
 
@@ -34,27 +37,62 @@ export default function StudentHistoryPage() {
   }
 
   return (
-    <section className="rounded-xl bg-white p-6 shadow-sm">
-      <h1 className="text-xl font-semibold">제출 기록</h1>
-      {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+    <section className="rounded-2xl bg-white p-6 shadow-sm">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">제출 기록</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            내가 제출한 글쓰기와 교사 피드백 상태를 한눈에 확인할 수 있습니다.
+          </p>
+        </div>
+        <Link className="text-sm font-medium text-slate-600 hover:text-slate-900" href="/student/upload">
+          새로 제출하기
+        </Link>
+      </div>
+
+      {error ? (
+        <div className="mt-4">
+          <NoticeBanner tone="error" title="기록 불러오기 실패" description={error} />
+        </div>
+      ) : null}
+
       <div className="mt-4 space-y-4">
         {submissions.map((submission) => (
-          <div key={submission.id} className="grid gap-4 rounded-lg border border-slate-200 p-4 md:grid-cols-[120px_1fr]">
+          <div
+            key={submission.id}
+            className="grid gap-4 rounded-2xl border border-slate-200 p-4 md:grid-cols-[160px_1fr]"
+          >
             <img
               src={`${API_BASE_URL}${submission.imageUrl}`}
               alt="제출 이미지"
-              className="h-28 w-full rounded-md object-cover"
+              className="h-36 w-full rounded-2xl object-cover"
             />
-            <div>
-              <p className="font-medium">{submission.topic.title}</p>
-              <p className="mt-1 text-sm text-slate-500">{submission.status}</p>
-              <p className="mt-3 text-sm text-slate-700">
-                {submission.finalFeedback || "아직 교사 피드백이 없습니다."}
-              </p>
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="font-medium">{submission.topic.title}</p>
+                  <p className="mt-1 text-sm text-slate-500">제출한 글쓰기</p>
+                </div>
+                <StatusPill status={submission.status} />
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  교사 피드백
+                </p>
+                <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">
+                  {submission.finalFeedback || "아직 교사 피드백이 등록되지 않았습니다."}
+                </p>
+              </div>
             </div>
           </div>
         ))}
-        {submissions.length === 0 ? <p className="text-sm text-slate-500">제출 기록이 없습니다.</p> : null}
+        {submissions.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 px-6 py-10 text-center">
+            <p className="text-sm text-slate-500">
+              제출 기록이 없습니다. 먼저 글쓰기 사진을 업로드해 보세요.
+            </p>
+          </div>
+        ) : null}
       </div>
     </section>
   );

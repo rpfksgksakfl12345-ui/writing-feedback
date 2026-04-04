@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: writing-feedback-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: writing_feedback
+      POSTGRES_USER: writing_feedback_user
+      POSTGRES_PASSWORD: writing_feedback_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - writing_feedback_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U writing_feedback_user -d writing_feedback"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  writing_feedback_postgres_data:

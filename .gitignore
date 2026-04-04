@@ -1,0 +1,8 @@
+node_modules
+.env
+.env.local
+.next
+dist
+coverage
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep

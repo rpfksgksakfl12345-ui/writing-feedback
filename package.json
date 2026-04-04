@@ -1,0 +1,22 @@
+{
+  "name": "writing-feedback",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace @writing-feedback/api\" \"npm run dev --workspace @writing-feedback/web\"",
+    "build": "npm run build --workspace @writing-feedback/api && npm run build --workspace @writing-feedback/web",
+    "lint": "npm run lint --workspace @writing-feedback/web",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "db:migrate": "npm run prisma:migrate --workspace @writing-feedback/api",
+    "db:seed": "npm run prisma:seed --workspace @writing-feedback/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

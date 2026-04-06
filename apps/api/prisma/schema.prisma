@@ -17,6 +17,18 @@ enum SubmissionStatus {
   REVIEWED
 }
 
+enum InputType {
+  TYPED
+  PHOTO
+}
+
+enum OcrStatus {
+  NONE
+  PROCESSING
+  DONE
+  FAILED
+}
+
 model User {
   id          Int          @id @default(autoincrement())
   email       String       @unique
@@ -42,7 +54,11 @@ model Topic {
 
 model Submission {
   id            Int              @id @default(autoincrement())
-  imageUrl      String
+  inputType     InputType        @default(PHOTO)
+  imageUrl      String?
+  content       String?
+  ocrStatus     OcrStatus        @default(NONE)
+  ocrError      String?
   extractedText String?
   aiFeedback    String?
   finalFeedback String?

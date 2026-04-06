@@ -12,10 +12,16 @@ type Topic = {
   grade: number;
 };
 
+type SubmissionInputType = "TYPED" | "PHOTO";
+
+const typedMaxLength = 2000;
+
 export default function StudentUploadPage() {
   const { token, user, isReady } = useAuth();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [topicId, setTopicId] = useState("");
+  const [activeType, setActiveType] = useState<SubmissionInputType>("TYPED");
+  const [content, setContent] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -38,7 +44,43 @@ export default function StudentUploadPage() {
       });
   }, [token, user?.grade]);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleTypedSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMessage("");
+    setError("");
+
+    if (!topicId) {
+      setError("주제를 먼저 선택해 주세요.");
+      return;
+    }
+
+    if (!content.trim()) {
+      setError("글로 쓰기 제출은 내용을 입력해야 합니다.");
+      return;
+    }
+
+    try {
+      await apiFetch("/api/submissions", {
+        method: "POST",
+        token,
+        body: JSON.stringify({
+          topicId: Number(topicId),
+          inputType: "TYPED",
+          content: content.trim(),
+        }),
+      });
+      setContent("");
+      setMessage("글쓰기 내용이 제출되었습니다.");
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "글로 쓰기 제출에 실패했습니다. 내용을 다시 확인해 주세요.",
+      );
+    }
+  }
+
+  async function handlePhotoSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
     setError("");
@@ -50,6 +92,7 @@ export default function StudentUploadPage() {
 
     const formData = new FormData();
     formData.append("topicId", topicId);
+    formData.append("inputType", "PHOTO");
     formData.append("image", image);
 
     try {
@@ -59,12 +102,12 @@ export default function StudentUploadPage() {
         body: formData,
       });
       setImage(null);
-      setMessage("업로드가 완료되었습니다.");
+      setMessage("사진 제출이 완료되었습니다.");
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "업로드에 실패했습니다. 파일 형식과 연결 상태를 다시 확인해 주세요.",
+          : "사진 업로드에 실패했습니다. 파일 형식과 연결 상태를 다시 확인해 주세요.",
       );
     }
   }
@@ -77,9 +120,9 @@ export default function StudentUploadPage() {
     <section className="rounded-2xl bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold">글쓰기 업로드</h1>
+          <h1 className="text-xl font-semibold">학생 제출</h1>
           <p className="mt-1 text-sm text-slate-600">
-            주제를 고른 뒤 글쓰기 사진 한 장을 올리면 제출이 완료됩니다.
+            기본 제출 방식은 글로 쓰기이며, 필요하면 사진 올리기로 기존 제출 흐름도 그대로 사용할 수 있습니다.
           </p>
         </div>
         <Link className="text-sm font-medium text-slate-600 hover:text-slate-900" href="/student/history">
@@ -87,7 +130,35 @@ export default function StudentUploadPage() {
         </Link>
       </div>
 
-      <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
+      <div className="mt-4 rounded-2xl bg-slate-50 p-2">
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            className={activeType === "TYPED" ? "" : "bg-white text-slate-700 hover:bg-white"}
+            type="button"
+            onClick={() => {
+              setActiveType("TYPED");
+              setMessage("");
+              setError("");
+            }}
+          >
+            글로 쓰기
+          </button>
+          <button
+            className={activeType === "PHOTO" ? "" : "bg-white text-slate-700 hover:bg-white"}
+            type="button"
+            onClick={() => {
+              setActiveType("PHOTO");
+              setMessage("");
+              setError("");
+            }}
+          >
+            사진 올리기
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <label className="mb-1 block text-sm font-medium">주제 선택</label>
         <select value={topicId} onChange={(event) => setTopicId(event.target.value)}>
           {topics.map((topic) => (
             <option key={topic.id} value={topic.id}>
@@ -95,31 +166,74 @@ export default function StudentUploadPage() {
             </option>
           ))}
         </select>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(event) => setImage(event.target.files?.[0] || null)}
-        />
+      </div>
 
-        {message ? (
-          <NoticeBanner
-            tone="success"
-            title="업로드 완료"
-            description="글쓰기 사진이 저장되었습니다. 기록 화면에서 피드백 상태를 확인할 수 있습니다."
-          />
-        ) : null}
-        {error ? <NoticeBanner tone="error" title="업로드 실패" description={error} /> : null}
+      {activeType === "TYPED" ? (
+        <form className="mt-4 space-y-4" onSubmit={handleTypedSubmit}>
+          <div>
+            <label className="mb-1 block text-sm font-medium">글쓰기 내용</label>
+            <textarea
+              rows={10}
+              maxLength={typedMaxLength}
+              value={content}
+              onChange={(event) => setContent(event.target.value)}
+              placeholder="학생이 직접 작성한 글을 여기에 입력해 주세요."
+            />
+            <p className="mt-2 text-right text-xs text-slate-500">
+              {content.length} / {typedMaxLength}자
+            </p>
+          </div>
 
-        <div className="flex flex-wrap gap-3">
-          <button type="submit">업로드하기</button>
-          <Link
-            className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-200"
-            href="/student/history"
-          >
-            기록 화면으로 이동
-          </Link>
-        </div>
-      </form>
+          {message ? (
+            <NoticeBanner
+              tone="success"
+              title="글로 쓰기 제출 완료"
+              description="내용이 저장되었습니다. 기록 화면에서 피드백 상태를 확인할 수 있습니다."
+            />
+          ) : null}
+          {error ? <NoticeBanner tone="error" title="글로 쓰기 제출 실패" description={error} /> : null}
+
+          <div className="flex flex-wrap gap-3">
+            <button type="submit">제출하기</button>
+            <Link
+              className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-200"
+              href="/student/history"
+            >
+              기록 화면으로 이동
+            </Link>
+          </div>
+        </form>
+      ) : (
+        <form className="mt-4 space-y-4" onSubmit={handlePhotoSubmit}>
+          <div>
+            <label className="mb-1 block text-sm font-medium">글쓰기 사진</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) => setImage(event.target.files?.[0] || null)}
+            />
+          </div>
+
+          {message ? (
+            <NoticeBanner
+              tone="success"
+              title="사진 제출 완료"
+              description="글쓰기 사진이 저장되었습니다. 기록 화면에서 피드백 상태를 확인할 수 있습니다."
+            />
+          ) : null}
+          {error ? <NoticeBanner tone="error" title="사진 제출 실패" description={error} /> : null}
+
+          <div className="flex flex-wrap gap-3">
+            <button type="submit">사진 업로드하기</button>
+            <Link
+              className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-200"
+              href="/student/history"
+            >
+              기록 화면으로 이동
+            </Link>
+          </div>
+        </form>
+      )}
     </section>
   );
 }

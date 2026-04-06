@@ -10,9 +10,13 @@ import { API_BASE_URL, apiFetch } from "../../../../lib/api";
 
 type SubmissionDetail = {
   id: number;
-  imageUrl: string;
+  inputType: "TYPED" | "PHOTO";
+  imageUrl: string | null;
+  content: string | null;
   finalFeedback: string | null;
   status: "PENDING" | "REVIEWED";
+  ocrStatus: "NONE" | "PROCESSING" | "DONE" | "FAILED";
+  ocrError: string | null;
   student: { name: string; grade: number | null };
   topic: { title: string; description: string | null; grade: number };
 };
@@ -89,13 +93,32 @@ export default function SubmissionDetailPage() {
         </div>
         <p className="mt-2 text-sm leading-6 text-slate-600">{submission.topic.description || "설명 없음"}</p>
         <p className="mt-2 text-sm text-slate-500">
-          {submission.student.name} / {submission.student.grade ?? "-"}학년
+          {submission.student.name} / {submission.student.grade ?? "-"}학년 /{" "}
+          {submission.inputType === "TYPED" ? "글로 쓰기" : "사진 제출"}
         </p>
-        <img
-          src={`${API_BASE_URL}${submission.imageUrl}`}
-          alt="제출 이미지"
-          className="mt-4 max-h-[420px] w-full rounded-2xl border border-slate-200 object-contain"
-        />
+
+        {submission.inputType === "TYPED" ? (
+          <div className="mt-4 rounded-2xl bg-slate-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">제출 내용</p>
+            <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-700">
+              {submission.content}
+            </p>
+          </div>
+        ) : (
+          <img
+            src={`${API_BASE_URL}${submission.imageUrl}`}
+            alt="제출 이미지"
+            className="mt-4 max-h-[420px] w-full rounded-2xl border border-slate-200 object-contain"
+          />
+        )}
+
+        {submission.inputType === "PHOTO" && submission.ocrStatus !== "NONE" ? (
+          <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-sm font-semibold">OCR 상태</p>
+            <p className="mt-1 text-sm text-slate-600">{submission.ocrStatus}</p>
+            {submission.ocrError ? <p className="mt-2 text-sm text-red-600">{submission.ocrError}</p> : null}
+          </div>
+        ) : null}
       </section>
 
       <section className="rounded-2xl bg-white p-6 shadow-sm">

@@ -1,19 +1,55 @@
 import path from "path";
 import { Response } from "express";
-import { SubmissionStatus } from "@prisma/client";
+import { InputType, OcrStatus, SubmissionStatus } from "@prisma/client";
 import { prisma } from "../services/prisma";
 import { AuthRequest } from "../types";
 
 export async function createSubmission(req: AuthRequest, res: Response) {
   try {
-    if (!req.file || !req.user?.userId) {
-      return res.status(400).json({ message: "Image file is required" });
+    if (!req.user?.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     const topicId = Number(req.body.topicId);
+    const inputType =
+      req.body.inputType === InputType.TYPED ? InputType.TYPED : InputType.PHOTO;
 
     if (!topicId) {
       return res.status(400).json({ message: "topicId is required" });
+    }
+
+    if (inputType === InputType.TYPED) {
+      const content = typeof req.body.content === "string" ? req.body.content.trim() : "";
+
+      if (!content) {
+        return res.status(400).json({ message: "content is required for typed submissions" });
+      }
+
+      const topic = await prisma.topic.findUnique({ where: { id: topicId } });
+
+      if (!topic) {
+        return res.status(404).json({ message: "Topic not found" });
+      }
+
+      const submission = await prisma.submission.create({
+        data: {
+          inputType,
+          imageUrl: null,
+          content,
+          ocrStatus: OcrStatus.NONE,
+          ocrError: null,
+          extractedText: null,
+          aiFeedback: null,
+          topicId,
+          studentId: req.user.userId,
+        },
+      });
+
+      return res.status(201).json(submission);
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "image file is required for photo submissions" });
     }
 
     const topic = await prisma.topic.findUnique({ where: { id: topicId } });
@@ -24,7 +60,11 @@ export async function createSubmission(req: AuthRequest, res: Response) {
 
     const submission = await prisma.submission.create({
       data: {
+        inputType,
         imageUrl: `/uploads/${path.basename(req.file.path)}`,
+        content: null,
+        ocrStatus: OcrStatus.NONE,
+        ocrError: null,
         extractedText: null,
         aiFeedback: null,
         topicId,

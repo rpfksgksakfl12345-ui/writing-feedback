@@ -1,6 +1,8 @@
 export type Role = "TEACHER" | "STUDENT";
 
 export type SubmissionStatus = "PENDING" | "REVIEWED";
+export type InputType = "TYPED" | "PHOTO";
+export type OcrStatus = "NONE" | "PROCESSING" | "DONE" | "FAILED";
 
 export interface User {
   id: number;
@@ -22,7 +24,11 @@ export interface Topic {
 
 export interface Submission {
   id: number;
-  imageUrl: string;
+  inputType: InputType;
+  imageUrl: string | null;
+  content: string | null;
+  ocrStatus: OcrStatus;
+  ocrError: string | null;
   extractedText: string | null;
   aiFeedback: string | null;
   finalFeedback: string | null;

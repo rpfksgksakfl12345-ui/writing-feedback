@@ -10,12 +10,17 @@ import { API_BASE_URL, apiFetch } from "../../../lib/api";
 
 type SubmissionItem = {
   id: number;
-  imageUrl: string;
+  inputType: "TYPED" | "PHOTO";
+  imageUrl: string | null;
   status: "PENDING" | "REVIEWED";
   createdAt: string;
   student: { name: string; grade: number | null };
   topic: { title: string; grade: number };
 };
+
+function getInputTypeBadge(inputType: SubmissionItem["inputType"]) {
+  return inputType === "TYPED" ? "✏️" : "📷";
+}
 
 export default function TeacherSubmissionsPage() {
   const searchParams = useSearchParams();
@@ -46,7 +51,7 @@ export default function TeacherSubmissionsPage() {
         <div>
           <h1 className="text-xl font-semibold">제출물 목록</h1>
           <p className="mt-1 text-sm text-slate-600">
-            학생 제출을 확인하고, 필요한 건만 상세 화면에서 피드백을 저장하면 됩니다.
+            글로 쓴 제출과 사진 제출을 함께 확인하고 피드백을 저장할 수 있습니다.
           </p>
         </div>
         <Link className="text-sm font-medium text-slate-600 hover:text-slate-900" href="/teacher/topics">
@@ -76,16 +81,27 @@ export default function TeacherSubmissionsPage() {
             key={submission.id}
             className="grid gap-4 rounded-2xl border border-slate-200 p-4 md:grid-cols-[120px_1fr_auto]"
           >
-            <img
-              src={`${API_BASE_URL}${submission.imageUrl}`}
-              alt="제출 이미지"
-              className="h-28 w-full rounded-xl object-cover"
-            />
+            <div className="flex h-28 items-center justify-center rounded-xl bg-slate-100">
+              {submission.inputType === "PHOTO" && submission.imageUrl ? (
+                <img
+                  src={`${API_BASE_URL}${submission.imageUrl}`}
+                  alt="제출 이미지"
+                  className="h-28 w-full rounded-xl object-cover"
+                />
+              ) : (
+                <span className="text-3xl">{getInputTypeBadge(submission.inputType)}</span>
+              )}
+            </div>
             <div>
-              <p className="font-medium">{submission.topic.title}</p>
+              <p className="font-medium">
+                {getInputTypeBadge(submission.inputType)} {submission.topic.title}
+              </p>
               <p className="mt-1 text-sm text-slate-600">
                 {submission.student.name} / {submission.student.grade ?? "-"}학년 /{" "}
                 {submission.topic.grade}학년 주제
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                {submission.inputType === "TYPED" ? "글로 쓰기 제출" : "사진 제출"}
               </p>
               <div className="mt-3">
                 <StatusPill status={submission.status} />

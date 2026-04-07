@@ -12,6 +12,7 @@
     "prisma:seed": "prisma db seed"
   },
   "dependencies": {
+    "@google/genai": "^1.48.0",
     "@prisma/client": "^6.6.0",
     "@writing-feedback/shared-types": "*",
     "bcrypt": "^5.1.1",

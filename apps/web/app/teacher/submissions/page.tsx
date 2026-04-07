@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { NoticeBanner } from "../../../components/notice-banner";
 import { StatusPill } from "../../../components/status-pill";
@@ -19,10 +19,10 @@ type SubmissionItem = {
 };
 
 function getInputTypeBadge(inputType: SubmissionItem["inputType"]) {
-  return inputType === "TYPED" ? "✏️" : "📷";
+  return inputType === "TYPED" ? "타자" : "사진";
 }
 
-export default function TeacherSubmissionsPage() {
+function TeacherSubmissionsContent() {
   const searchParams = useSearchParams();
   const { token, user, isReady } = useAuth();
   const [submissions, setSubmissions] = useState<SubmissionItem[]>([]);
@@ -97,8 +97,7 @@ export default function TeacherSubmissionsPage() {
                 {getInputTypeBadge(submission.inputType)} {submission.topic.title}
               </p>
               <p className="mt-1 text-sm text-slate-600">
-                {submission.student.name} / {submission.student.grade ?? "-"}학년 /{" "}
-                {submission.topic.grade}학년 주제
+                {submission.student.name} / {submission.student.grade ?? "-"}학년 / {submission.topic.grade}학년 주제
               </p>
               <p className="mt-1 text-sm text-slate-500">
                 {submission.inputType === "TYPED" ? "글로 쓰기 제출" : "사진 제출"}
@@ -120,5 +119,13 @@ export default function TeacherSubmissionsPage() {
         {submissions.length === 0 ? <p className="text-sm text-slate-500">제출물이 없습니다.</p> : null}
       </div>
     </section>
+  );
+}
+
+export default function TeacherSubmissionsPage() {
+  return (
+    <Suspense fallback={<section className="rounded-2xl bg-white p-6 shadow-sm">불러오는 중...</section>}>
+      <TeacherSubmissionsContent />
+    </Suspense>
   );
 }

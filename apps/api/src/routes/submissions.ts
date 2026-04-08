@@ -9,6 +9,7 @@ import {
   getSubmissions,
   updateFeedback,
 } from "../controllers/submissionsController";
+import { createFeedbackDraft } from "../controllers/feedbackDraftController";
 import { authMiddleware, requireRoleMiddleware } from "../middlewares/auth";
 
 const uploadDir = path.resolve(process.cwd(), "uploads");
@@ -29,6 +30,7 @@ router.use(authMiddleware);
 router.post("/", requireRoleMiddleware(Role.STUDENT), upload.single("image"), createSubmission);
 router.get("/", getSubmissions);
 router.get("/:id", getSubmission);
+router.post("/:id/feedback-draft", requireRoleMiddleware(Role.TEACHER), createFeedbackDraft);
 router.patch("/:id/feedback", requireRoleMiddleware(Role.TEACHER), updateFeedback);
 
 export default router;

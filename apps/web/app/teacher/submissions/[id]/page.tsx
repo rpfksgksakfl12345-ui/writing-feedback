@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { NoticeBanner } from "../../../../components/notice-banner";
 import { StatusPill } from "../../../../components/status-pill";
@@ -21,19 +21,27 @@ type SubmissionDetail = {
   topic: { title: string; description: string | null; grade: number };
 };
 
+type FeedbackDraftResult = {
+  strengths: string[];
+  improvements: string[];
+  overall: string;
+};
+
 export default function SubmissionDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { token, user, isReady } = useAuth();
+
   const [submission, setSubmission] = useState<SubmissionDetail | null>(null);
   const [finalFeedback, setFinalFeedback] = useState("");
   const [error, setError] = useState("");
+  const [draftError, setDraftError] = useState("");
+  const [draftMessage, setDraftMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
 
   async function loadSubmission() {
-    if (!token) {
-      return;
-    }
+    if (!token) return;
 
     try {
       const data = await apiFetch<SubmissionDetail>(`/api/submissions/${params.id}`, { token });
@@ -48,13 +56,50 @@ export default function SubmissionDetailPage() {
     void loadSubmission();
   }, [params.id, token]);
 
+  async function handleGenerateDraft() {
+    if (!token || !submission || isGeneratingDraft) return;
+
+    setDraftError("");
+    setDraftMessage("");
+    setIsGeneratingDraft(true);
+
+    try {
+      const draft = await apiFetch<FeedbackDraftResult>(`/api/submissions/${params.id}/feedback-draft`, {
+        method: "POST",
+        token,
+      });
+
+      const nextFeedback = [
+        "칭찬할 점",
+        ...draft.strengths.map((item) => `- ${item}`),
+        "",
+        "개선하면 좋은 점",
+        ...draft.improvements.map((item) => `- ${item}`),
+        "",
+        "총평",
+        draft.overall,
+      ].join("\n");
+
+      setFinalFeedback(nextFeedback);
+      setDraftMessage("AI 초안이 입력칸에 반영되었습니다. 저장 전에 꼭 검토해 주세요.");
+    } catch (generateError) {
+      setDraftError(
+        generateError instanceof Error
+          ? generateError.message
+          : "AI 피드백 초안 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+      );
+    } finally {
+      setIsGeneratingDraft(false);
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setIsSaving(true);
 
     try {
-      await apiFetch<SubmissionDetail>(`/api/submissions/${params.id}/feedback`, {
+      await apiFetch(`/api/submissions/${params.id}/feedback`, {
         method: "PATCH",
         token,
         body: JSON.stringify({ finalFeedback }),
@@ -79,6 +124,8 @@ export default function SubmissionDetailPage() {
     return <p className="rounded-xl bg-white p-6 shadow-sm">불러오는 중...</p>;
   }
 
+  const canGenerateDraft = submission.inputType === "TYPED" || submission.ocrStatus === "DONE";
+
   return (
     <div className="space-y-6">
       <section className="rounded-2xl bg-white p-6 shadow-sm">
@@ -91,6 +138,7 @@ export default function SubmissionDetailPage() {
           </div>
           <StatusPill status={submission.status} />
         </div>
+
         <p className="mt-2 text-sm leading-6 text-slate-600">{submission.topic.description || "설명 없음"}</p>
         <p className="mt-2 text-sm text-slate-500">
           {submission.student.name} / {submission.student.grade ?? "-"}학년 /{" "}
@@ -101,7 +149,7 @@ export default function SubmissionDetailPage() {
           <div className="mt-4 rounded-2xl bg-slate-50 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">제출 내용</p>
             <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-700">
-              {submission.content}
+              {submission.content || "제출 내용이 없습니다."}
             </p>
           </div>
         ) : (
@@ -122,20 +170,52 @@ export default function SubmissionDetailPage() {
       </section>
 
       <section className="rounded-2xl bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold">교사 피드백</h2>
-        <p className="mt-2 text-sm text-slate-600">
-          저장하면 제출물 목록으로 돌아가 다음 학생 작업을 바로 이어갈 수 있습니다.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-semibold">교사 피드백</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              AI 초안은 자동 저장되지 않습니다. 생성 후 꼭 검토하고 저장해 주세요.
+            </p>
+          </div>
+          <button type="button" onClick={handleGenerateDraft} disabled={!canGenerateDraft || isGeneratingDraft}>
+            {isGeneratingDraft ? "AI 초안 생성 중..." : "AI 피드백 초안 생성"}
+          </button>
+        </div>
+
+        {!canGenerateDraft ? (
+          <div className="mt-4">
+            <NoticeBanner
+              tone="error"
+              title="AI 초안 생성 불가"
+              description="사진 제출은 OCR이 완료된 뒤에만 AI 초안을 만들 수 있습니다."
+            />
+          </div>
+        ) : null}
+
+        {draftMessage ? (
+          <div className="mt-4">
+            <NoticeBanner tone="success" title="AI 초안 반영 완료" description={draftMessage} />
+          </div>
+        ) : null}
+
+        {draftError ? (
+          <div className="mt-4">
+            <NoticeBanner tone="error" title="AI 초안 생성 실패" description={draftError} />
+          </div>
+        ) : null}
+
         <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
           <textarea
-            rows={8}
+            rows={10}
             value={finalFeedback}
             onChange={(event) => setFinalFeedback(event.target.value)}
-            placeholder="학생에게 보여 줄 최종 피드백을 입력하세요."
+            placeholder="학생에게 보여 줄 최종 피드백을 입력해 주세요."
           />
+
           {error ? <NoticeBanner tone="error" title="피드백 저장 실패" description={error} /> : null}
+
           <div className="flex flex-wrap gap-3">
-            <button disabled={isSaving} type="submit">
+            <button type="submit" disabled={isSaving}>
               {isSaving ? "저장 중..." : "저장하고 제출 목록으로"}
             </button>
             <Link

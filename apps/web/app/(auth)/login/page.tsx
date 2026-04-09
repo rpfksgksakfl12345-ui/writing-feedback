@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../components/auth-provider";
 import { apiFetch } from "../../../lib/api";
@@ -18,11 +18,19 @@ type LoginResponse = {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user, isReady } = useAuth();
   const [email, setEmail] = useState("teacher@test.com");
   const [password, setPassword] = useState("password123");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isReady || !user) {
+      return;
+    }
+
+    router.replace(user.role === "TEACHER" ? "/teacher/topics" : "/student/upload");
+  }, [isReady, router, user]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,7 +44,7 @@ export default function LoginPage() {
       });
 
       login(response.token, response.user);
-      router.push(response.user.role === "TEACHER" ? "/teacher/topics" : "/student/upload");
+      router.replace(response.user.role === "TEACHER" ? "/teacher/topics" : "/student/upload");
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "로그인에 실패했습니다.");
     } finally {

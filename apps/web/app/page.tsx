@@ -1,11 +1,26 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../components/auth-provider";
 
 export default function HomePage() {
+  const router = useRouter();
   const { isReady, user } = useAuth();
   const isLoggedIn = isReady && Boolean(user);
+
+  useEffect(() => {
+    if (!isReady || !user) {
+      return;
+    }
+
+    router.replace(user.role === "TEACHER" ? "/teacher/topics" : "/student/upload");
+  }, [isReady, router, user]);
+
+  if (isLoggedIn) {
+    return <p className="rounded-xl bg-white p-6 shadow-sm">Redirecting to your workspace...</p>;
+  }
 
   return (
     <div className="space-y-6">

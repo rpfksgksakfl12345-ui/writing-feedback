@@ -45,8 +45,16 @@ The API reads variables from [apps/api/.env](C:/Users/01028091334/writing-feedba
 - `DATABASE_URL`: local Docker PostgreSQL connection string
 - `JWT_SECRET`: JWT signing secret for local auth
 - `PORT`: API port, default `4000`
+- `GOOGLE_CLOUD_PROJECT`: Vertex AI project for topic suggestions and AI feedback drafts
+- `GOOGLE_CLOUD_LOCATION`: Vertex AI location for topic suggestions and AI feedback drafts
+- `GOOGLE_GENAI_USE_VERTEXAI`: must be `true` for the existing Gemini-on-Vertex flows
+- `GOOGLE_CLOUD_DOCUMENTAI_PROJECT`: Document AI project for photo OCR. Falls back to `GOOGLE_CLOUD_PROJECT` when omitted.
+- `GOOGLE_CLOUD_DOCUMENTAI_LOCATION`: Document AI processor location for photo OCR
+- `GOOGLE_CLOUD_DOCUMENTAI_PROCESSOR_ID`: Document AI processor ID for photo OCR
 
 If you need to reset the local API config, copy [apps/api/.env.example](C:/Users/01028091334/writing-feedback/apps/api/.env.example) to `apps/api/.env`.
+
+Google Cloud authentication for both Vertex AI and Document AI still relies on Application Default Credentials. In local development, that usually means setting `GOOGLE_APPLICATION_CREDENTIALS` to a service account JSON file path or using an equivalent ADC setup.
 
 ## Seed Accounts
 

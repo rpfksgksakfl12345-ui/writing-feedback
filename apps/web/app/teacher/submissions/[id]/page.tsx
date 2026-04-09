@@ -13,6 +13,8 @@ type SubmissionDetail = {
   inputType: "TYPED" | "PHOTO";
   imageUrl: string | null;
   content: string | null;
+  ocrExtractedText: string | null;
+  editedExtractedText: string | null;
   extractedText: string | null;
   finalFeedback: string | null;
   status: "PENDING" | "REVIEWED";
@@ -41,6 +43,23 @@ function getOcrStatusLabel(ocrStatus: SubmissionDetail["ocrStatus"]) {
   }
 }
 
+function getSavedPhotoText(
+  submission: Pick<SubmissionDetail, "editedExtractedText" | "ocrExtractedText" | "extractedText">,
+) {
+  return (
+    submission.editedExtractedText?.trim() ||
+    submission.ocrExtractedText?.trim() ||
+    submission.extractedText?.trim() ||
+    ""
+  );
+}
+
+function getEditableExtractedText(
+  submission: Pick<SubmissionDetail, "editedExtractedText" | "ocrExtractedText" | "extractedText">,
+) {
+  return submission.editedExtractedText || submission.extractedText || submission.ocrExtractedText || "";
+}
+
 export default function SubmissionDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -66,7 +85,7 @@ export default function SubmissionDetailPage() {
     try {
       const data = await apiFetch<SubmissionDetail>(`/api/submissions/${params.id}`, { token });
       setSubmission(data);
-      setEditableExtractedText(data.extractedText || "");
+      setEditableExtractedText(getEditableExtractedText(data));
       setFinalFeedback(data.finalFeedback || "");
       setError("");
     } catch (loadError) {
@@ -101,10 +120,10 @@ export default function SubmissionDetailPage() {
 
     if (
       submission.inputType === "PHOTO" &&
-      editableExtractedText !== (submission.extractedText || "")
+      editableExtractedText !== getEditableExtractedText(submission)
     ) {
       setDraftMessage("");
-      setDraftError("Save the edited extracted text before generating an AI draft.");
+      setDraftError("Save the edited text before generating an AI draft.");
       return;
     }
 
@@ -156,7 +175,9 @@ export default function SubmissionDetailPage() {
     setIsSavingExtractedText(true);
 
     try {
-      const updatedSubmission = await apiFetch<{ extractedText: string | null }>(
+      const updatedSubmission = await apiFetch<
+        Pick<SubmissionDetail, "ocrExtractedText" | "editedExtractedText" | "extractedText">
+      >(
         `/api/submissions/${params.id}/extracted-text`,
         {
           method: "PATCH",
@@ -165,18 +186,20 @@ export default function SubmissionDetailPage() {
         },
       );
 
-      const nextExtractedText = updatedSubmission.extractedText || "";
+      const nextEditableExtractedText = getEditableExtractedText(updatedSubmission);
 
       setSubmission((current) =>
         current
           ? {
               ...current,
-              extractedText: nextExtractedText,
+              ocrExtractedText: updatedSubmission.ocrExtractedText,
+              editedExtractedText: updatedSubmission.editedExtractedText,
+              extractedText: updatedSubmission.extractedText,
             }
           : current,
       );
-      setEditableExtractedText(nextExtractedText);
-      setExtractedTextMessage("Extracted text saved.");
+      setEditableExtractedText(nextEditableExtractedText);
+      setExtractedTextMessage("Edited text saved.");
     } catch (saveError) {
       setExtractedTextError(
         saveError instanceof Error ? saveError.message : "Failed to save extracted text.",
@@ -213,23 +236,23 @@ export default function SubmissionDetailPage() {
     return <p className="rounded-xl bg-white p-6 shadow-sm">Loading submission...</p>;
   }
 
+  const savedPhotoText = getSavedPhotoText(submission);
+  const savedEditableExtractedText = getEditableExtractedText(submission);
+  const originalOcrText = submission.ocrExtractedText?.trim() || "";
   const canEditExtractedText = submission.inputType === "PHOTO" && submission.ocrStatus === "DONE";
   const hasUnsavedExtractedTextChanges =
-    submission.inputType === "PHOTO" &&
-    editableExtractedText !== (submission.extractedText || "");
+    submission.inputType === "PHOTO" && editableExtractedText !== savedEditableExtractedText;
   const canGenerateDraft =
     submission.inputType === "TYPED" ||
     (submission.inputType === "PHOTO" &&
       submission.ocrStatus === "DONE" &&
-      Boolean(submission.extractedText?.trim()) &&
+      Boolean(savedPhotoText) &&
       !hasUnsavedExtractedTextChanges);
   const draftUnavailableDescription =
     submission.inputType === "PHOTO" && hasUnsavedExtractedTextChanges
-      ? "Save the edited extracted text before generating an AI draft."
-      : submission.inputType === "PHOTO" &&
-          submission.ocrStatus === "DONE" &&
-          !submission.extractedText?.trim()
-        ? "Add and save extracted text before generating an AI draft."
+      ? "Save the edited text before generating an AI draft."
+      : submission.inputType === "PHOTO" && submission.ocrStatus === "DONE" && !savedPhotoText
+        ? "Add and save text before generating an AI draft."
         : "Photo submissions can generate a draft only after OCR completes.";
 
   return (
@@ -276,13 +299,26 @@ export default function SubmissionDetailPage() {
 
         {submission.inputType === "PHOTO" ? (
           <div className="mt-4 rounded-2xl bg-slate-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Original OCR Text</p>
+            {originalOcrText ? (
+              <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-700">{submission.ocrExtractedText}</p>
+            ) : (
+              <p className="mt-3 text-sm text-slate-500">
+                Original OCR text is unavailable for this submission.
+              </p>
+            )}
+          </div>
+        ) : null}
+
+        {submission.inputType === "PHOTO" ? (
+          <div className="mt-4 rounded-2xl bg-slate-50 p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                  Extracted Text
+                  Teacher Edited Text
                 </p>
                 <p className="mt-2 text-sm text-slate-600">
-                  Review and edit the OCR text before generating an AI draft.
+                  This text is used for AI draft generation when saved.
                 </p>
               </div>
               <button
@@ -290,7 +326,7 @@ export default function SubmissionDetailPage() {
                 onClick={handleSaveExtractedText}
                 disabled={!canEditExtractedText || isSavingExtractedText}
               >
-                {isSavingExtractedText ? "Saving..." : "Save Extracted Text"}
+                {isSavingExtractedText ? "Saving..." : "Save Edited Text"}
               </button>
             </div>
 
@@ -309,13 +345,13 @@ export default function SubmissionDetailPage() {
 
             {!canEditExtractedText ? (
               <p className="mt-2 text-sm text-slate-500">
-                Extracted text can be edited after OCR completes.
+                Edited text can be saved after OCR completes.
               </p>
             ) : null}
 
             {extractedTextMessage ? (
               <div className="mt-4">
-                <NoticeBanner tone="success" title="Extracted text saved" description={extractedTextMessage} />
+                <NoticeBanner tone="success" title="Edited text saved" description={extractedTextMessage} />
               </div>
             ) : null}
 

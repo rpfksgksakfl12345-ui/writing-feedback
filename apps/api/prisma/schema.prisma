@@ -59,6 +59,8 @@ model Submission {
   content       String?
   ocrStatus     OcrStatus        @default(NONE)
   ocrError      String?
+  ocrExtractedText String?
+  editedExtractedText String?
   extractedText String?
   aiFeedback    String?
   finalFeedback String?

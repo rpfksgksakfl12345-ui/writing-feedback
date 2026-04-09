@@ -18,6 +18,19 @@ function getMimeTypeFromImagePath(imagePath: string) {
   }
 }
 
+function normalizeSubmissionText(rawText: string | null | undefined) {
+  if (!rawText) {
+    return "";
+  }
+
+  return rawText
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .join("\n")
+    .trim();
+}
+
 async function resumePendingPhotoOcr(submission: {
   id: number;
   inputType: InputType;
@@ -221,10 +234,21 @@ export async function updateExtractedText(req: AuthRequest, res: Response) {
       return res.status(400).json({ message: "Extracted text can be edited only after OCR completes" });
     }
 
+    const normalizedOriginalText =
+      normalizeSubmissionText(submission.ocrExtractedText) ||
+      normalizeSubmissionText(submission.extractedText);
+    const normalizedEditedText = normalizeSubmissionText(rawExtractedText);
+    const nextEditedExtractedText =
+      normalizedEditedText && normalizedEditedText !== normalizedOriginalText
+        ? normalizedEditedText
+        : null;
+    const nextExtractedText = nextEditedExtractedText || normalizedOriginalText || null;
+
     const updatedSubmission = await prisma.submission.update({
       where: { id: submissionId },
       data: {
-        extractedText: rawExtractedText.replace(/\r\n/g, "\n").trim(),
+        editedExtractedText: nextEditedExtractedText,
+        extractedText: nextExtractedText,
       },
     });
 

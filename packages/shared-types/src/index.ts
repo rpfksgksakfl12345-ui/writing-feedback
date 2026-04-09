@@ -29,6 +29,8 @@ export interface Submission {
   content: string | null;
   ocrStatus: OcrStatus;
   ocrError: string | null;
+  ocrExtractedText: string | null;
+  editedExtractedText: string | null;
   extractedText: string | null;
   aiFeedback: string | null;
   finalFeedback: string | null;

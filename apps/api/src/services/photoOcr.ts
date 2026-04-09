@@ -152,6 +152,8 @@ export async function runSubmissionOcr(params: {
       where: { id: params.submissionId },
       data: {
         ocrStatus: OcrStatus.DONE,
+        ocrExtractedText: extractedText,
+        editedExtractedText: null,
         extractedText,
         ocrError: null,
       },
@@ -166,6 +168,8 @@ export async function runSubmissionOcr(params: {
         where: { id: params.submissionId },
         data: {
           ocrStatus: OcrStatus.FAILED,
+          ocrExtractedText: null,
+          editedExtractedText: null,
           extractedText: null,
           ocrError,
         },

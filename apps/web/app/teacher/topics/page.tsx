@@ -146,12 +146,12 @@ export default function TeacherTopicsPage() {
               </select>
             </div>
             <button disabled={isGenerating} onClick={handleGenerateTopics} type="button">
-              {isGenerating ? "추천 생성 중..." : "AI로 주제 5개 추천"}
+              {isGenerating ? "추천 생성 중..." : "AI로 주제 10개 추천"}
             </button>
           </div>
 
           <p className="mt-3 text-sm text-slate-600">
-            버튼을 누를 때에만 AI를 호출하며, 추천 결과는 자동 저장되지 않습니다.
+            버튼을 누를 때에만 AI를 호출하며, 학년과 현재 시기를 반영한 주제 10개를 추천합니다.
           </p>
 
           {aiError ? (
@@ -163,7 +163,7 @@ export default function TeacherTopicsPage() {
           {suggestedTopics.length > 0 ? (
             <div className="mt-4 space-y-3">
               <p className="text-sm font-medium text-slate-700">
-                추천 결과에서 하나를 고른 뒤 기존 주제 입력칸으로 넣을 수 있습니다.
+                추천 결과 10개 중 하나를 고른 뒤 기존 주제 입력칸으로 넣을 수 있습니다.
               </p>
 
               {suggestedTopics.map((suggestion) => (

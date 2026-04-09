@@ -7,6 +7,7 @@ import {
   createSubmission,
   getSubmission,
   getSubmissions,
+  updateExtractedText,
   updateFeedback,
 } from "../controllers/submissionsController";
 import { createFeedbackDraft } from "../controllers/feedbackDraftController";
@@ -31,6 +32,7 @@ router.post("/", requireRoleMiddleware(Role.STUDENT), upload.single("image"), cr
 router.get("/", getSubmissions);
 router.get("/:id", getSubmission);
 router.post("/:id/feedback-draft", requireRoleMiddleware(Role.TEACHER), createFeedbackDraft);
+router.patch("/:id/extracted-text", requireRoleMiddleware(Role.TEACHER), updateExtractedText);
 router.patch("/:id/feedback", requireRoleMiddleware(Role.TEACHER), updateFeedback);
 
 export default router;

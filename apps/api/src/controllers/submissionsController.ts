@@ -2,7 +2,61 @@ import path from "path";
 import { Response } from "express";
 import { InputType, OcrStatus, SubmissionStatus } from "@prisma/client";
 import { prisma } from "../services/prisma";
+import { runSubmissionOcr } from "../services/photoOcr";
 import { AuthRequest } from "../types";
+
+function getMimeTypeFromImagePath(imagePath: string) {
+  switch (path.extname(imagePath).toLowerCase()) {
+    case ".png":
+      return "image/png";
+    case ".webp":
+      return "image/webp";
+    case ".gif":
+      return "image/gif";
+    default:
+      return "image/jpeg";
+  }
+}
+
+async function resumePendingPhotoOcr(submission: {
+  id: number;
+  inputType: InputType;
+  ocrStatus: OcrStatus;
+  imageUrl: string | null;
+}) {
+  if (
+    submission.inputType !== InputType.PHOTO ||
+    submission.ocrStatus !== OcrStatus.NONE ||
+    !submission.imageUrl
+  ) {
+    return false;
+  }
+
+  const imagePath = path.resolve(process.cwd(), "uploads", path.basename(submission.imageUrl));
+  const claimedSubmission = await prisma.submission.updateMany({
+    where: {
+      id: submission.id,
+      inputType: InputType.PHOTO,
+      ocrStatus: OcrStatus.NONE,
+    },
+    data: {
+      ocrStatus: OcrStatus.PROCESSING,
+      ocrError: null,
+    },
+  });
+
+  if (claimedSubmission.count === 0) {
+    return false;
+  }
+
+  void runSubmissionOcr({
+    submissionId: submission.id,
+    imagePath,
+    mimeType: getMimeTypeFromImagePath(imagePath),
+  });
+
+  return true;
+}
 
 export async function createSubmission(req: AuthRequest, res: Response) {
   try {
@@ -63,13 +117,19 @@ export async function createSubmission(req: AuthRequest, res: Response) {
         inputType,
         imageUrl: `/uploads/${path.basename(req.file.path)}`,
         content: null,
-        ocrStatus: OcrStatus.NONE,
+        ocrStatus: OcrStatus.PROCESSING,
         ocrError: null,
         extractedText: null,
         aiFeedback: null,
         topicId,
         studentId: req.user.userId,
       },
+    });
+
+    void runSubmissionOcr({
+      submissionId: submission.id,
+      imagePath: req.file.path,
+      mimeType: req.file.mimetype || "image/jpeg",
     });
 
     return res.status(201).json(submission);
@@ -121,9 +181,56 @@ export async function getSubmission(req: AuthRequest, res: Response) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
+    const resumedOcr = await resumePendingPhotoOcr(submission);
+
+    if (resumedOcr) {
+      submission.ocrStatus = OcrStatus.PROCESSING;
+      submission.ocrError = null;
+    }
+
     return res.json(submission);
   } catch (error) {
     return res.status(500).json({ message: "Failed to load submission", error });
+  }
+}
+
+export async function updateExtractedText(req: AuthRequest, res: Response) {
+  try {
+    const submissionId = Number(req.params.id);
+    const rawExtractedText = req.body?.extractedText;
+
+    if (!Number.isInteger(submissionId) || submissionId < 1) {
+      return res.status(400).json({ message: "Invalid submission ID" });
+    }
+
+    if (typeof rawExtractedText !== "string") {
+      return res.status(400).json({ message: "extractedText is required" });
+    }
+
+    const submission = await prisma.submission.findUnique({ where: { id: submissionId } });
+
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    if (submission.inputType !== InputType.PHOTO) {
+      return res.status(400).json({ message: "Only photo submissions can update extracted text" });
+    }
+
+    if (submission.ocrStatus !== OcrStatus.DONE) {
+      return res.status(400).json({ message: "Extracted text can be edited only after OCR completes" });
+    }
+
+    const updatedSubmission = await prisma.submission.update({
+      where: { id: submissionId },
+      data: {
+        extractedText: rawExtractedText.replace(/\r\n/g, "\n").trim(),
+      },
+    });
+
+    return res.json(updatedSubmission);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to save extracted text", error });
   }
 }
 

@@ -7,6 +7,8 @@
     "packages/*"
   ],
   "scripts": {
+    "dev:boot": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/dev-boot.ps1",
+    "dev:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/dev-stop.ps1",
     "dev": "concurrently \"npm run dev --workspace @writing-feedback/api\" \"npm run dev --workspace @writing-feedback/web\"",
     "build": "npm run build --workspace @writing-feedback/api && npm run build --workspace @writing-feedback/web",
     "lint": "npm run lint --workspace @writing-feedback/web",

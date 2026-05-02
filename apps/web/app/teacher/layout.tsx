@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "../../components/auth-provider";
 
 const teacherLinks = [
+  { href: "/teacher/classrooms", label: "Classrooms" },
   { href: "/teacher/topics", label: "Topic Management" },
   { href: "/teacher/submissions", label: "Submission Review" },
 ];

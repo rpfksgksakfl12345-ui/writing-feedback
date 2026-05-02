@@ -323,6 +323,67 @@ export default function TeacherClassroomDetailPage() {
           ) : null}
         </section>
       </section>
+
+      {classroom && !isLoading && students.length > 0 ? (
+        <section className="border-t border-[#E8DEC7] bg-[#FFFAF0]/65 px-8 pb-10 pt-7">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+                Login Guide Cards
+              </p>
+              <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">학생 로그인 안내 카드</h2>
+              <p className="mt-2 text-sm leading-6 text-[#5A5247]">
+                학생에게는 학급코드, 번호, 로그인 비밀번호만 안내합니다.
+              </p>
+            </div>
+            <Badge tone="teacher">{students.length}장</Badge>
+          </div>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {students.map((student) => (
+              <article
+                className="break-inside-avoid rounded-xl border border-[#E8DEC7] bg-paper-base p-5 shadow-sm"
+                key={`login-card-${student.id}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8B8170]">
+                      Writing Feedback
+                    </p>
+                    <h3 className="mt-2 text-xl font-bold text-[#2E2A24]">{student.name}</h3>
+                  </div>
+                  <Badge tone="teacher">{student.studentNumber}번</Badge>
+                </div>
+
+                <div className="mt-5 grid gap-3 text-sm">
+                  <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0] px-3 py-2">
+                    <p className="text-xs text-[#8B8170]">학급코드</p>
+                    <p className="mt-1 font-mono text-lg font-bold tracking-[0.14em] text-teacher-accent">
+                      {classroom.classCode}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0] px-3 py-2">
+                      <p className="text-xs text-[#8B8170]">번호</p>
+                      <p className="mt-1 text-lg font-bold text-[#2E2A24]">{student.studentNumber}</p>
+                    </div>
+                    <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0] px-3 py-2">
+                      <p className="text-xs text-[#8B8170]">로그인 비밀번호</p>
+                      <p className="mt-1 font-mono text-lg font-bold text-[#2E2A24]">
+                        {student.classroomLoginPassword}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="mt-4 rounded-lg bg-[#F4ECD9] px-3 py-2 text-xs leading-5 text-[#5A5247]">
+                  로그인 화면에서 학생 로그인을 선택한 뒤 위 정보를 순서대로 입력하세요.
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

@@ -8,6 +8,12 @@ type SessionUser = {
   name: string;
   role: "TEACHER" | "STUDENT";
   grade?: number | null;
+  studentProfile?: {
+    classroomId: number;
+    classroomName: string;
+    classCode: string;
+    studentNumber: number;
+  } | null;
 };
 
 type AuthContextValue = {

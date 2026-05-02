@@ -71,6 +71,15 @@ async function resumePendingPhotoOcr(submission: {
   return true;
 }
 
+async function getStudentClassroomId(userId: number) {
+  const studentProfile = await prisma.studentProfile.findUnique({
+    where: { userId },
+    select: { classroomId: true },
+  });
+
+  return studentProfile?.classroomId ?? null;
+}
+
 export async function createSubmission(req: AuthRequest, res: Response) {
   try {
     if (!req.user?.userId) {
@@ -85,17 +94,23 @@ export async function createSubmission(req: AuthRequest, res: Response) {
       return res.status(400).json({ message: "topicId is required" });
     }
 
+    const topic = await prisma.topic.findUnique({ where: { id: topicId } });
+
+    if (!topic) {
+      return res.status(404).json({ message: "Topic not found" });
+    }
+
+    const studentClassroomId = await getStudentClassroomId(req.user.userId);
+
+    if (topic.classroomId && topic.classroomId !== studentClassroomId) {
+      return res.status(403).json({ message: "Topic is not available for this classroom" });
+    }
+
     if (inputType === InputType.TYPED) {
       const content = typeof req.body.content === "string" ? req.body.content.trim() : "";
 
       if (!content) {
         return res.status(400).json({ message: "content is required for typed submissions" });
-      }
-
-      const topic = await prisma.topic.findUnique({ where: { id: topicId } });
-
-      if (!topic) {
-        return res.status(404).json({ message: "Topic not found" });
       }
 
       const submission = await prisma.submission.create({
@@ -109,6 +124,7 @@ export async function createSubmission(req: AuthRequest, res: Response) {
           aiFeedback: null,
           topicId,
           studentId: req.user.userId,
+          classroomId: studentClassroomId,
         },
       });
 
@@ -117,12 +133,6 @@ export async function createSubmission(req: AuthRequest, res: Response) {
 
     if (!req.file) {
       return res.status(400).json({ message: "image file is required for photo submissions" });
-    }
-
-    const topic = await prisma.topic.findUnique({ where: { id: topicId } });
-
-    if (!topic) {
-      return res.status(404).json({ message: "Topic not found" });
     }
 
     const submission = await prisma.submission.create({
@@ -136,6 +146,7 @@ export async function createSubmission(req: AuthRequest, res: Response) {
         aiFeedback: null,
         topicId,
         studentId: req.user.userId,
+        classroomId: studentClassroomId,
       },
     });
 
@@ -153,8 +164,26 @@ export async function createSubmission(req: AuthRequest, res: Response) {
 
 export async function getSubmissions(req: AuthRequest, res: Response) {
   try {
+    const teacherClassroomIds =
+      req.user?.role === "TEACHER" && req.user.userId
+        ? (
+            await prisma.classroom.findMany({
+              where: { teacherId: req.user.userId },
+              select: { id: true },
+            })
+          ).map((classroom) => classroom.id)
+        : [];
+
     const submissions = await prisma.submission.findMany({
-      where: req.user?.role === "TEACHER" ? undefined : { studentId: req.user?.userId },
+      where:
+        req.user?.role === "TEACHER"
+          ? {
+              OR: [
+                { classroomId: { in: teacherClassroomIds } },
+                { topic: { teacherId: req.user.userId } },
+              ],
+            }
+          : { studentId: req.user?.userId },
       include: {
         student: {
           select: { id: true, name: true, email: true, grade: true },
@@ -181,7 +210,13 @@ export async function getSubmission(req: AuthRequest, res: Response) {
           select: { id: true, name: true, email: true, grade: true },
         },
         topic: {
-          select: { id: true, title: true, description: true, grade: true },
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            grade: true,
+            teacherId: true,
+          },
         },
       },
     });
@@ -190,7 +225,21 @@ export async function getSubmission(req: AuthRequest, res: Response) {
       return res.status(404).json({ message: "Submission not found" });
     }
 
-    if (req.user?.role !== "TEACHER" && submission.studentId !== req.user?.userId) {
+    if (req.user?.role === "TEACHER") {
+      const ownedClassroom = submission.classroomId
+        ? await prisma.classroom.findFirst({
+            where: {
+              id: submission.classroomId,
+              teacherId: req.user.userId,
+            },
+            select: { id: true },
+          })
+        : null;
+
+      if (submission.topic.teacherId !== req.user.userId && !ownedClassroom) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+    } else if (submission.studentId !== req.user?.userId) {
       return res.status(403).json({ message: "Forbidden" });
     }
 

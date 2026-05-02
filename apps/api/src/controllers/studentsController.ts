@@ -5,6 +5,19 @@ import { AuthRequest } from "../types";
 export async function getStudentSubmissions(req: AuthRequest, res: Response) {
   try {
     const studentId = Number(req.params.studentId);
+    const studentProfile = await prisma.studentProfile.findUnique({
+      where: { userId: studentId },
+      include: {
+        classroom: {
+          select: { teacherId: true },
+        },
+      },
+    });
+
+    if (studentProfile && studentProfile.classroom.teacherId !== req.user?.userId) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
     const submissions = await prisma.submission.findMany({
       where: { studentId },
       include: {

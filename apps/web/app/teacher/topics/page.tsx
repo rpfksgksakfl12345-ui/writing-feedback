@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useEffect, useState } from "react";
 import { NoticeBanner } from "../../../components/notice-banner";
 import { useAuth } from "../../../components/auth-provider";
+import { Badge, PrimaryButton, SecondaryButton } from "../../../components/ui-v2";
 import { apiFetch } from "../../../lib/api";
 
 type Topic = {
@@ -17,6 +18,19 @@ type TopicSuggestionResult = {
   topics: string[];
 };
 
+function formatTopicDate(createdAt: string) {
+  const date = new Date(createdAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return "생성일 정보 없음";
+  }
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "long",
+    day: "numeric",
+  }).format(date);
+}
+
 export default function TeacherTopicsPage() {
   const { token, user, isReady } = useAuth();
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -27,6 +41,7 @@ export default function TeacherTopicsPage() {
   const [error, setError] = useState("");
   const [aiError, setAiError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoadingTopics, setIsLoadingTopics] = useState(true);
   const [suggestedTopics, setSuggestedTopics] = useState<string[]>([]);
   const [selectedSuggestion, setSelectedSuggestion] = useState("");
 
@@ -35,11 +50,15 @@ export default function TeacherTopicsPage() {
       return;
     }
 
+    setIsLoadingTopics(true);
+
     try {
       const data = await apiFetch<Topic[]>("/api/topics", { token });
       setTopics(data);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "주제를 불러오지 못했습니다.");
+    } finally {
+      setIsLoadingTopics(false);
     }
   }
 
@@ -118,120 +137,251 @@ export default function TeacherTopicsPage() {
   }
 
   if (isReady && user?.role !== "TEACHER") {
-    return <p className="rounded-xl bg-white p-6 shadow-sm">교사 계정만 접근할 수 있습니다.</p>;
+    return (
+      <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-6 text-[#5A5247] shadow-sm">
+        교사 계정만 접근할 수 있습니다.
+      </section>
+    );
   }
 
-  return (
-    <div className="space-y-6">
-      <section className="rounded-2xl bg-white p-6 shadow-sm">
-        <div>
-          <h1 className="text-xl font-semibold">주제 생성</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            학생이 바로 선택할 수 있도록 학년과 주제를 등록합니다.
-          </p>
-        </div>
+  const gradeOptions = [1, 2, 3, 4, 5, 6];
+  const currentGradeTopicCount = topics.filter((topic) => String(topic.grade) === grade).length;
 
-        <div className="mt-6 rounded-2xl border border-slate-200 p-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700" htmlFor="ai-grade">
-                추천 받을 학년
-              </label>
-              <select id="ai-grade" value={grade} onChange={(event) => setGrade(event.target.value)}>
-                {[1, 2, 3, 4, 5, 6].map((value) => (
-                  <option key={value} value={value}>
-                    {value}학년
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button disabled={isGenerating} onClick={handleGenerateTopics} type="button">
-              {isGenerating ? "추천 생성 중..." : "AI로 주제 10개 추천"}
-            </button>
+  return (
+    <div className="overflow-hidden rounded-[28px] border border-[#E8DEC7] bg-paper-base shadow-sm">
+      <section className="bg-[radial-gradient(rgba(90,110,133,.05)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-teacher-accent">Teacher Topics</p>
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#2E2A24]">
+              글쓰기 주제 관리
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#5A5247]">
+              학년별 글쓰기 주제를 만들고, 학생 책장에 꽂힐 주제를 준비합니다.
+            </p>
           </div>
 
-          <p className="mt-3 text-sm text-slate-600">
-            버튼을 누를 때에만 AI를 호출하며, 학년과 현재 시기를 반영한 주제 10개를 추천합니다.
-          </p>
-
-          {aiError ? (
-            <div className="mt-4">
-              <NoticeBanner tone="error" title="AI 추천 실패" description={aiError} />
+          <div className="grid min-w-[260px] grid-cols-2 gap-3 rounded-xl border border-[#E8DEC7] bg-[#FFFAF0]/85 p-4 shadow-sm">
+            <div>
+              <p className="text-xs text-[#8B8170]">전체 주제</p>
+              <p className="mt-1 text-lg font-semibold text-[#2E2A24]">{topics.length}</p>
             </div>
-          ) : null}
-
-          {suggestedTopics.length > 0 ? (
-            <div className="mt-4 space-y-3">
-              <p className="text-sm font-medium text-slate-700">
-                추천 결과 10개 중 하나를 고른 뒤 기존 주제 입력칸으로 넣을 수 있습니다.
+            <div>
+              <p className="text-xs text-[#8B8170]">선택 학년</p>
+              <p className="mt-1 text-lg font-semibold text-teacher-accent">
+                {grade}학년 · {currentGradeTopicCount}
               </p>
-
-              {suggestedTopics.map((suggestion) => (
-                <label
-                  key={suggestion}
-                  className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3"
-                >
-                  <input
-                    checked={selectedSuggestion === suggestion}
-                    name="topicSuggestion"
-                    onChange={() => setSelectedSuggestion(suggestion)}
-                    type="radio"
-                    value={suggestion}
-                  />
-                  <span className="text-sm text-slate-700">{suggestion}</span>
-                </label>
-              ))}
-
-              <button onClick={applySuggestedTopic} type="button">
-                선택한 주제로 입력
-              </button>
             </div>
-          ) : null}
+          </div>
         </div>
-
-        <form className="mt-4 space-y-4" onSubmit={handleCreateTopic}>
-          <input
-            placeholder="예: 우리 가족과 함께한 주말 이야기"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-          />
-          <textarea
-            placeholder="학생에게 보여 줄 간단한 안내를 적어 주세요."
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            rows={4}
-          />
-          <select value={grade} onChange={(event) => setGrade(event.target.value)}>
-            {[1, 2, 3, 4, 5, 6].map((value) => (
-              <option key={value} value={value}>
-                {value}학년
-              </option>
-            ))}
-          </select>
-
-          {message ? <NoticeBanner tone="success" title="주제 등록 완료" description={message} /> : null}
-          {error ? <NoticeBanner tone="error" title="주제 등록 실패" description={error} /> : null}
-
-          <button type="submit">주제 저장</button>
-        </form>
       </section>
 
-      <section className="rounded-2xl bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold">주제 목록</h2>
-        <div className="mt-4 space-y-3">
-          {topics.map((topic) => (
-            <div key={topic.id} className="rounded-2xl border border-slate-200 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="font-medium">{topic.title}</h3>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">
-                  {topic.grade}학년
-                </span>
+      <section className="grid gap-6 px-8 pb-10 pt-7 xl:grid-cols-[minmax(360px,.9fr)_minmax(0,1.1fr)]">
+        <div className="space-y-5">
+          <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+                  AI 추천
+                </p>
+                <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">오늘의 글쓰기 주제 찾기</h2>
+                <p className="mt-2 text-sm leading-6 text-[#5A5247]">
+                  버튼을 누를 때에만 AI를 호출하며, 선택한 학년에 맞는 주제 10개를 추천합니다.
+                </p>
               </div>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{topic.description || "설명 없음"}</p>
+              <Badge tone="teacher">{grade}학년</Badge>
             </div>
-          ))}
-          {topics.length === 0 ? <p className="text-sm text-slate-500">등록된 주제가 없습니다.</p> : null}
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-[160px_1fr] lg:items-end">
+              <label className="block text-sm font-semibold text-[#5A5247]" htmlFor="ai-grade">
+                추천 받을 학년
+                <select
+                  className="mt-2 h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] focus:border-teacher-accent focus:ring-teacher-accent/20"
+                  id="ai-grade"
+                  value={grade}
+                  onChange={(event) => setGrade(event.target.value)}
+                >
+                  {gradeOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {value}학년
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <PrimaryButton
+                className="w-full lg:w-fit"
+                disabled={isGenerating}
+                onClick={handleGenerateTopics}
+                tone="teacher"
+                type="button"
+              >
+                {isGenerating ? "추천 생성 중..." : "AI로 주제 10개 추천"}
+              </PrimaryButton>
+            </div>
+
+            {aiError ? (
+              <div className="mt-4">
+                <NoticeBanner tone="error" title="AI 추천 실패" description={aiError} />
+              </div>
+            ) : null}
+
+            {suggestedTopics.length > 0 ? (
+              <div className="mt-5 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-[#5A5247]">
+                    추천 결과 중 하나를 고른 뒤 입력칸으로 가져올 수 있습니다.
+                  </p>
+                  <SecondaryButton onClick={applySuggestedTopic} type="button">
+                    선택한 주제로 입력
+                  </SecondaryButton>
+                </div>
+
+                <div className="grid gap-3">
+                  {suggestedTopics.map((suggestion, index) => {
+                    const isSelected = selectedSuggestion === suggestion;
+
+                    return (
+                      <button
+                        key={suggestion}
+                        className={`rounded-lg border px-4 py-3 text-left shadow-none ${
+                          isSelected
+                            ? "border-teacher-accent bg-teacher-accent/10 text-[#2E2A24]"
+                            : "border-[#E8DEC7] bg-paper-base/55 text-[#5A5247] hover:bg-paper-base"
+                        }`}
+                        onClick={() => setSelectedSuggestion(suggestion)}
+                        type="button"
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="mt-0.5 text-xs font-semibold text-teacher-accent">
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
+                          <span className="text-sm font-semibold leading-6">{suggestion}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-5 rounded-lg border border-dashed border-[#C9B998] bg-paper-base/60 px-5 py-6 text-sm text-[#8B8170]">
+                아직 추천 결과가 없습니다. 학년을 고른 뒤 AI 추천을 생성해 보세요.
+              </div>
+            )}
+          </section>
+
+          <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+              새 주제 등록
+            </p>
+            <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">학생 책장에 펼칠 주제</h2>
+
+            <form className="mt-5 space-y-4" onSubmit={handleCreateTopic}>
+              <label className="block text-sm font-semibold text-[#5A5247]">
+                주제 제목
+                <input
+                  className="mt-2 h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] placeholder:text-[#A89C85] focus:border-teacher-accent focus:ring-teacher-accent/20"
+                  placeholder="예: 우리 가족과 함께한 주말 이야기"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                />
+              </label>
+
+              <label className="block text-sm font-semibold text-[#5A5247]">
+                학생에게 보여 줄 안내
+                <textarea
+                  className="mt-2 min-h-[132px] rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm leading-7 text-[#2E2A24] placeholder:text-[#A89C85] focus:border-teacher-accent focus:ring-teacher-accent/20"
+                  placeholder="학생에게 보여 줄 간단한 안내를 적어 주세요."
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  rows={4}
+                />
+              </label>
+
+              <label className="block text-sm font-semibold text-[#5A5247]">
+                학년
+                <select
+                  className="mt-2 h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] focus:border-teacher-accent focus:ring-teacher-accent/20"
+                  value={grade}
+                  onChange={(event) => setGrade(event.target.value)}
+                >
+                  {gradeOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {value}학년
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {message ? <NoticeBanner tone="success" title="주제 등록 완료" description={message} /> : null}
+              {error ? <NoticeBanner tone="error" title="주제 등록 실패" description={error} /> : null}
+
+              <div className="flex justify-end">
+                <PrimaryButton tone="teacher" type="submit">
+                  주제 저장
+                </PrimaryButton>
+              </div>
+            </form>
+          </section>
         </div>
+
+        <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+                Topic Library
+              </p>
+              <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">주제 목록</h2>
+              <p className="mt-2 text-sm leading-6 text-[#5A5247]">
+                학생 책장에 보일 글쓰기 주제입니다.
+              </p>
+            </div>
+            <Badge tone="teacher">{topics.length}개</Badge>
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {isLoadingTopics ? (
+              <div className="rounded-xl border border-dashed border-[#C9B998] bg-paper-base/60 px-6 py-12 text-center text-sm text-[#8B8170]">
+                주제 목록을 불러오는 중입니다...
+              </div>
+            ) : null}
+
+            {!isLoadingTopics && topics.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-[#C9B998] bg-paper-base/60 px-6 py-12 text-center">
+                <p className="text-lg font-semibold text-[#2E2A24]">등록된 주제가 없습니다.</p>
+                <p className="mt-2 text-sm text-[#5A5247]">
+                  첫 주제를 만들면 학생 책장에서 바로 선택할 수 있습니다.
+                </p>
+              </div>
+            ) : null}
+
+            {!isLoadingTopics
+              ? topics.map((topic) => (
+                  <article
+                    key={topic.id}
+                    className="rounded-xl border border-[#E8DEC7] bg-paper-base/45 p-4 transition hover:bg-paper-base/70"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge tone="teacher">{topic.grade}학년</Badge>
+                          <span className="text-xs font-semibold text-[#8B8170]">
+                            {formatTopicDate(topic.createdAt)}
+                          </span>
+                        </div>
+                        <h3 className="mt-3 text-lg font-bold leading-tight text-[#2E2A24]">
+                          {topic.title}
+                        </h3>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-[#5A5247]">
+                      {topic.description || "설명 없음"}
+                    </p>
+                  </article>
+                ))
+              : null}
+          </div>
+        </section>
       </section>
     </div>
   );

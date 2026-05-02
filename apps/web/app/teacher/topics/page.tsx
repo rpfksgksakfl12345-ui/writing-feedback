@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { NoticeBanner } from "../../../components/notice-banner";
 import { useAuth } from "../../../components/auth-provider";
 import { Badge, PrimaryButton, SecondaryButton } from "../../../components/ui-v2";
@@ -12,6 +13,14 @@ type Topic = {
   description: string | null;
   grade: number;
   createdAt: string;
+  classroomId?: number | null;
+};
+
+type Classroom = {
+  id: number;
+  name: string;
+  grade: number;
+  classCode: string;
 };
 
 type TopicSuggestionResult = {
@@ -37,11 +46,13 @@ export default function TeacherTopicsPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [grade, setGrade] = useState("3");
+  const [classroomId, setClassroomId] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [aiError, setAiError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoadingTopics, setIsLoadingTopics] = useState(true);
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [suggestedTopics, setSuggestedTopics] = useState<string[]>([]);
   const [selectedSuggestion, setSelectedSuggestion] = useState("");
 
@@ -53,8 +64,13 @@ export default function TeacherTopicsPage() {
     setIsLoadingTopics(true);
 
     try {
-      const data = await apiFetch<Topic[]>("/api/topics", { token });
-      setTopics(data);
+      const [nextTopics, nextClassrooms] = await Promise.all([
+        apiFetch<Topic[]>("/api/topics", { token }),
+        apiFetch<Classroom[]>("/api/classrooms", { token }),
+      ]);
+
+      setTopics(nextTopics);
+      setClassrooms(nextClassrooms);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "주제를 불러오지 못했습니다.");
     } finally {
@@ -72,15 +88,31 @@ export default function TeacherTopicsPage() {
     setError("");
 
     try {
+      const body: {
+        title: string;
+        description: string;
+        grade: number;
+        classroomId?: number;
+      } = {
+        title,
+        description,
+        grade: Number(grade),
+      };
+
+      if (classroomId) {
+        body.classroomId = Number(classroomId);
+      }
+
       await apiFetch("/api/topics", {
         method: "POST",
         token,
-        body: JSON.stringify({ title, description, grade: Number(grade) }),
+        body: JSON.stringify(body),
       });
 
       setTitle("");
       setDescription("");
       setGrade("3");
+      setClassroomId("");
       setSuggestedTopics([]);
       setSelectedSuggestion("");
       setMessage("주제가 등록되었습니다. 학생은 이제 해당 학년에서 이 주제를 선택할 수 있습니다.");
@@ -296,6 +328,34 @@ export default function TeacherTopicsPage() {
                   onChange={(event) => setDescription(event.target.value)}
                   rows={4}
                 />
+              </label>
+
+              <label className="block text-sm font-semibold text-[#5A5247]">
+                학급 연결
+                <select
+                  className="mt-2 h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] focus:border-teacher-accent focus:ring-teacher-accent/20"
+                  value={classroomId}
+                  onChange={(event) => setClassroomId(event.target.value)}
+                >
+                  <option value="">전체 학생에게 공개</option>
+                  {classrooms.map((classroom) => (
+                    <option key={classroom.id} value={classroom.id}>
+                      {classroom.name} · {classroom.grade}학년 · {classroom.classCode}
+                    </option>
+                  ))}
+                </select>
+                {classrooms.length === 0 ? (
+                  <span className="mt-2 block text-xs leading-5 text-[#8B8170]">
+                    아직 학급이 없습니다.{" "}
+                    <Link className="font-semibold text-teacher-accent hover:underline" href="/teacher/classrooms">
+                      학급을 먼저 만들 수 있습니다.
+                    </Link>
+                  </span>
+                ) : (
+                  <span className="mt-2 block text-xs leading-5 text-[#8B8170]">
+                    선택하지 않으면 기존처럼 전체 학생용 주제로 저장됩니다.
+                  </span>
+                )}
               </label>
 
               <label className="block text-sm font-semibold text-[#5A5247]">

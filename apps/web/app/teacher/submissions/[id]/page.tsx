@@ -4,8 +4,8 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { NoticeBanner } from "../../../../components/notice-banner";
-import { StatusPill } from "../../../../components/status-pill";
 import { useAuth } from "../../../../components/auth-provider";
+import { Badge, PrimaryButton, SecondaryButton } from "../../../../components/ui-v2";
 import { API_BASE_URL, apiFetch } from "../../../../lib/api";
 
 type SubmissionDetail = {
@@ -20,6 +20,7 @@ type SubmissionDetail = {
   status: "PENDING" | "REVIEWED";
   ocrStatus: "NONE" | "PROCESSING" | "DONE" | "FAILED";
   ocrError: string | null;
+  createdAt: string;
   student: { name: string; grade: number | null };
   topic: { title: string; description: string | null; grade: number };
 };
@@ -58,6 +59,53 @@ function getEditableExtractedText(
   submission: Pick<SubmissionDetail, "editedExtractedText" | "ocrExtractedText" | "extractedText">,
 ) {
   return submission.editedExtractedText || submission.extractedText || submission.ocrExtractedText || "";
+}
+
+function getInputTypeLabel(inputType: SubmissionDetail["inputType"]) {
+  return inputType === "TYPED" ? "직접쓰기" : "사진제출";
+}
+
+function getSubmissionStatusMeta(status: SubmissionDetail["status"]) {
+  if (status === "REVIEWED") {
+    return {
+      label: "피드백 완료",
+      tone: "feedback" as const,
+      description: "최종 피드백이 저장된 제출물입니다.",
+    };
+  }
+
+  return {
+    label: "피드백 대기",
+    tone: "student" as const,
+    description: "검토 후 최종 피드백 저장이 필요합니다.",
+  };
+}
+
+function getOcrStatusTone(ocrStatus: SubmissionDetail["ocrStatus"]) {
+  if (ocrStatus === "DONE") {
+    return "success" as const;
+  }
+
+  if (ocrStatus === "FAILED") {
+    return "student" as const;
+  }
+
+  return "neutral" as const;
+}
+
+function formatSubmissionDate(createdAt: string) {
+  const date = new Date(createdAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return "제출 시점 정보 없음";
+  }
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
 export default function SubmissionDetailPage() {
@@ -229,11 +277,19 @@ export default function SubmissionDetailPage() {
   }
 
   if (isReady && user?.role !== "TEACHER") {
-    return <p className="rounded-xl bg-white p-6 shadow-sm">Teacher access only.</p>;
+    return (
+      <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-6 text-[#5A5247] shadow-sm">
+        교사 계정만 접근할 수 있습니다.
+      </section>
+    );
   }
 
   if (!submission) {
-    return <p className="rounded-xl bg-white p-6 shadow-sm">Loading submission...</p>;
+    return (
+      <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-6 text-[#5A5247] shadow-sm">
+        제출물을 불러오는 중입니다...
+      </section>
+    );
   }
 
   const savedPhotoText = getSavedPhotoText(submission);
@@ -254,173 +310,247 @@ export default function SubmissionDetailPage() {
       : submission.inputType === "PHOTO" && submission.ocrStatus === "DONE" && !savedPhotoText
         ? "Add and save text before generating an AI draft."
         : "Photo submissions can generate a draft only after OCR completes.";
+  const statusMeta = getSubmissionStatusMeta(submission.status);
+  const submittedAt = formatSubmissionDate(submission.createdAt);
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl bg-white p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
+    <div className="overflow-hidden rounded-[28px] border border-[#E8DEC7] bg-paper-base shadow-sm">
+      <section className="bg-[radial-gradient(rgba(90,110,133,.05)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <Link className="text-sm font-medium text-slate-500 hover:text-slate-900" href="/teacher/submissions">
-              Back to submissions
-            </Link>
-            <h1 className="mt-2 text-xl font-semibold">{submission.topic.title}</h1>
-          </div>
-          <StatusPill status={submission.status} />
-        </div>
-
-        <p className="mt-2 text-sm leading-6 text-slate-600">{submission.topic.description || "No description"}</p>
-        <p className="mt-2 text-sm text-slate-500">
-          {submission.student.name} / Grade {submission.student.grade ?? "-"} /{" "}
-          {submission.inputType === "TYPED" ? "Typed submission" : "Photo submission"}
-        </p>
-
-        {submission.inputType === "TYPED" ? (
-          <div className="mt-4 rounded-2xl bg-slate-50 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Submission</p>
-            <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-700">
-              {submission.content || "No submission text."}
-            </p>
-          </div>
-        ) : (
-          <img
-            src={`${API_BASE_URL}${submission.imageUrl}`}
-            alt="Student submission"
-            className="mt-4 max-h-[420px] w-full rounded-2xl border border-slate-200 object-contain"
-          />
-        )}
-
-        {submission.inputType === "PHOTO" ? (
-          <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm font-semibold">OCR Status</p>
-            <p className="mt-1 text-sm text-slate-600">{getOcrStatusLabel(submission.ocrStatus)}</p>
-            {submission.ocrError ? <p className="mt-2 text-sm text-red-600">{submission.ocrError}</p> : null}
-          </div>
-        ) : null}
-
-        {submission.inputType === "PHOTO" ? (
-          <div className="mt-4 rounded-2xl bg-slate-50 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Original OCR Text</p>
-            {originalOcrText ? (
-              <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-700">{submission.ocrExtractedText}</p>
-            ) : (
-              <p className="mt-3 text-sm text-slate-500">
-                Original OCR text is unavailable for this submission.
-              </p>
-            )}
-          </div>
-        ) : null}
-
-        {submission.inputType === "PHOTO" ? (
-          <div className="mt-4 rounded-2xl bg-slate-50 p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                  Teacher Edited Text
-                </p>
-                <p className="mt-2 text-sm text-slate-600">
-                  This text is used for AI draft generation when saved.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleSaveExtractedText}
-                disabled={!canEditExtractedText || isSavingExtractedText}
-              >
-                {isSavingExtractedText ? "Saving..." : "Save Edited Text"}
-              </button>
-            </div>
-
-            <textarea
-              className="mt-4"
-              rows={8}
-              value={editableExtractedText}
-              onChange={(event) => {
-                setEditableExtractedText(event.target.value);
-                setExtractedTextMessage("");
-                setExtractedTextError("");
-              }}
-              placeholder="OCR text will appear here after processing."
-              disabled={!canEditExtractedText}
-            />
-
-            {!canEditExtractedText ? (
-              <p className="mt-2 text-sm text-slate-500">
-                Edited text can be saved after OCR completes.
-              </p>
-            ) : null}
-
-            {extractedTextMessage ? (
-              <div className="mt-4">
-                <NoticeBanner tone="success" title="Edited text saved" description={extractedTextMessage} />
-              </div>
-            ) : null}
-
-            {extractedTextError ? (
-              <div className="mt-4">
-                <NoticeBanner tone="error" title="Save failed" description={extractedTextError} />
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-      </section>
-
-      <section className="rounded-2xl bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-semibold">Teacher Feedback</h2>
-            <p className="mt-2 text-sm text-slate-600">
-              AI drafts are optional. Review the generated text before saving final feedback.
-            </p>
-          </div>
-          <button type="button" onClick={handleGenerateDraft} disabled={!canGenerateDraft || isGeneratingDraft}>
-            {isGeneratingDraft ? "Generating draft..." : "Generate AI Draft"}
-          </button>
-        </div>
-
-        {!canGenerateDraft ? (
-          <div className="mt-4">
-            <NoticeBanner
-              tone="error"
-              title="AI draft unavailable"
-              description={draftUnavailableDescription}
-            />
-          </div>
-        ) : null}
-
-        {draftMessage ? (
-          <div className="mt-4">
-            <NoticeBanner tone="success" title="AI draft ready" description={draftMessage} />
-          </div>
-        ) : null}
-
-        {draftError ? (
-          <div className="mt-4">
-            <NoticeBanner tone="error" title="AI draft failed" description={draftError} />
-          </div>
-        ) : null}
-
-        <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
-          <textarea
-            rows={10}
-            value={finalFeedback}
-            onChange={(event) => setFinalFeedback(event.target.value)}
-            placeholder="Enter final feedback for the student."
-          />
-
-          {error ? <NoticeBanner tone="error" title="Save failed" description={error} /> : null}
-
-          <div className="flex flex-wrap gap-3">
-            <button type="submit" disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save Feedback"}
-            </button>
             <Link
-              className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-200"
+              className="inline-flex min-h-9 items-center rounded-md border border-[#E8DEC7] bg-[#FFFAF0] px-3 text-sm font-semibold text-[#5A5247] hover:bg-paper-base"
               href="/teacher/submissions"
             >
-              Back to list
+              ← 제출물 목록
             </Link>
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              <Badge tone={statusMeta.tone}>{statusMeta.label}</Badge>
+              <Badge tone="teacher">{getInputTypeLabel(submission.inputType)}</Badge>
+              {submission.inputType === "PHOTO" ? (
+                <Badge tone={getOcrStatusTone(submission.ocrStatus)}>
+                  {getOcrStatusLabel(submission.ocrStatus)}
+                </Badge>
+              ) : null}
+            </div>
+            <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight text-[#2E2A24]">
+              {submission.topic.title}
+            </h1>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-[#5A5247]">
+              {submission.topic.description || "주제 설명이 없습니다."}
+            </p>
           </div>
-        </form>
+
+          <div className="grid min-w-[280px] gap-3 rounded-xl border border-[#E8DEC7] bg-[#FFFAF0]/85 p-4 text-sm shadow-sm">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">학생</p>
+              <p className="mt-1 font-semibold text-[#2E2A24]">
+                {submission.student.name} / {submission.student.grade ?? "-"}학년
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs text-[#8B8170]">제출 시점</p>
+                <p className="mt-1 font-semibold text-[#2E2A24]">{submittedAt}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[#8B8170]">주제 학년</p>
+                <p className="mt-1 font-semibold text-[#2E2A24]">{submission.topic.grade}학년</p>
+              </div>
+            </div>
+            <p className="text-xs leading-5 text-[#8B8170]">{statusMeta.description}</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-6 px-8 pb-10 pt-7 xl:grid-cols-[minmax(0,1.08fr)_minmax(360px,.92fr)]">
+        <div className="space-y-5">
+          <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+                  학생 제출물
+                </p>
+                <h2 className="mt-1 text-lg font-bold text-[#2E2A24]">
+                  {submission.inputType === "TYPED" ? "직접 쓴 글 원문" : "사진 원본"}
+                </h2>
+              </div>
+              <Badge tone="teacher">{getInputTypeLabel(submission.inputType)}</Badge>
+            </div>
+
+            {submission.inputType === "TYPED" ? (
+              <div className="mt-5 rounded-lg border border-[#E8DEC7] bg-[#FBF6E9] px-5 py-5">
+                <p className="max-h-[540px] overflow-auto whitespace-pre-line text-sm leading-7 text-[#2E2A24]">
+                  {submission.content || "제출된 글 내용이 없습니다."}
+                </p>
+              </div>
+            ) : (
+              <div className="mt-5 rounded-lg border border-[#E8DEC7] bg-paper-base p-3">
+                <img
+                  src={`${API_BASE_URL}${submission.imageUrl}`}
+                  alt="학생 제출 이미지"
+                  className="max-h-[520px] w-full rounded-md object-contain"
+                />
+              </div>
+            )}
+          </section>
+
+          {submission.inputType === "PHOTO" ? (
+            <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+                    OCR / 추출 텍스트
+                  </p>
+                  <h2 className="mt-1 text-lg font-bold text-[#2E2A24]">사진 글자 확인</h2>
+                </div>
+                <Badge tone={getOcrStatusTone(submission.ocrStatus)}>
+                  {getOcrStatusLabel(submission.ocrStatus)}
+                </Badge>
+              </div>
+
+              {submission.ocrError ? (
+                <div className="mt-4">
+                  <NoticeBanner tone="error" title="OCR 처리 오류" description={submission.ocrError} />
+                </div>
+              ) : null}
+
+              <div className="mt-5 rounded-lg border border-[#E8DEC7] bg-paper-base/60 px-5 py-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+                  OCR 원본
+                </p>
+                {originalOcrText ? (
+                  <p className="mt-3 max-h-56 overflow-auto whitespace-pre-line text-sm leading-7 text-[#2E2A24]">
+                    {submission.ocrExtractedText}
+                  </p>
+                ) : (
+                  <p className="mt-3 text-sm text-[#8B8170]">
+                    아직 OCR 원본 텍스트가 없습니다.
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-5 rounded-lg border border-[#E8DEC7] bg-[#FBF6E9] px-5 py-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+                      교사 수정 텍스트
+                    </p>
+                    <p className="mt-2 text-sm text-[#5A5247]">
+                      저장된 텍스트가 AI 피드백 초안 생성에 사용됩니다.
+                    </p>
+                  </div>
+                  <SecondaryButton
+                    type="button"
+                    onClick={handleSaveExtractedText}
+                    disabled={!canEditExtractedText || isSavingExtractedText}
+                  >
+                    {isSavingExtractedText ? "저장 중..." : "수정 텍스트 저장"}
+                  </SecondaryButton>
+                </div>
+
+                <textarea
+                  className="mt-4 min-h-[220px] rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm leading-7 text-[#2E2A24] focus:border-teacher-accent focus:ring-teacher-accent/20 disabled:bg-paper-base disabled:text-[#8B8170]"
+                  rows={8}
+                  value={editableExtractedText}
+                  onChange={(event) => {
+                    setEditableExtractedText(event.target.value);
+                    setExtractedTextMessage("");
+                    setExtractedTextError("");
+                  }}
+                  placeholder="OCR 처리가 끝나면 추출 텍스트가 여기에 표시됩니다."
+                  disabled={!canEditExtractedText}
+                />
+
+                {!canEditExtractedText ? (
+                  <p className="mt-2 text-sm text-[#8B8170]">
+                    OCR이 완료된 뒤 수정 텍스트를 저장할 수 있습니다.
+                  </p>
+                ) : null}
+
+                {extractedTextMessage ? (
+                  <div className="mt-4">
+                    <NoticeBanner tone="success" title="수정 텍스트 저장 완료" description={extractedTextMessage} />
+                  </div>
+                ) : null}
+
+                {extractedTextError ? (
+                  <div className="mt-4">
+                    <NoticeBanner tone="error" title="수정 텍스트 저장 실패" description={extractedTextError} />
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+        </div>
+
+        <section className="h-fit rounded-xl border border-[#C8D7E8] bg-[#F4F8FD] p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-feedback-pen">
+                Teacher Feedback
+              </p>
+              <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">최종 피드백 작성</h2>
+              <p className="mt-2 text-sm leading-6 text-[#5A5247]">
+                AI 초안은 선택 사항입니다. 내용을 검토한 뒤 최종 피드백으로 저장하세요.
+              </p>
+            </div>
+            <PrimaryButton
+              tone="teacher"
+              type="button"
+              onClick={handleGenerateDraft}
+              disabled={!canGenerateDraft || isGeneratingDraft}
+            >
+              {isGeneratingDraft ? "초안 생성 중..." : "AI 초안 생성"}
+            </PrimaryButton>
+          </div>
+
+          {!canGenerateDraft ? (
+            <div className="mt-4">
+              <NoticeBanner
+                tone="error"
+                title="AI 초안 생성 불가"
+                description={draftUnavailableDescription}
+              />
+            </div>
+          ) : null}
+
+          {draftMessage ? (
+            <div className="mt-4">
+              <NoticeBanner tone="success" title="AI 초안 준비 완료" description={draftMessage} />
+            </div>
+          ) : null}
+
+          {draftError ? (
+            <div className="mt-4">
+              <NoticeBanner tone="error" title="AI 초안 생성 실패" description={draftError} />
+            </div>
+          ) : null}
+
+          <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
+            <textarea
+              className="min-h-[360px] rounded-md border-[#C8D7E8] bg-[#FFFAF0] text-sm leading-7 text-feedback-pen placeholder:text-[#8B8170] focus:border-feedback-pen focus:ring-feedback-pen/20"
+              rows={12}
+              value={finalFeedback}
+              onChange={(event) => setFinalFeedback(event.target.value)}
+              placeholder="학생에게 보낼 최종 피드백을 입력하세요."
+            />
+
+            {error ? <NoticeBanner tone="error" title="피드백 저장 실패" description={error} /> : null}
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <Link
+                className="inline-flex min-h-11 items-center justify-center rounded-md border border-[#E8DEC7] bg-[#FFFAF0] px-[18px] py-[13px] text-[15px] font-semibold text-[#2E2A24] hover:bg-paper-base"
+                href="/teacher/submissions"
+              >
+                목록으로 돌아가기
+              </Link>
+              <PrimaryButton tone="teacher" type="submit" disabled={isSaving}>
+                {isSaving ? "저장 중..." : "최종 피드백 저장"}
+              </PrimaryButton>
+            </div>
+          </form>
+        </section>
       </section>
     </div>
   );

@@ -3,6 +3,7 @@ import path from "path";
 import cors from "cors";
 import express from "express";
 import authRoutes from "./routes/auth";
+import classroomsRoutes from "./routes/classrooms";
 import studentsRoutes from "./routes/students";
 import submissionsRoutes from "./routes/submissions";
 import topicsRoutes from "./routes/topics";
@@ -19,6 +20,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/classrooms", classroomsRoutes);
 app.use("/api/topics", topicsRoutes);
 app.use("/api/submissions", submissionsRoutes);
 app.use("/api/students", studentsRoutes);

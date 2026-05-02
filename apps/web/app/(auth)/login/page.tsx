@@ -53,9 +53,9 @@ export default function LoginPage() {
   }
 
   return (
-    <section className="mx-auto max-w-md rounded-3xl bg-white p-8 shadow-sm">
-      <h1 className="text-2xl font-semibold">로그인</h1>
-      <p className="mt-2 text-sm leading-6 text-slate-600">
+    <section className="mx-auto max-w-md rounded-3xl border border-[#E8DEC7] bg-[#FFFAF0] p-8 shadow-sm">
+      <h1 className="text-2xl font-semibold text-[#2E2A24]">로그인</h1>
+      <p className="mt-2 text-sm leading-6 text-[#5A5247]">
         교사 또는 학생 체험 계정으로 로그인해 현재 MVP 흐름을 확인할 수 있습니다.
       </p>
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
@@ -72,12 +72,12 @@ export default function LoginPage() {
           />
         </div>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        <button className="w-full" disabled={loading} type="submit">
+        <button className="w-full bg-teacher-accent hover:bg-teacher-accent/90" disabled={loading} type="submit">
           {loading ? "로그인 중..." : "로그인"}
         </button>
       </form>
-      <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-xs leading-5 text-slate-500">
-        <p className="font-semibold text-slate-700">체험 계정</p>
+      <div className="mt-5 rounded-2xl bg-paper-base p-4 text-xs leading-5 text-[#5A5247]">
+        <p className="font-semibold text-[#2E2A24]">체험 계정</p>
         <p>교사: teacher@test.com / password123</p>
         <p>학생: student1@test.com / password123</p>
       </div>

@@ -19,3 +19,36 @@ button {
 a {
   @apply transition;
 }
+
+@layer components {
+  .ui-v2-class-code {
+    @apply font-mono uppercase tracking-[0.18em];
+  }
+
+  .ui-v2-class-code-lg {
+    @apply font-mono uppercase tracking-[0.2em] text-[56px] leading-none;
+  }
+
+  .ui-v2-login-password {
+    @apply font-mono tracking-[0.2em] text-feedback-pen;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ui-v2-notebook-paper {
+    background-color: #fbf6e9;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 43px,
+      rgba(180, 150, 100, 0.28) 43px,
+      rgba(180, 150, 100, 0.28) 44px
+    );
+    background-size: 100% 44px;
+  }
+
+  .ui-v2-notebook-textarea {
+    @apply w-full resize-none border-0 bg-transparent p-0 text-sm leading-[44px] text-slate-900 outline-none focus:border-0 focus:ring-0;
+    position: relative;
+    top: -7px;
+  }
+}

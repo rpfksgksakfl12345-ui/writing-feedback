@@ -9,7 +9,7 @@ function getHomeHref(role?: "TEACHER" | "STUDENT") {
   }
 
   if (role === "STUDENT") {
-    return "/student/upload";
+    return "/student";
   }
 
   return "/";

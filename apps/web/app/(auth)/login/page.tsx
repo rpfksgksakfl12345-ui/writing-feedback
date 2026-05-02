@@ -29,7 +29,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.replace(user.role === "TEACHER" ? "/teacher/topics" : "/student/upload");
+    router.replace(user.role === "TEACHER" ? "/teacher/topics" : "/student");
   }, [isReady, router, user]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -44,7 +44,7 @@ export default function LoginPage() {
       });
 
       login(response.token, response.user);
-      router.replace(response.user.role === "TEACHER" ? "/teacher/topics" : "/student/upload");
+      router.replace(response.user.role === "TEACHER" ? "/teacher/topics" : "/student");
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "로그인에 실패했습니다.");
     } finally {

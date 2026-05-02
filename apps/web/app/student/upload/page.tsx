@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { NoticeBanner } from "../../../components/notice-banner";
 import { useAuth } from "../../../components/auth-provider";
 import { apiFetch } from "../../../lib/api";
@@ -16,7 +17,8 @@ type SubmissionInputType = "TYPED" | "PHOTO";
 
 const typedMaxLength = 2000;
 
-export default function StudentUploadPage() {
+function StudentUploadContent() {
+  const searchParams = useSearchParams();
   const { token, user, isReady } = useAuth();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [topicId, setTopicId] = useState("");
@@ -31,18 +33,30 @@ export default function StudentUploadPage() {
       return;
     }
 
+    const requestedTopicId = searchParams.get("topicId");
     const gradeQuery = user?.grade ? `?grade=${user.grade}` : "";
+
     apiFetch<Topic[]>(`/api/topics${gradeQuery}`, { token })
       .then((data) => {
         setTopics(data);
-        if (data[0]) {
-          setTopicId(String(data[0].id));
-        }
+
+        const nextTopicId =
+          requestedTopicId && data.some((topic) => String(topic.id) === requestedTopicId)
+            ? requestedTopicId
+            : data[0]
+              ? String(data[0].id)
+              : "";
+
+        setTopicId(nextTopicId);
       })
       .catch((loadError) => {
-        setError(loadError instanceof Error ? loadError.message : "주제를 불러오지 못했습니다.");
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "주제를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        );
       });
-  }, [token, user?.grade]);
+  }, [searchParams, token, user?.grade]);
 
   async function handleTypedSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -55,7 +69,7 @@ export default function StudentUploadPage() {
     }
 
     if (!content.trim()) {
-      setError("글로 쓰기 제출은 내용을 입력해야 합니다.");
+      setError("제출할 글 내용을 입력해 주세요.");
       return;
     }
 
@@ -70,12 +84,12 @@ export default function StudentUploadPage() {
         }),
       });
       setContent("");
-      setMessage("글쓰기 내용이 제출되었습니다.");
+      setMessage("글쓰기를 제출했습니다.");
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "글로 쓰기 제출에 실패했습니다. 내용을 다시 확인해 주세요.",
+          : "글쓰기 제출에 실패했습니다. 내용을 다시 확인해 주세요.",
       );
     }
   }
@@ -86,7 +100,7 @@ export default function StudentUploadPage() {
     setError("");
 
     if (!image || !topicId) {
-      setError("주제와 이미지를 모두 선택해 주세요.");
+      setError("주제와 사진을 모두 선택해 주세요.");
       return;
     }
 
@@ -102,7 +116,7 @@ export default function StudentUploadPage() {
         body: formData,
       });
       setImage(null);
-      setMessage("사진 제출이 완료되었습니다.");
+      setMessage("사진 제출을 완료했습니다.");
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -117,20 +131,26 @@ export default function StudentUploadPage() {
   }
 
   return (
-    <section className="rounded-2xl bg-white p-6 shadow-sm">
+    <section className="rounded-[32px] border border-[#eadfce] bg-[#fffdf8] p-6 shadow-sm">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold">학생 제출</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            기본 제출 방식은 글로 쓰기이며, 필요하면 사진 올리기로 기존 제출 흐름도 그대로 사용할 수 있습니다.
+          <h1 className="text-xl font-semibold text-[#4f3828]">글쓰기 제출</h1>
+          <p className="mt-1 text-sm text-[#6b5645]">
+            책장에서 고른 주제로 바로 제출할 수 있습니다. 기존 타자 입력과 사진 업로드 흐름은 그대로
+            유지됩니다.
           </p>
         </div>
-        <Link className="text-sm font-medium text-slate-600 hover:text-slate-900" href="/student/history">
-          내 기록 보기
-        </Link>
+        <div className="flex flex-wrap gap-3 text-sm">
+          <Link className="font-medium text-[#7c5b3d] hover:text-[#5f4330]" href="/student">
+            책장으로 돌아가기
+          </Link>
+          <Link className="font-medium text-slate-600 hover:text-slate-900" href="/student/history">
+            제출 기록 보기
+          </Link>
+        </div>
       </div>
 
-      <div className="mt-4 rounded-2xl bg-slate-50 p-2">
+      <div className="mt-4 rounded-2xl bg-[#f7efe3] p-2">
         <div className="grid grid-cols-2 gap-2">
           <button
             className={activeType === "TYPED" ? "" : "bg-white text-slate-700 hover:bg-white"}
@@ -141,7 +161,7 @@ export default function StudentUploadPage() {
               setError("");
             }}
           >
-            글로 쓰기
+            글로 입력하기
           </button>
           <button
             className={activeType === "PHOTO" ? "" : "bg-white text-slate-700 hover:bg-white"}
@@ -158,7 +178,7 @@ export default function StudentUploadPage() {
       </div>
 
       <div className="mt-4">
-        <label className="mb-1 block text-sm font-medium">주제 선택</label>
+        <label className="mb-1 block text-sm font-medium text-[#5f4a3a]">주제 선택</label>
         <select value={topicId} onChange={(event) => setTopicId(event.target.value)}>
           {topics.map((topic) => (
             <option key={topic.id} value={topic.id}>
@@ -171,13 +191,13 @@ export default function StudentUploadPage() {
       {activeType === "TYPED" ? (
         <form className="mt-4 space-y-4" onSubmit={handleTypedSubmit}>
           <div>
-            <label className="mb-1 block text-sm font-medium">글쓰기 내용</label>
+            <label className="mb-1 block text-sm font-medium text-[#5f4a3a]">글쓰기 내용</label>
             <textarea
               rows={10}
               maxLength={typedMaxLength}
               value={content}
               onChange={(event) => setContent(event.target.value)}
-              placeholder="학생이 직접 작성한 글을 여기에 입력해 주세요."
+              placeholder="주제에 맞는 글을 직접 작성해 주세요."
             />
             <p className="mt-2 text-right text-xs text-slate-500">
               {content.length} / {typedMaxLength}자
@@ -187,11 +207,11 @@ export default function StudentUploadPage() {
           {message ? (
             <NoticeBanner
               tone="success"
-              title="글로 쓰기 제출 완료"
-              description="내용이 저장되었습니다. 기록 화면에서 피드백 상태를 확인할 수 있습니다."
+              title="글쓰기 제출 완료"
+              description="제출이 저장되었습니다. 제출 기록 화면에서 피드백 상태를 확인할 수 있습니다."
             />
           ) : null}
-          {error ? <NoticeBanner tone="error" title="글로 쓰기 제출 실패" description={error} /> : null}
+          {error ? <NoticeBanner tone="error" title="글쓰기 제출 실패" description={error} /> : null}
 
           <div className="flex flex-wrap gap-3">
             <button type="submit">제출하기</button>
@@ -199,14 +219,14 @@ export default function StudentUploadPage() {
               className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-200"
               href="/student/history"
             >
-              기록 화면으로 이동
+              제출 기록으로 이동
             </Link>
           </div>
         </form>
       ) : (
         <form className="mt-4 space-y-4" onSubmit={handlePhotoSubmit}>
           <div>
-            <label className="mb-1 block text-sm font-medium">글쓰기 사진</label>
+            <label className="mb-1 block text-sm font-medium text-[#5f4a3a]">글쓰기 사진</label>
             <input
               type="file"
               accept="image/*"
@@ -218,7 +238,7 @@ export default function StudentUploadPage() {
             <NoticeBanner
               tone="success"
               title="사진 제출 완료"
-              description="글쓰기 사진이 저장되었습니다. 기록 화면에서 피드백 상태를 확인할 수 있습니다."
+              description="사진이 저장되었습니다. 제출 기록 화면에서 피드백 상태를 확인할 수 있습니다."
             />
           ) : null}
           {error ? <NoticeBanner tone="error" title="사진 제출 실패" description={error} /> : null}
@@ -229,11 +249,19 @@ export default function StudentUploadPage() {
               className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-200"
               href="/student/history"
             >
-              기록 화면으로 이동
+              제출 기록으로 이동
             </Link>
           </div>
         </form>
       )}
     </section>
+  );
+}
+
+export default function StudentUploadPage() {
+  return (
+    <Suspense fallback={<section className="rounded-2xl bg-white p-6 shadow-sm">불러오는 중...</section>}>
+      <StudentUploadContent />
+    </Suspense>
   );
 }

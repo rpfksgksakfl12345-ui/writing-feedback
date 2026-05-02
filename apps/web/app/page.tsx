@@ -15,7 +15,7 @@ export default function HomePage() {
       return;
     }
 
-    router.replace(user.role === "TEACHER" ? "/teacher/topics" : "/student/upload");
+    router.replace(user.role === "TEACHER" ? "/teacher/topics" : "/student");
   }, [isReady, router, user]);
 
   if (isLoggedIn) {
@@ -39,7 +39,7 @@ export default function HomePage() {
           {isLoggedIn ? (
             <Link
               className="rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-slate-900"
-              href={user?.role === "TEACHER" ? "/teacher/topics" : "/student/upload"}
+              href={user?.role === "TEACHER" ? "/teacher/topics" : "/student"}
             >
               {user?.role === "TEACHER" ? "교사 작업 이어가기" : "학생 제출 이어가기"}
             </Link>
@@ -96,7 +96,7 @@ export default function HomePage() {
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
               className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white"
-              href="/student/upload"
+              href="/student"
             >
               학생 제출하러 가기
             </Link>

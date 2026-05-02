@@ -30,15 +30,45 @@ enum OcrStatus {
 }
 
 model User {
-  id          Int          @id @default(autoincrement())
-  email       String       @unique
-  password    String
+  id                 Int             @id @default(autoincrement())
+  email              String          @unique
+  password           String
+  name               String
+  role               Role
+  grade              Int?
+  createdAt          DateTime        @default(now())
+  topics             Topic[]
+  submissions        Submission[]
+  teachingClassrooms Classroom[]
+  studentProfile     StudentProfile?
+}
+
+model Classroom {
+  id          Int              @id @default(autoincrement())
   name        String
-  role        Role
-  grade       Int?
-  createdAt   DateTime     @default(now())
+  grade       Int
+  classCode   String           @unique
+  teacher     User             @relation(fields: [teacherId], references: [id])
+  teacherId   Int
+  students    StudentProfile[]
   topics      Topic[]
   submissions Submission[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model StudentProfile {
+  id                     Int       @id @default(autoincrement())
+  user                   User      @relation(fields: [userId], references: [id])
+  userId                 Int       @unique
+  classroom              Classroom @relation(fields: [classroomId], references: [id])
+  classroomId            Int
+  studentNumber          Int
+  classroomLoginPassword String
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@unique([classroomId, studentNumber])
 }
 
 model Topic {
@@ -49,6 +79,8 @@ model Topic {
   createdAt   DateTime     @default(now())
   teacher     User         @relation(fields: [teacherId], references: [id])
   teacherId   Int
+  classroom   Classroom?   @relation(fields: [classroomId], references: [id])
+  classroomId Int?
   submissions Submission[]
 }
 
@@ -71,4 +103,6 @@ model Submission {
   studentId     Int
   topic         Topic            @relation(fields: [topicId], references: [id])
   topicId       Int
+  classroom     Classroom?       @relation(fields: [classroomId], references: [id])
+  classroomId   Int?
 }

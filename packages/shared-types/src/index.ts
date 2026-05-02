@@ -13,6 +13,26 @@ export interface User {
   createdAt: string;
 }
 
+export interface Classroom {
+  id: number;
+  name: string;
+  grade: number;
+  classCode: string;
+  teacherId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StudentProfile {
+  id: number;
+  userId: number;
+  classroomId: number;
+  studentNumber: number;
+  classroomLoginPassword: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Topic {
   id: number;
   title: string;
@@ -20,6 +40,7 @@ export interface Topic {
   grade: number;
   createdAt: string;
   teacherId: number;
+  classroomId: number | null;
 }
 
 export interface Submission {
@@ -39,4 +60,5 @@ export interface Submission {
   updatedAt: string;
   studentId: number;
   topicId: number;
+  classroomId: number | null;
 }

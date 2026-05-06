@@ -70,7 +70,7 @@ export default function StudentHistoryPage() {
 
   if (isReady && user?.role !== "STUDENT") {
     return (
-      <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-6 text-[#5A5247] shadow-sm">
+      <section className="rounded-xl border border-ink-100 bg-paper-surface p-6 text-ink-700 shadow-sm">
         학생 계정만 접근할 수 있습니다.
       </section>
     );
@@ -80,23 +80,23 @@ export default function StudentHistoryPage() {
   const reviewedCount = submissions.filter((submission) => submission.status === "REVIEWED").length;
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-[#E8DEC7] bg-paper-base shadow-sm">
-      <section className="bg-[radial-gradient(rgba(120,90,50,.04)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
+    <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
+      <section className="bg-paper-surface bg-[radial-gradient(rgba(120,90,50,.06)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-sm font-semibold text-student-accent">
               {user?.name ? `${user.name}의 글쓰기` : "학생 글쓰기"}
             </p>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#2E2A24]">
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">
               제출 기록
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#5A5247]">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-700">
               제출한 주제와 피드백 상태만 간단히 확인합니다. 글 원본과 선생님 피드백은 책장에서 주제를 열어 봅니다.
             </p>
           </div>
 
           <Link
-            className="inline-flex min-h-11 w-fit shrink-0 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
+            className="inline-flex min-h-11 w-fit shrink-0 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
             href="/student"
           >
             내 책장으로 가기
@@ -104,16 +104,16 @@ export default function StudentHistoryPage() {
         </div>
 
         <div className="mt-6 grid gap-3 md:grid-cols-3">
-          <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0]/80 px-4 py-3">
-            <p className="text-xs text-[#8B8170]">전체 제출</p>
-            <p className="mt-1 text-lg font-semibold text-[#2E2A24]">{submissions.length}</p>
+          <div className="rounded-lg border border-ink-100 bg-paper-surface/80 px-4 py-3">
+            <p className="text-xs text-ink-500">전체 제출</p>
+            <p className="mt-1 text-lg font-semibold text-ink-900">{submissions.length}</p>
           </div>
-          <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0]/80 px-4 py-3">
-            <p className="text-xs text-[#8B8170]">피드백 대기</p>
-            <p className="mt-1 text-lg font-semibold text-[#2E2A24]">{pendingCount}</p>
+          <div className="rounded-lg border border-ink-100 bg-paper-surface/80 px-4 py-3">
+            <p className="text-xs text-ink-500">피드백 대기</p>
+            <p className="mt-1 text-lg font-semibold text-ink-900">{pendingCount}</p>
           </div>
-          <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0]/80 px-4 py-3">
-            <p className="text-xs text-[#8B8170]">피드백 완료</p>
+          <div className="rounded-lg border border-ink-100 bg-paper-surface/80 px-4 py-3">
+            <p className="text-xs text-ink-500">피드백 완료</p>
             <p className="mt-1 text-lg font-semibold text-feedback-pen">{reviewedCount}</p>
           </div>
         </div>
@@ -133,7 +133,7 @@ export default function StudentHistoryPage() {
             return (
               <article
                 key={submission.id}
-                className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm"
+                className="rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm"
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div className="min-w-0">
@@ -142,15 +142,15 @@ export default function StudentHistoryPage() {
                       <Badge tone={statusMeta.tone}>{statusMeta.label}</Badge>
                       {submission.finalFeedback ? <Badge tone="feedback">피드백 있음</Badge> : null}
                     </div>
-                    <h2 className="mt-3 text-xl font-bold leading-tight text-[#2E2A24]">
+                    <h2 className="mt-3 text-xl font-bold leading-tight text-ink-900">
                       {submission.topic.title}
                     </h2>
-                    <p className="mt-2 text-sm text-[#8B8170]">
+                    <p className="mt-2 text-sm text-ink-500">
                       {formatSubmissionDate(submission.createdAt)} · {statusMeta.description}
                     </p>
                   </div>
                   <Link
-                    className="inline-flex min-h-10 w-fit shrink-0 items-center justify-center whitespace-nowrap rounded-md border border-[#E8DEC7] bg-[#FFFAF0] px-4 py-2 text-sm font-semibold text-[#5A5247] hover:bg-paper-base"
+                    className="inline-flex min-h-10 w-fit shrink-0 items-center justify-center whitespace-nowrap rounded-md border border-ink-100 bg-paper-surface px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-paper-base"
                     href={`/student/upload?topicId=${submission.topic.id}`}
                   >
                     책장에서 확인하기
@@ -161,13 +161,13 @@ export default function StudentHistoryPage() {
           })}
 
           {submissions.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[#C9B998] bg-[#FFFAF0] px-6 py-14 text-center">
-              <p className="text-lg font-semibold text-[#2E2A24]">아직 제출한 글이 없습니다.</p>
-              <p className="mt-2 text-sm text-[#5A5247]">
+            <div className="rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-14 text-center">
+              <p className="text-lg font-semibold text-ink-900">아직 제출한 글이 없습니다.</p>
+              <p className="mt-2 text-sm text-ink-700">
                 책장에서 주제를 고른 뒤 공책에 글을 써 보세요.
               </p>
               <Link
-                className="mt-5 inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
+                className="mt-5 inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
                 href="/student"
               >
                 내 책장으로 가기

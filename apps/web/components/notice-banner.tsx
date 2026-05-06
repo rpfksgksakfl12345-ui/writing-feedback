@@ -5,9 +5,9 @@ type NoticeBannerProps = {
 };
 
 const toneClasses: Record<NoticeBannerProps["tone"], string> = {
-  success: "border-emerald-200 bg-emerald-50 text-emerald-900",
-  error: "border-red-200 bg-red-50 text-red-900",
-  info: "border-sky-200 bg-sky-50 text-sky-900",
+  success: "border-status-feedbackDone/25 bg-status-feedbackDone/15 text-status-feedbackDone",
+  error: "border-status-error/25 bg-status-error/10 text-status-error",
+  info: "border-feedback-pen/20 bg-feedback-soft text-feedback-pen",
 };
 
 export function NoticeBanner({ tone, title, description }: NoticeBannerProps) {

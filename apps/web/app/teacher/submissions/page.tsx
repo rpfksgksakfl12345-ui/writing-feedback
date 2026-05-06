@@ -91,7 +91,7 @@ function TeacherSubmissionsContent() {
 
   if (isReady && user?.role !== "TEACHER") {
     return (
-      <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-6 text-[#5A5247] shadow-sm">
+      <section className="rounded-xl border border-ink-100 bg-paper-surface p-6 text-ink-700 shadow-sm">
         교사 계정만 접근할 수 있습니다.
       </section>
     );
@@ -102,19 +102,19 @@ function TeacherSubmissionsContent() {
   const photoCount = submissions.filter((submission) => submission.inputType === "PHOTO").length;
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-[#E8DEC7] bg-paper-base shadow-sm">
-      <section className="bg-[radial-gradient(rgba(90,110,133,.05)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
+    <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
+      <section className="bg-paper-surface bg-[radial-gradient(rgba(90,110,133,.07)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="text-sm font-semibold text-teacher-accent">교사 피드백</p>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#2E2A24]">제출물 목록</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#5A5247]">
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">제출물 목록</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-700">
               학생이 제출한 글과 사진을 확인하고, 피드백 작성이 필요한 항목을 빠르게 찾습니다.
             </p>
           </div>
 
           <Link
-            className="inline-flex min-h-11 w-fit items-center justify-center rounded-md border border-[#E8DEC7] bg-[#FFFAF0] px-[18px] py-[13px] text-[15px] font-semibold text-[#2E2A24] hover:bg-paper-base"
+            className="inline-flex min-h-11 w-fit items-center justify-center rounded-md border border-ink-100 bg-paper-surface px-[18px] py-[13px] text-[15px] font-semibold text-ink-900 hover:bg-paper-base"
             href="/teacher/topics"
           >
             주제 관리로 이동
@@ -122,20 +122,20 @@ function TeacherSubmissionsContent() {
         </div>
 
         <div className="mt-6 grid gap-3 md:grid-cols-4">
-          <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0]/85 px-4 py-3">
-            <p className="text-xs text-[#8B8170]">전체 제출</p>
-            <p className="mt-1 text-lg font-semibold text-[#2E2A24]">{submissions.length}</p>
+          <div className="rounded-lg border border-ink-100 bg-paper-surface/85 px-4 py-3">
+            <p className="text-xs text-ink-500">전체 제출</p>
+            <p className="mt-1 text-lg font-semibold text-ink-900">{submissions.length}</p>
           </div>
-          <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0]/85 px-4 py-3">
-            <p className="text-xs text-[#8B8170]">피드백 대기</p>
+          <div className="rounded-lg border border-ink-100 bg-paper-surface/85 px-4 py-3">
+            <p className="text-xs text-ink-500">피드백 대기</p>
             <p className="mt-1 text-lg font-semibold text-student-accent">{pendingCount}</p>
           </div>
-          <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0]/85 px-4 py-3">
-            <p className="text-xs text-[#8B8170]">피드백 완료</p>
+          <div className="rounded-lg border border-ink-100 bg-paper-surface/85 px-4 py-3">
+            <p className="text-xs text-ink-500">피드백 완료</p>
             <p className="mt-1 text-lg font-semibold text-feedback-pen">{reviewedCount}</p>
           </div>
-          <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0]/85 px-4 py-3">
-            <p className="text-xs text-[#8B8170]">사진 제출</p>
+          <div className="rounded-lg border border-ink-100 bg-paper-surface/85 px-4 py-3">
+            <p className="text-xs text-ink-500">사진 제출</p>
             <p className="mt-1 text-lg font-semibold text-teacher-accent">{photoCount}</p>
           </div>
         </div>
@@ -159,15 +159,15 @@ function TeacherSubmissionsContent() {
         ) : null}
 
         {isLoading ? (
-          <div className="rounded-xl border border-dashed border-[#C9B998] bg-[#FFFAF0] px-6 py-14 text-center text-sm text-[#8B8170]">
+          <div className="rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-14 text-center text-sm text-ink-500">
             제출물을 불러오는 중입니다...
           </div>
         ) : null}
 
         {!isLoading && submissions.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[#C9B998] bg-[#FFFAF0] px-6 py-14 text-center">
-            <p className="text-lg font-semibold text-[#2E2A24]">아직 제출물이 없습니다.</p>
-            <p className="mt-2 text-sm text-[#5A5247]">
+          <div className="rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-14 text-center">
+            <p className="text-lg font-semibold text-ink-900">아직 제출물이 없습니다.</p>
+            <p className="mt-2 text-sm text-ink-700">
               학생이 글을 제출하면 이 화면에서 검토하고 피드백을 작성할 수 있습니다.
             </p>
           </div>
@@ -182,10 +182,10 @@ function TeacherSubmissionsContent() {
               return (
                 <article
                   key={submission.id}
-                  className={`grid gap-5 rounded-xl border bg-[#FFFAF0] p-5 shadow-sm lg:grid-cols-[1fr_auto] ${
+                  className={`grid gap-5 rounded-xl border bg-paper-surface p-5 shadow-sm lg:grid-cols-[1fr_auto] ${
                     submission.status === "PENDING"
                       ? "border-student-accent/35"
-                      : "border-[#E8DEC7]"
+                      : "border-ink-100"
                   }`}
                 >
                   <div className="min-w-0">
@@ -196,21 +196,21 @@ function TeacherSubmissionsContent() {
                       </Badge>
                     </div>
 
-                    <h2 className="mt-3 text-[20px] font-bold leading-tight text-[#2E2A24]">
+                    <h2 className="mt-3 text-[20px] font-bold leading-tight text-ink-900">
                       {submission.topic.title}
                     </h2>
-                    <p className="mt-2 text-sm leading-6 text-[#5A5247]">
+                    <p className="mt-2 text-sm leading-6 text-ink-700">
                       {submission.student.name} / {submission.student.grade ?? "-"}학년 /{" "}
                       {submission.topic.grade}학년 주제
                     </p>
-                    <p className="mt-1 text-sm text-[#8B8170]">
+                    <p className="mt-1 text-sm text-ink-500">
                       {formatSubmissionDate(submission.createdAt)} · {statusMeta.description}
                     </p>
                   </div>
 
                   <div className="flex items-start lg:items-center">
                     <Link
-                      className={`inline-flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-md px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(40,60,90,.15),0_2px_6px_rgba(60,80,120,.18)] lg:w-auto ${
+                      className={`inline-flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-md px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(40,60,90,.15),0_2px_6px_rgba(60,80,120,.18)] lg:w-auto ${
                         submission.status === "PENDING"
                           ? "bg-teacher-accent hover:bg-teacher-accent/90"
                           : "bg-feedback-pen hover:bg-feedback-pen/90"
@@ -234,7 +234,7 @@ export default function TeacherSubmissionsPage() {
   return (
     <Suspense
       fallback={
-        <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-6 text-[#5A5247] shadow-sm">
+        <section className="rounded-xl border border-ink-100 bg-paper-surface p-6 text-ink-700 shadow-sm">
           불러오는 중...
         </section>
       }

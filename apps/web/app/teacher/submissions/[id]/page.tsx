@@ -278,7 +278,7 @@ export default function SubmissionDetailPage() {
 
   if (isReady && user?.role !== "TEACHER") {
     return (
-      <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-6 text-[#5A5247] shadow-sm">
+      <section className="rounded-xl border border-ink-100 bg-paper-surface p-6 text-ink-700 shadow-sm">
         교사 계정만 접근할 수 있습니다.
       </section>
     );
@@ -286,7 +286,7 @@ export default function SubmissionDetailPage() {
 
   if (!submission) {
     return (
-      <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-6 text-[#5A5247] shadow-sm">
+      <section className="rounded-xl border border-ink-100 bg-paper-surface p-6 text-ink-700 shadow-sm">
         제출물을 불러오는 중입니다...
       </section>
     );
@@ -314,12 +314,12 @@ export default function SubmissionDetailPage() {
   const submittedAt = formatSubmissionDate(submission.createdAt);
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-[#E8DEC7] bg-paper-base shadow-sm">
-      <section className="bg-[radial-gradient(rgba(90,110,133,.05)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
+    <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
+      <section className="bg-paper-surface bg-[radial-gradient(rgba(90,110,133,.07)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <Link
-              className="inline-flex min-h-9 items-center rounded-md border border-[#E8DEC7] bg-[#FFFAF0] px-3 text-sm font-semibold text-[#5A5247] hover:bg-paper-base"
+              className="inline-flex min-h-9 items-center rounded-md border border-ink-100 bg-paper-surface px-3 text-sm font-semibold text-ink-700 hover:bg-paper-base"
               href="/teacher/submissions"
             >
               ← 제출물 목록
@@ -333,45 +333,45 @@ export default function SubmissionDetailPage() {
                 </Badge>
               ) : null}
             </div>
-            <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight text-[#2E2A24]">
+            <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight text-ink-900">
               {submission.topic.title}
             </h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-[#5A5247]">
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-ink-700">
               {submission.topic.description || "주제 설명이 없습니다."}
             </p>
           </div>
 
-          <div className="grid min-w-[280px] gap-3 rounded-xl border border-[#E8DEC7] bg-[#FFFAF0]/85 p-4 text-sm shadow-sm">
+          <div className="grid min-w-[280px] gap-3 rounded-xl border border-ink-100 bg-paper-surface/85 p-4 text-sm shadow-sm">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">학생</p>
-              <p className="mt-1 font-semibold text-[#2E2A24]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">학생</p>
+              <p className="mt-1 font-semibold text-ink-900">
                 {submission.student.name} / {submission.student.grade ?? "-"}학년
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs text-[#8B8170]">제출 시점</p>
-                <p className="mt-1 font-semibold text-[#2E2A24]">{submittedAt}</p>
+                <p className="text-xs text-ink-500">제출 시점</p>
+                <p className="mt-1 font-semibold text-ink-900">{submittedAt}</p>
               </div>
               <div>
-                <p className="text-xs text-[#8B8170]">주제 학년</p>
-                <p className="mt-1 font-semibold text-[#2E2A24]">{submission.topic.grade}학년</p>
+                <p className="text-xs text-ink-500">주제 학년</p>
+                <p className="mt-1 font-semibold text-ink-900">{submission.topic.grade}학년</p>
               </div>
             </div>
-            <p className="text-xs leading-5 text-[#8B8170]">{statusMeta.description}</p>
+            <p className="text-xs leading-5 text-ink-500">{statusMeta.description}</p>
           </div>
         </div>
       </section>
 
       <section className="grid gap-6 px-8 pb-10 pt-7 xl:grid-cols-[minmax(0,1.08fr)_minmax(360px,.92fr)]">
         <div className="space-y-5">
-          <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm">
+          <section className="rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                   학생 제출물
                 </p>
-                <h2 className="mt-1 text-lg font-bold text-[#2E2A24]">
+                <h2 className="mt-1 text-lg font-bold text-ink-900">
                   {submission.inputType === "TYPED" ? "직접 쓴 글 원문" : "사진 원본"}
                 </h2>
               </div>
@@ -379,13 +379,13 @@ export default function SubmissionDetailPage() {
             </div>
 
             {submission.inputType === "TYPED" ? (
-              <div className="mt-5 rounded-lg border border-[#E8DEC7] bg-[#FBF6E9] px-5 py-5">
-                <p className="max-h-[540px] overflow-auto whitespace-pre-line text-sm leading-7 text-[#2E2A24]">
+              <div className="mt-5 rounded-lg border border-ink-100 bg-paper-soft px-5 py-5">
+                <p className="max-h-[540px] overflow-auto whitespace-pre-line text-sm leading-7 text-ink-900">
                   {submission.content || "제출된 글 내용이 없습니다."}
                 </p>
               </div>
             ) : (
-              <div className="mt-5 rounded-lg border border-[#E8DEC7] bg-paper-base p-3">
+              <div className="mt-5 rounded-lg border border-ink-100 bg-paper-base p-3">
                 <img
                   src={`${API_BASE_URL}${submission.imageUrl}`}
                   alt="학생 제출 이미지"
@@ -396,13 +396,13 @@ export default function SubmissionDetailPage() {
           </section>
 
           {submission.inputType === "PHOTO" ? (
-            <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm">
+            <section className="rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                     OCR / 추출 텍스트
                   </p>
-                  <h2 className="mt-1 text-lg font-bold text-[#2E2A24]">사진 글자 확인</h2>
+                  <h2 className="mt-1 text-lg font-bold text-ink-900">사진 글자 확인</h2>
                 </div>
                 <Badge tone={getOcrStatusTone(submission.ocrStatus)}>
                   {getOcrStatusLabel(submission.ocrStatus)}
@@ -415,28 +415,28 @@ export default function SubmissionDetailPage() {
                 </div>
               ) : null}
 
-              <div className="mt-5 rounded-lg border border-[#E8DEC7] bg-paper-base/60 px-5 py-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+              <div className="mt-5 rounded-lg border border-ink-100 bg-paper-base/60 px-5 py-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                   OCR 원본
                 </p>
                 {originalOcrText ? (
-                  <p className="mt-3 max-h-56 overflow-auto whitespace-pre-line text-sm leading-7 text-[#2E2A24]">
+                  <p className="mt-3 max-h-56 overflow-auto whitespace-pre-line text-sm leading-7 text-ink-900">
                     {submission.ocrExtractedText}
                   </p>
                 ) : (
-                  <p className="mt-3 text-sm text-[#8B8170]">
+                  <p className="mt-3 text-sm text-ink-500">
                     아직 OCR 원본 텍스트가 없습니다.
                   </p>
                 )}
               </div>
 
-              <div className="mt-5 rounded-lg border border-[#E8DEC7] bg-[#FBF6E9] px-5 py-4">
+              <div className="mt-5 rounded-lg border border-ink-100 bg-paper-soft px-5 py-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                       교사 수정 텍스트
                     </p>
-                    <p className="mt-2 text-sm text-[#5A5247]">
+                    <p className="mt-2 text-sm text-ink-700">
                       저장된 텍스트가 AI 피드백 초안 생성에 사용됩니다.
                     </p>
                   </div>
@@ -450,7 +450,7 @@ export default function SubmissionDetailPage() {
                 </div>
 
                 <textarea
-                  className="mt-4 min-h-[220px] rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm leading-7 text-[#2E2A24] focus:border-teacher-accent focus:ring-teacher-accent/20 disabled:bg-paper-base disabled:text-[#8B8170]"
+                  className="mt-4 min-h-[220px] rounded-md border-ink-100 bg-paper-surface text-sm leading-7 text-ink-900 focus:border-teacher-accent focus:ring-teacher-accent/20 disabled:bg-paper-base disabled:text-ink-500"
                   rows={8}
                   value={editableExtractedText}
                   onChange={(event) => {
@@ -463,7 +463,7 @@ export default function SubmissionDetailPage() {
                 />
 
                 {!canEditExtractedText ? (
-                  <p className="mt-2 text-sm text-[#8B8170]">
+                  <p className="mt-2 text-sm text-ink-500">
                     OCR이 완료된 뒤 수정 텍스트를 저장할 수 있습니다.
                   </p>
                 ) : null}
@@ -484,14 +484,14 @@ export default function SubmissionDetailPage() {
           ) : null}
         </div>
 
-        <section className="h-fit rounded-xl border border-[#C8D7E8] bg-[#F4F8FD] p-5 shadow-sm">
+        <section className="h-fit rounded-xl border border-feedback-pen/20 bg-feedback-soft p-5 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-feedback-pen">
                 교사 피드백
               </p>
-              <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">최종 피드백 작성</h2>
-              <p className="mt-2 text-sm leading-6 text-[#5A5247]">
+              <h2 className="mt-1 text-xl font-bold text-ink-900">최종 피드백 작성</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-700">
                 AI 초안은 선택 사항입니다. 내용을 검토한 뒤 최종 피드백으로 저장하세요.
               </p>
             </div>
@@ -529,7 +529,7 @@ export default function SubmissionDetailPage() {
 
           <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
             <textarea
-              className="min-h-[360px] rounded-md border-[#C8D7E8] bg-[#FFFAF0] text-sm leading-7 text-feedback-pen placeholder:text-[#8B8170] focus:border-feedback-pen focus:ring-feedback-pen/20"
+              className="min-h-[360px] rounded-md border-feedback-pen/20 bg-paper-surface text-sm leading-7 text-feedback-pen placeholder:text-ink-500 focus:border-feedback-pen focus:ring-feedback-pen/20"
               rows={12}
               value={finalFeedback}
               onChange={(event) => setFinalFeedback(event.target.value)}
@@ -540,7 +540,7 @@ export default function SubmissionDetailPage() {
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Link
-                className="inline-flex min-h-11 min-w-[150px] items-center justify-center whitespace-nowrap rounded-md border border-[#E8DEC7] bg-[#FFFAF0] px-[18px] py-[13px] text-[15px] font-semibold text-[#2E2A24] hover:bg-paper-base"
+                className="inline-flex min-h-11 min-w-[150px] items-center justify-center whitespace-nowrap rounded-md border border-ink-100 bg-paper-surface px-[18px] py-[13px] text-[15px] font-semibold text-ink-900 hover:bg-paper-base"
                 href="/teacher/submissions"
               >
                 목록으로 돌아가기

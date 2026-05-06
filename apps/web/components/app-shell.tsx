@@ -29,31 +29,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-paper-base">
-      <header className="border-b border-[#E8DEC7] bg-[#FFFAF0]/95 backdrop-blur">
+    <div className="min-h-screen bg-paper-soft">
+      <header className="border-b border-ink-100 bg-paper-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <Link
             href={getHomeHref(user?.role)}
-            className={`inline-flex justify-center text-center text-lg font-semibold tracking-tight text-[#2E2A24] ${brandWidthClass}`}
+            className={`inline-flex justify-center text-center text-lg font-semibold tracking-tight text-ink-900 ${brandWidthClass}`}
           >
             주제 글쓰기
           </Link>
           <div className="flex items-center gap-3 text-sm">
             {isReady && user ? (
               <>
-                <span className="hidden text-[#5A5247] sm:inline">{user.name}</span>
-                <span className="whitespace-nowrap rounded-full bg-paper-base px-3 py-1 font-medium text-[#5A5247]">
+                <span className="hidden text-ink-700 sm:inline">{user.name}</span>
+                <span className="whitespace-nowrap rounded-full bg-paper-base px-3 py-1 font-medium text-ink-700">
                   {roleLabel}
                 </span>
                 <button
-                  className="whitespace-nowrap bg-transparent px-0 py-0 text-[#8B8170] hover:bg-transparent hover:text-[#2E2A24]"
+                  className="whitespace-nowrap bg-transparent px-0 py-0 text-ink-500 hover:bg-transparent hover:text-ink-900"
                   onClick={handleLogout}
                 >
                   로그아웃
                 </button>
               </>
             ) : (
-              <Link className="whitespace-nowrap rounded-xl bg-teacher-accent px-3 py-2 text-white hover:bg-teacher-accent/90" href="/login">
+              <Link className="whitespace-nowrap rounded-xl bg-teacher-accent px-3 py-2 text-paper-surface hover:bg-teacher-accent/90" href="/login">
                 로그인
               </Link>
             )}

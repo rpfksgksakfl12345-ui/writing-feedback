@@ -170,7 +170,7 @@ export default function StudentLibraryPage() {
   }, [token, user?.grade]);
 
   if (isReady && user?.role !== "STUDENT") {
-    return <p className="rounded-xl bg-[#FFFAF0] p-6 shadow-sm">학생 계정만 접근할 수 있습니다.</p>;
+    return <p className="rounded-xl bg-paper-surface p-6 shadow-sm">학생 계정만 접근할 수 있습니다.</p>;
   }
 
   const latestSubmissionByTopicId = new Map<number, SubmissionItem>();
@@ -219,13 +219,13 @@ export default function StudentLibraryPage() {
   ];
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-[#E8DEC7] bg-paper-base shadow-sm">
-      <section className="bg-[radial-gradient(rgba(120,90,50,.04)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-8 pt-9">
+    <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
+      <section className="bg-paper-surface bg-[radial-gradient(rgba(120,90,50,.06)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-8 pt-9">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-sm font-semibold text-student-accent">안녕, {user?.name ?? "친구"}!</p>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#2E2A24]">내 책장</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#5A5247]">
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">내 책장</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-700">
               선생님이 낸 글쓰기 주제를 책처럼 모아두었어요. 새 주제는 공책에 쓰고, 제출한 주제는
               내가 쓴 공책과 선생님 피드백을 확인할 수 있습니다.
             </p>
@@ -233,20 +233,20 @@ export default function StudentLibraryPage() {
         </div>
 
         {firstTodoCard ? (
-          <div className="mt-7 flex flex-col gap-4 rounded-lg border border-[#F0DCC2] border-l-[3px] border-l-student-accent bg-[#FFFAF0] px-5 py-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+          <div className="mt-7 flex flex-col gap-4 rounded-lg border border-student-soft border-l-[3px] border-l-student-accent bg-paper-surface px-5 py-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-student-accent/15 text-student-accent">
                 <span className="text-lg font-bold">✎</span>
               </div>
               <div>
-                <p className="font-semibold text-[#2E2A24]">새로 써야 할 주제가 있어요</p>
-                <p className="mt-1 text-sm text-[#5A5247]">
+                <p className="font-semibold text-ink-900">새로 써야 할 주제가 있어요</p>
+                <p className="mt-1 text-sm text-ink-700">
                   {firstTodoCard.title} · {formatTopicDate(firstTodoCard.createdAt)}
                 </p>
               </div>
             </div>
             <Link
-              className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
               href={firstTodoCard.href}
             >
               시작하기
@@ -255,7 +255,7 @@ export default function StudentLibraryPage() {
         ) : null}
 
         <div className="mt-7 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="inline-flex w-fit rounded-md bg-[#F4ECDC] p-1">
+          <div className="inline-flex w-fit rounded-md bg-paper-base p-1">
             {filterTabs.map((tab) => {
               const isActive = filter === tab.id;
 
@@ -264,31 +264,31 @@ export default function StudentLibraryPage() {
                   key={tab.id}
                   className={`flex min-h-0 items-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-semibold shadow-none ${
                     isActive
-                      ? "bg-[#FFFAF0] text-[#2E2A24]"
-                      : "bg-transparent text-[#5A5247] hover:bg-[#FFFAF0]/60"
+                      ? "bg-paper-surface text-ink-900"
+                      : "bg-transparent text-ink-700 hover:bg-paper-surface/60"
                   }`}
                   type="button"
                   onClick={() => setFilter(tab.id)}
                 >
                   {tab.label}
-                  <span className="text-xs font-medium tabular-nums text-[#8B8170]">{tab.count}</span>
+                  <span className="text-xs font-medium tabular-nums text-ink-500">{tab.count}</span>
                 </button>
               );
             })}
           </div>
 
           <div className="grid grid-cols-3 gap-3 text-sm">
-            <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0]/80 px-4 py-3">
-              <p className="text-xs text-[#8B8170]">미작성</p>
-              <p className="mt-1 font-semibold text-[#2E2A24]">{statusCounts.NOT_STARTED}</p>
+            <div className="rounded-lg border border-ink-100 bg-paper-surface/80 px-4 py-3">
+              <p className="text-xs text-ink-500">미작성</p>
+              <p className="mt-1 font-semibold text-ink-900">{statusCounts.NOT_STARTED}</p>
             </div>
-            <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0]/80 px-4 py-3">
-              <p className="text-xs text-[#8B8170]">대기</p>
-              <p className="mt-1 font-semibold text-[#2E2A24]">{statusCounts.SUBMITTED}</p>
+            <div className="rounded-lg border border-ink-100 bg-paper-surface/80 px-4 py-3">
+              <p className="text-xs text-ink-500">대기</p>
+              <p className="mt-1 font-semibold text-ink-900">{statusCounts.SUBMITTED}</p>
             </div>
-            <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0]/80 px-4 py-3">
-              <p className="text-xs text-[#8B8170]">완료</p>
-              <p className="mt-1 font-semibold text-[#2E2A24]">{statusCounts.FEEDBACK_READY}</p>
+            <div className="rounded-lg border border-ink-100 bg-paper-surface/80 px-4 py-3">
+              <p className="text-xs text-ink-500">완료</p>
+              <p className="mt-1 font-semibold text-ink-900">{statusCounts.FEEDBACK_READY}</p>
             </div>
           </div>
         </div>
@@ -302,22 +302,22 @@ export default function StudentLibraryPage() {
         ) : null}
 
         {isLoading ? (
-          <div className="mt-7 rounded-xl border border-dashed border-[#C9B998] bg-[#FFFAF0] px-6 py-14 text-center text-sm text-[#8B8170]">
+          <div className="mt-7 rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-14 text-center text-sm text-ink-500">
             책장을 정리하는 중입니다...
           </div>
         ) : null}
 
         {!isLoading && cards.length === 0 ? (
-          <div className="mt-7 rounded-xl border border-dashed border-[#C9B998] bg-[#FFFAF0] px-6 py-14 text-center">
-            <p className="text-lg font-semibold text-[#2E2A24]">첫 글이 곧 도착할 거예요</p>
-            <p className="mt-2 text-sm text-[#5A5247]">
+          <div className="mt-7 rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-14 text-center">
+            <p className="text-lg font-semibold text-ink-900">첫 글이 곧 도착할 거예요</p>
+            <p className="mt-2 text-sm text-ink-700">
               선생님이 주제를 보내면 여기에 책처럼 쌓입니다.
             </p>
           </div>
         ) : null}
 
         {!isLoading && cards.length > 0 && filteredCards.length === 0 ? (
-          <div className="mt-7 rounded-xl border border-dashed border-[#C9B998] bg-[#FFFAF0] px-6 py-14 text-center text-sm text-[#5A5247]">
+          <div className="mt-7 rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-14 text-center text-sm text-ink-700">
             이 조건에 맞는 주제가 없습니다.
           </div>
         ) : null}
@@ -335,14 +335,14 @@ export default function StudentLibraryPage() {
                       <Link
                         key={card.id}
                         href={card.href}
-                        className={`group relative flex min-h-[260px] flex-col overflow-hidden rounded-[6px_12px_12px_6px] border border-[#E8DEC7] bg-[#FFFAF0] p-5 text-[#2E2A24] shadow-[0_1px_2px_rgba(60,40,20,.08),0_10px_22px_rgba(60,40,20,.07)] transition hover:-translate-y-1 hover:rotate-0 hover:shadow-[0_2px_4px_rgba(60,40,20,.1),0_18px_30px_rgba(60,40,20,.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-student-accent ${tiltClass}`}
+                        className={`group relative flex min-h-[260px] flex-col overflow-hidden rounded-[6px_12px_12px_6px] border border-ink-100 bg-paper-surface p-5 text-ink-900 shadow-[0_1px_2px_rgba(60,40,20,.08),0_10px_22px_rgba(60,40,20,.07)] transition hover:-translate-y-1 hover:rotate-0 hover:shadow-[0_2px_4px_rgba(60,40,20,.1),0_18px_30px_rgba(60,40,20,.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-student-accent ${tiltClass}`}
                       >
                         <span
                           aria-hidden
                           className={`absolute inset-y-0 left-0 w-2 ${statusMeta.spineClass} opacity-80`}
                         />
                         <div className="flex items-start justify-between gap-3 pl-3">
-                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                             {formatTopicDate(card.createdAt)}
                           </p>
                           <Badge tone={statusMeta.badgeTone}>{statusMeta.label}</Badge>
@@ -350,17 +350,17 @@ export default function StudentLibraryPage() {
                         <h2 className="mt-5 line-clamp-3 pl-3 text-[22px] font-bold leading-[1.35] [overflow-wrap:break-word] [word-break:keep-all]">
                           {card.title}
                         </h2>
-                        <p className="mt-4 line-clamp-3 pl-3 text-sm leading-6 text-[#5A5247] [overflow-wrap:break-word] [word-break:keep-all]">
+                        <p className="mt-4 line-clamp-3 pl-3 text-sm leading-6 text-ink-700 [overflow-wrap:break-word] [word-break:keep-all]">
                           {card.description || statusMeta.description}
                         </p>
                         <div className="mt-auto pl-3">
-                          <div className="rounded-lg border border-[#E8DEC7] bg-paper-base/60 px-4 py-3">
-                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+                          <div className="rounded-lg border border-ink-100 bg-paper-base/60 px-4 py-3">
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                               진행 상태
                             </p>
                             <div className="mt-2 flex items-center justify-between gap-3">
-                              <span className="text-sm font-semibold text-[#2E2A24]">{card.grade}학년</span>
-                              <span className="whitespace-nowrap text-sm text-[#5A5247] group-hover:text-student-accent">
+                              <span className="text-sm font-semibold text-ink-900">{card.grade}학년</span>
+                              <span className="whitespace-nowrap text-sm text-ink-700 group-hover:text-student-accent">
                                 {card.actionLabel}
                               </span>
                             </div>

@@ -216,7 +216,7 @@ export default function TeacherTopicsPage() {
 
   if (isReady && user?.role !== "TEACHER") {
     return (
-      <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-6 text-[#5A5247] shadow-sm">
+      <section className="rounded-xl border border-ink-100 bg-paper-surface p-6 text-ink-700 shadow-sm">
         교사 계정만 접근할 수 있습니다.
       </section>
     );
@@ -226,26 +226,26 @@ export default function TeacherTopicsPage() {
   const currentGradeTopicCount = topics.filter((topic) => String(topic.grade) === grade).length;
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-[#E8DEC7] bg-paper-base shadow-sm">
-      <section className="bg-[radial-gradient(rgba(90,110,133,.05)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
+    <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
+      <section className="bg-paper-surface bg-[radial-gradient(rgba(90,110,133,.07)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="text-sm font-semibold text-teacher-accent">교사 주제 관리</p>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#2E2A24]">
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">
               글쓰기 주제 관리
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#5A5247]">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-700">
               학년별 글쓰기 주제를 만들고, 학생 책장에 꽂힐 주제를 준비합니다.
             </p>
           </div>
 
-          <div className="grid min-w-[260px] grid-cols-2 gap-3 rounded-xl border border-[#E8DEC7] bg-[#FFFAF0]/85 p-4 shadow-sm">
+          <div className="grid min-w-[260px] grid-cols-2 gap-3 rounded-xl border border-ink-100 bg-paper-surface/85 p-4 shadow-sm">
             <div>
-              <p className="text-xs text-[#8B8170]">전체 주제</p>
-              <p className="mt-1 text-lg font-semibold text-[#2E2A24]">{topics.length}</p>
+              <p className="text-xs text-ink-500">전체 주제</p>
+              <p className="mt-1 text-lg font-semibold text-ink-900">{topics.length}</p>
             </div>
             <div>
-              <p className="text-xs text-[#8B8170]">선택 학년</p>
+              <p className="text-xs text-ink-500">선택 학년</p>
               <p className="mt-1 text-lg font-semibold text-teacher-accent">
                 {grade}학년 · {currentGradeTopicCount}
               </p>
@@ -256,14 +256,14 @@ export default function TeacherTopicsPage() {
 
       <section className="grid gap-6 px-8 pb-10 pt-7 xl:grid-cols-[minmax(360px,.9fr)_minmax(0,1.1fr)]">
         <div className="space-y-5">
-          <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm">
+          <section className="rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                   AI 추천
                 </p>
-                <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">오늘의 글쓰기 주제 찾기</h2>
-                <p className="mt-2 text-sm leading-6 text-[#5A5247]">
+                <h2 className="mt-1 text-xl font-bold text-ink-900">오늘의 글쓰기 주제 찾기</h2>
+                <p className="mt-2 text-sm leading-6 text-ink-700">
                   버튼을 누를 때에만 AI를 호출하며, 선택한 학년에 맞는 주제를 추천합니다.
                 </p>
               </div>
@@ -271,10 +271,10 @@ export default function TeacherTopicsPage() {
             </div>
 
             <div className="mt-5 grid gap-4 lg:grid-cols-[160px_1fr] lg:items-end">
-              <label className="block text-sm font-semibold text-[#5A5247]" htmlFor="ai-grade">
+              <label className="block text-sm font-semibold text-ink-700" htmlFor="ai-grade">
                 추천 받을 학년
                 <select
-                  className="mt-2 h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] focus:border-teacher-accent focus:ring-teacher-accent/20"
+                  className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-teacher-accent focus:ring-teacher-accent/20"
                   id="ai-grade"
                   value={grade}
                   onChange={(event) => setGrade(event.target.value)}
@@ -306,7 +306,7 @@ export default function TeacherTopicsPage() {
 
             {suggestedTopics.length > 0 ? (
               <div className="mt-5 space-y-4">
-                <p className="text-sm font-semibold text-[#5A5247]">
+                <p className="text-sm font-semibold text-ink-700">
                   추천 결과를 클릭하면 주제 제목과 학생 안내가 바로 입력됩니다.
                 </p>
 
@@ -319,8 +319,8 @@ export default function TeacherTopicsPage() {
                         key={`${suggestion.title}-${index}`}
                         className={`rounded-lg border px-4 py-3 text-left shadow-none ${
                           isSelected
-                            ? "border-teacher-accent bg-teacher-accent/10 text-[#2E2A24]"
-                            : "border-[#E8DEC7] bg-paper-base/55 text-[#5A5247] hover:bg-paper-base"
+                            ? "border-teacher-accent bg-teacher-accent/10 text-ink-900"
+                            : "border-ink-100 bg-paper-base/55 text-ink-700 hover:bg-paper-base"
                         }`}
                         onClick={() => applySuggestedTopic(suggestion)}
                         type="button"
@@ -334,7 +334,7 @@ export default function TeacherTopicsPage() {
                               {suggestion.title}
                             </span>
                             {suggestion.studentGuide ? (
-                              <span className="mt-1 block text-xs leading-5 text-[#8B8170]">
+                              <span className="mt-1 block text-xs leading-5 text-ink-500">
                                 {suggestion.studentGuide}
                               </span>
                             ) : null}
@@ -346,33 +346,33 @@ export default function TeacherTopicsPage() {
                 </div>
               </div>
             ) : (
-              <div className="mt-5 rounded-lg border border-dashed border-[#C9B998] bg-paper-base/60 px-5 py-6 text-sm text-[#8B8170]">
+              <div className="mt-5 rounded-lg border border-dashed border-ink-200 bg-paper-base/60 px-5 py-6 text-sm text-ink-500">
                 아직 추천 결과가 없습니다. 학년을 고른 뒤 AI 추천을 생성해 보세요.
               </div>
             )}
           </section>
 
-          <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+          <section className="rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
               새 주제 등록
             </p>
-            <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">학생 책장에 펼칠 주제</h2>
+            <h2 className="mt-1 text-xl font-bold text-ink-900">학생 책장에 펼칠 주제</h2>
 
             <form className="mt-5 space-y-4" onSubmit={handleCreateTopic}>
-              <label className="block text-sm font-semibold text-[#5A5247]">
+              <label className="block text-sm font-semibold text-ink-700">
                 주제 제목
                 <input
-                  className="mt-2 h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] placeholder:text-[#A89C85] focus:border-teacher-accent focus:ring-teacher-accent/20"
+                  className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20"
                   placeholder="예: 우리 가족과 함께한 주말 이야기"
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                 />
               </label>
 
-              <label className="block text-sm font-semibold text-[#5A5247]">
+              <label className="block text-sm font-semibold text-ink-700">
                 학생에게 보여 줄 안내
                 <textarea
-                  className="mt-2 min-h-[132px] rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm leading-7 text-[#2E2A24] placeholder:text-[#A89C85] focus:border-teacher-accent focus:ring-teacher-accent/20"
+                  className="mt-2 min-h-[132px] rounded-md border-ink-100 bg-paper-surface text-sm leading-7 text-ink-900 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20"
                   placeholder="학생에게 보여 줄 간단한 안내를 적어 주세요."
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
@@ -380,10 +380,10 @@ export default function TeacherTopicsPage() {
                 />
               </label>
 
-              <label className="block text-sm font-semibold text-[#5A5247]">
+              <label className="block text-sm font-semibold text-ink-700">
                 학급 연결
                 <select
-                  className="mt-2 h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] focus:border-teacher-accent focus:ring-teacher-accent/20"
+                  className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-teacher-accent focus:ring-teacher-accent/20"
                   value={classroomId}
                   onChange={(event) => {
                     const nextClassroomId = event.target.value;
@@ -406,23 +406,23 @@ export default function TeacherTopicsPage() {
                   ))}
                 </select>
                 {classrooms.length === 0 ? (
-                  <span className="mt-2 block text-xs leading-5 text-[#8B8170]">
+                  <span className="mt-2 block text-xs leading-5 text-ink-500">
                     아직 학급이 없습니다.{" "}
                     <Link className="font-semibold text-teacher-accent hover:underline" href="/teacher/classrooms">
                       학급을 먼저 만들 수 있습니다.
                     </Link>
                   </span>
                 ) : (
-                  <span className="mt-2 block text-xs leading-5 text-[#8B8170]">
+                  <span className="mt-2 block text-xs leading-5 text-ink-500">
                     선택하지 않으면 기존처럼 전체 학생용 주제로 저장됩니다.
                   </span>
                 )}
               </label>
 
-              <label className="block text-sm font-semibold text-[#5A5247]">
+              <label className="block text-sm font-semibold text-ink-700">
                 학년
                 <select
-                  className="mt-2 h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] focus:border-teacher-accent focus:ring-teacher-accent/20"
+                  className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-teacher-accent focus:ring-teacher-accent/20"
                   value={grade}
                   onChange={(event) => setGrade(event.target.value)}
                 >
@@ -446,14 +446,14 @@ export default function TeacherTopicsPage() {
           </section>
         </div>
 
-        <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm">
+        <section className="rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                 주제 목록
               </p>
-              <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">주제 목록</h2>
-              <p className="mt-2 text-sm leading-6 text-[#5A5247]">
+              <h2 className="mt-1 text-xl font-bold text-ink-900">주제 목록</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-700">
                 학생 책장에 보일 글쓰기 주제입니다.
               </p>
             </div>
@@ -462,15 +462,15 @@ export default function TeacherTopicsPage() {
 
           <div className="mt-5 space-y-3">
             {isLoadingTopics ? (
-              <div className="rounded-xl border border-dashed border-[#C9B998] bg-paper-base/60 px-6 py-12 text-center text-sm text-[#8B8170]">
+              <div className="rounded-xl border border-dashed border-ink-200 bg-paper-base/60 px-6 py-12 text-center text-sm text-ink-500">
                 주제 목록을 불러오는 중입니다...
               </div>
             ) : null}
 
             {!isLoadingTopics && topics.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-[#C9B998] bg-paper-base/60 px-6 py-12 text-center">
-                <p className="text-lg font-semibold text-[#2E2A24]">등록된 주제가 없습니다.</p>
-                <p className="mt-2 text-sm text-[#5A5247]">
+              <div className="rounded-xl border border-dashed border-ink-200 bg-paper-base/60 px-6 py-12 text-center">
+                <p className="text-lg font-semibold text-ink-900">등록된 주제가 없습니다.</p>
+                <p className="mt-2 text-sm text-ink-700">
                   첫 주제를 만들면 학생 책장에서 바로 선택할 수 있습니다.
                 </p>
               </div>
@@ -480,22 +480,22 @@ export default function TeacherTopicsPage() {
               ? topics.map((topic) => (
                   <article
                     key={topic.id}
-                    className="rounded-xl border border-[#E8DEC7] bg-paper-base/45 p-4 transition hover:bg-paper-base/70"
+                    className="rounded-xl border border-ink-100 bg-paper-base/45 p-4 transition hover:bg-paper-base/70"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge tone="teacher">{topic.grade}학년</Badge>
-                          <span className="text-xs font-semibold text-[#8B8170]">
+                          <span className="text-xs font-semibold text-ink-500">
                             {formatTopicDate(topic.createdAt)}
                           </span>
                         </div>
-                        <h3 className="mt-3 text-lg font-bold leading-tight text-[#2E2A24]">
+                        <h3 className="mt-3 text-lg font-bold leading-tight text-ink-900">
                           {topic.title}
                         </h3>
                       </div>
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-[#5A5247]">
+                    <p className="mt-3 text-sm leading-6 text-ink-700">
                       {topic.description || "설명 없음"}
                     </p>
                   </article>

@@ -124,26 +124,26 @@ export default function LoginPage() {
 
   const activeCopy = mode ? modeCopy[mode] : null;
   const teacherInputClass =
-    "mt-2 h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] transition duration-300 placeholder:text-[#A89C85] focus:border-teacher-accent focus:ring-teacher-accent/20";
+    "mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 transition duration-300 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20";
   const studentInputClass =
-    "mt-2 h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] transition duration-300 placeholder:text-[#A89C85] focus:border-student-accent focus:ring-student-accent/20";
+    "mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 transition duration-300 placeholder:text-ink-300 focus:border-student-accent focus:ring-student-accent/20";
 
   return (
-    <section className="mx-auto max-w-4xl overflow-hidden rounded-[28px] border border-[#E8DEC7] bg-paper-base shadow-sm">
-      <div className="bg-[radial-gradient(rgba(120,90,50,.05)_1px,transparent_1px)] bg-[length:24px_24px] px-8 py-8">
+    <section className="mx-auto max-w-4xl overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
+      <div className="bg-paper-surface bg-[radial-gradient(rgba(120,90,50,.07)_1px,transparent_1px)] bg-[length:24px_24px] px-8 py-8">
         <p className={`text-sm font-semibold ${activeCopy?.accentClass ?? "text-teacher-accent"}`}>
           주제 글쓰기
         </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-[#2E2A24]">
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink-900">
           {activeCopy?.title ?? "어떻게 들어갈까요?"}
         </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-[#5A5247]">
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-700">
           {activeCopy?.description ??
             "교사는 수업을 준비하고, 학생은 책장에서 글쓰기 주제를 골라 공책을 엽니다."}
         </p>
 
         {mode ? (
-          <div className="mt-6 inline-flex rounded-md bg-[#F4ECDC] p-1">
+          <div className="mt-6 inline-flex rounded-md bg-paper-base p-1">
             {(
               [
                 { id: "TEACHER", label: "교사" },
@@ -157,8 +157,8 @@ export default function LoginPage() {
                   key={tab.id}
                   className={`min-h-10 whitespace-nowrap rounded-md px-5 py-2 text-sm font-semibold shadow-none ${
                     isActive
-                      ? "bg-[#FFFAF0] text-[#2E2A24]"
-                      : "bg-transparent text-[#5A5247] hover:bg-[#FFFAF0]/60"
+                      ? "bg-paper-surface text-ink-900"
+                      : "bg-transparent text-ink-700 hover:bg-paper-surface/60"
                   }`}
                   type="button"
                   onClick={() => selectMode(tab.id)}
@@ -175,7 +175,7 @@ export default function LoginPage() {
         {!mode ? (
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <button
-              className="rounded-xl border border-[#D7E0EA] bg-[#FFFAF0] p-5 text-left text-[#2E2A24] shadow-sm transition duration-300 hover:border-teacher-accent hover:bg-[#F7F1E6]"
+              className="rounded-xl border border-teacher-soft bg-paper-surface p-5 text-left text-ink-900 shadow-sm transition duration-300 hover:border-teacher-accent hover:bg-paper-soft"
               type="button"
               onClick={() => selectMode("TEACHER")}
             >
@@ -183,12 +183,12 @@ export default function LoginPage() {
                 교사 화면
               </p>
               <h2 className="mt-3 text-xl font-bold">교사용 로그인</h2>
-              <p className="mt-2 text-sm leading-6 text-[#5A5247]">
+              <p className="mt-2 text-sm leading-6 text-ink-700">
                 이메일과 비밀번호로 수업 주제, 학급, 피드백을 관리합니다.
               </p>
             </button>
             <button
-              className="rounded-xl border border-[#F0DCC2] bg-[#FFFAF0] p-5 text-left text-[#2E2A24] shadow-sm transition duration-300 hover:border-student-accent hover:bg-[#F7F1E6]"
+              className="rounded-xl border border-student-soft bg-paper-surface p-5 text-left text-ink-900 shadow-sm transition duration-300 hover:border-student-accent hover:bg-paper-soft"
               type="button"
               onClick={() => selectMode("STUDENT")}
             >
@@ -196,23 +196,23 @@ export default function LoginPage() {
                 학생 화면
               </p>
               <h2 className="mt-3 text-xl font-bold">학생용 로그인</h2>
-              <p className="mt-2 text-sm leading-6 text-[#5A5247]">
+              <p className="mt-2 text-sm leading-6 text-ink-700">
                 안내 카드의 학급코드, 번호, 비밀번호로 내 글쓰기 책장을 엽니다.
               </p>
             </button>
           </div>
         ) : mode === "TEACHER" ? (
-          <form className="mt-6 grid gap-5 rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm" onSubmit={handleTeacherLogin}>
+          <form className="mt-6 grid gap-5 rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm" onSubmit={handleTeacherLogin}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teacher-accent">
                 {modeCopy.TEACHER.eyebrow}
               </p>
-              <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">교사 계정</h2>
-              <p className="mt-2 text-sm leading-6 text-[#5A5247]">
+              <h2 className="mt-1 text-xl font-bold text-ink-900">교사 계정</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-700">
                 주제, 학급, 제출물을 관리하는 교사 화면으로 이동합니다.
               </p>
             </div>
-            <label className="block text-sm font-semibold text-[#5A5247]">
+            <label className="block text-sm font-semibold text-ink-700">
               이메일
               <input
                 className={teacherInputClass}
@@ -221,7 +221,7 @@ export default function LoginPage() {
                 type="email"
               />
             </label>
-            <label className="block text-sm font-semibold text-[#5A5247]">
+            <label className="block text-sm font-semibold text-ink-700">
               비밀번호
               <input
                 className={teacherInputClass}
@@ -230,9 +230,9 @@ export default function LoginPage() {
                 type="password"
               />
             </label>
-            {error ? <p className="text-sm font-semibold text-[#B0533A]">{error}</p> : null}
+            {error ? <p className="text-sm font-semibold text-status-error">{error}</p> : null}
             <button
-              className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-teacher-accent px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(40,60,90,.15),0_2px_6px_rgba(60,80,120,.18)] hover:bg-teacher-accent/90 disabled:cursor-not-allowed disabled:bg-[#D6CCB3]"
+              className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-teacher-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(40,60,90,.15),0_2px_6px_rgba(60,80,120,.18)] hover:bg-teacher-accent/90 disabled:cursor-not-allowed disabled:bg-ink-200"
               disabled={loading}
               type="submit"
             >
@@ -240,18 +240,18 @@ export default function LoginPage() {
             </button>
           </form>
         ) : (
-          <form className="mt-6 grid gap-5 rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm" onSubmit={handleStudentLogin}>
+          <form className="mt-6 grid gap-5 rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm" onSubmit={handleStudentLogin}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-student-accent">
                 {modeCopy.STUDENT.eyebrow}
               </p>
-              <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">학생 접속</h2>
-              <p className="mt-2 text-sm leading-6 text-[#5A5247]">
+              <h2 className="mt-1 text-xl font-bold text-ink-900">학생 접속</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-700">
                 안내 카드에 적힌 학급코드, 번호, 로그인 비밀번호를 입력하세요.
               </p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              <label className="block text-sm font-semibold text-[#5A5247]">
+              <label className="block text-sm font-semibold text-ink-700">
                 학급코드
                 <input
                   className={`${studentInputClass} uppercase`}
@@ -260,7 +260,7 @@ export default function LoginPage() {
                   autoCapitalize="characters"
                 />
               </label>
-              <label className="block text-sm font-semibold text-[#5A5247]">
+              <label className="block text-sm font-semibold text-ink-700">
                 번호
                 <input
                   className={studentInputClass}
@@ -270,7 +270,7 @@ export default function LoginPage() {
                 />
               </label>
             </div>
-            <label className="block text-sm font-semibold text-[#5A5247]">
+            <label className="block text-sm font-semibold text-ink-700">
               로그인 비밀번호
               <input
                 className={studentInputClass}
@@ -279,9 +279,9 @@ export default function LoginPage() {
                 type="password"
               />
             </label>
-            {error ? <p className="text-sm font-semibold text-[#B0533A]">{error}</p> : null}
+            {error ? <p className="text-sm font-semibold text-status-error">{error}</p> : null}
             <button
-              className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90 disabled:cursor-not-allowed disabled:bg-[#D6CCB3]"
+              className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90 disabled:cursor-not-allowed disabled:bg-ink-200"
               disabled={loading}
               type="submit"
             >

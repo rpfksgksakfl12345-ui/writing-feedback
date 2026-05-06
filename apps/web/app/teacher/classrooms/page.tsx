@@ -86,7 +86,7 @@ export default function TeacherClassroomsPage() {
 
   if (isReady && user?.role !== "TEACHER") {
     return (
-      <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-6 text-[#5A5247] shadow-sm">
+      <section className="rounded-xl border border-ink-100 bg-paper-surface p-6 text-ink-700 shadow-sm">
         교사 계정만 접근할 수 있습니다.
       </section>
     );
@@ -95,24 +95,24 @@ export default function TeacherClassroomsPage() {
   const gradeOptions = [1, 2, 3, 4, 5, 6];
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-[#E8DEC7] bg-paper-base shadow-sm">
-      <section className="bg-[radial-gradient(rgba(90,110,133,.05)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
+    <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
+      <section className="bg-paper-surface bg-[radial-gradient(rgba(90,110,133,.07)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="text-sm font-semibold text-teacher-accent">교사 학급</p>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#2E2A24]">학급 관리</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#5A5247]">
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">학급 관리</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-700">
               학급을 만들고 학생 접속에 사용할 학급코드를 확인합니다.
             </p>
           </div>
 
-          <div className="grid min-w-[240px] grid-cols-2 gap-3 rounded-xl border border-[#E8DEC7] bg-[#FFFAF0]/85 p-4 shadow-sm">
+          <div className="grid min-w-[240px] grid-cols-2 gap-3 rounded-xl border border-ink-100 bg-paper-surface/85 p-4 shadow-sm">
             <div>
-              <p className="text-xs text-[#8B8170]">전체 학급</p>
-              <p className="mt-1 text-lg font-semibold text-[#2E2A24]">{classrooms.length}</p>
+              <p className="text-xs text-ink-500">전체 학급</p>
+              <p className="mt-1 text-lg font-semibold text-ink-900">{classrooms.length}</p>
             </div>
             <div>
-              <p className="text-xs text-[#8B8170]">최근 코드</p>
+              <p className="text-xs text-ink-500">최근 코드</p>
               <p className="mt-1 text-lg font-semibold text-teacher-accent">
                 {classrooms[0]?.classCode ?? "-"}
               </p>
@@ -122,26 +122,26 @@ export default function TeacherClassroomsPage() {
       </section>
 
       <section className="grid gap-6 px-8 pb-10 pt-7 xl:grid-cols-[minmax(340px,.85fr)_minmax(0,1.15fr)]">
-        <section className="h-fit rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+        <section className="h-fit rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
             새 학급
           </p>
-          <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">학급 만들기</h2>
+          <h2 className="mt-1 text-xl font-bold text-ink-900">학급 만들기</h2>
           <form className="mt-5 space-y-4" onSubmit={handleCreateClassroom}>
-            <label className="block text-sm font-semibold text-[#5A5247]">
+            <label className="block text-sm font-semibold text-ink-700">
               학급명
               <input
-                className="mt-2 h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] placeholder:text-[#A89C85] focus:border-teacher-accent focus:ring-teacher-accent/20"
+                className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20"
                 placeholder="예: 3학년 1반"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
               />
             </label>
 
-            <label className="block text-sm font-semibold text-[#5A5247]">
+            <label className="block text-sm font-semibold text-ink-700">
               학년
               <select
-                className="mt-2 h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] focus:border-teacher-accent focus:ring-teacher-accent/20"
+                className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-teacher-accent focus:ring-teacher-accent/20"
                 value={grade}
                 onChange={(event) => setGrade(event.target.value)}
               >
@@ -164,14 +164,14 @@ export default function TeacherClassroomsPage() {
           </form>
         </section>
 
-        <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm">
+        <section className="rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                 학급 목록
               </p>
-              <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">학급 목록</h2>
-              <p className="mt-2 text-sm leading-6 text-[#5A5247]">
+              <h2 className="mt-1 text-xl font-bold text-ink-900">학급 목록</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-700">
                 학급을 선택하면 학생 명단과 로그인 정보를 관리할 수 있습니다.
               </p>
             </div>
@@ -179,15 +179,15 @@ export default function TeacherClassroomsPage() {
           </div>
 
           {isLoading ? (
-            <div className="mt-5 rounded-xl border border-dashed border-[#C9B998] bg-paper-base/60 px-6 py-12 text-center text-sm text-[#8B8170]">
+            <div className="mt-5 rounded-xl border border-dashed border-ink-200 bg-paper-base/60 px-6 py-12 text-center text-sm text-ink-500">
               학급 목록을 불러오는 중입니다...
             </div>
           ) : null}
 
           {!isLoading && classrooms.length === 0 ? (
-            <div className="mt-5 rounded-xl border border-dashed border-[#C9B998] bg-paper-base/60 px-6 py-12 text-center">
-              <p className="text-lg font-semibold text-[#2E2A24]">아직 학급이 없습니다.</p>
-              <p className="mt-2 text-sm text-[#5A5247]">
+            <div className="mt-5 rounded-xl border border-dashed border-ink-200 bg-paper-base/60 px-6 py-12 text-center">
+              <p className="text-lg font-semibold text-ink-900">아직 학급이 없습니다.</p>
+              <p className="mt-2 text-sm text-ink-700">
                 첫 학급을 만들면 학생 접속 코드가 자동으로 발급됩니다.
               </p>
             </div>
@@ -198,23 +198,23 @@ export default function TeacherClassroomsPage() {
               {classrooms.map((classroom) => (
                 <Link
                   key={classroom.id}
-                  className="rounded-xl border border-[#E8DEC7] bg-paper-base/45 p-4 transition hover:bg-paper-base/70"
+                  className="rounded-xl border border-ink-100 bg-paper-base/45 p-4 transition hover:bg-paper-base/70"
                   href={`/teacher/classrooms/${classroom.id}`}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge tone="teacher">{classroom.grade}학년</Badge>
-                        <span className="text-xs font-semibold text-[#8B8170]">
+                        <span className="text-xs font-semibold text-ink-500">
                           {formatClassroomDate(classroom.createdAt)}
                         </span>
                       </div>
-                      <h3 className="mt-3 text-lg font-bold leading-tight text-[#2E2A24]">
+                      <h3 className="mt-3 text-lg font-bold leading-tight text-ink-900">
                         {classroom.name}
                       </h3>
                     </div>
-                    <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0] px-4 py-3 text-right">
-                      <p className="text-xs text-[#8B8170]">학급코드</p>
+                    <div className="rounded-lg border border-ink-100 bg-paper-surface px-4 py-3 text-right">
+                      <p className="text-xs text-ink-500">학급코드</p>
                       <p className="mt-1 font-mono text-lg font-bold tracking-[0.12em] text-teacher-accent">
                         {classroom.classCode}
                       </p>

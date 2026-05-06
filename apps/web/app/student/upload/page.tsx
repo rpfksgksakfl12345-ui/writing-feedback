@@ -122,13 +122,13 @@ function SubmissionNotebookView({
         />
       ) : null}
 
-      <section className="overflow-hidden rounded-md border border-[#E8DEC7] bg-[#FBF6E9] shadow-[0_1px_2px_rgba(60,40,20,.06),0_12px_28px_rgba(60,40,20,.06)]">
+      <section className="overflow-hidden rounded-md border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_12px_28px_rgba(60,40,20,.06)]">
         <div className="flex flex-col gap-2 border-b-2 border-[#D9926A]/25 px-8 py-4 sm:flex-row sm:items-baseline sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-[#5A5247]">
+            <p className="text-sm font-semibold text-ink-700">
               {submittedAt} · {userName ?? "학생"}
             </p>
-            <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">
+            <h2 className="mt-1 text-xl font-bold text-ink-900">
               {topic?.title ?? submission.topic?.title ?? "내가 쓴 글"}
             </h2>
           </div>
@@ -144,7 +144,7 @@ function SubmissionNotebookView({
               {feedbackBlock}
             </NotebookPaper>
           ) : (
-            <div className="space-y-4 rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-4">
+            <div className="space-y-4 rounded-xl border border-ink-100 bg-paper-surface p-4">
               {submission.imageUrl ? (
                 <img
                   src={`${API_BASE_URL}${submission.imageUrl}`}
@@ -152,7 +152,7 @@ function SubmissionNotebookView({
                   className="max-h-[560px] w-full rounded-lg object-contain"
                 />
               ) : (
-                <div className="rounded-lg border border-dashed border-[#C9B998] bg-paper-base/60 px-5 py-12 text-center text-sm text-[#8B8170]">
+                <div className="rounded-lg border border-dashed border-ink-200 bg-paper-base/60 px-5 py-12 text-center text-sm text-ink-500">
                   제출한 사진 정보를 불러오지 못했습니다.
                 </div>
               )}
@@ -172,11 +172,11 @@ function SubmissionNotebookView({
       </section>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs leading-5 text-[#8B8170]">
+        <p className="text-xs leading-5 text-ink-500">
           이 주제는 이미 제출되어 새 입력창 대신 저장된 공책을 보여줍니다.
         </p>
         <Link
-          className="inline-flex min-h-11 items-center justify-center rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
+          className="inline-flex min-h-11 items-center justify-center rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
           href="/student"
         >
           내 책장으로 돌아가기
@@ -407,7 +407,7 @@ function StudentUploadContent() {
 
   if (isReady && user?.role !== "STUDENT") {
     return (
-      <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-6 text-[#5A5247] shadow-sm">
+      <section className="rounded-xl border border-ink-100 bg-paper-surface p-6 text-ink-700 shadow-sm">
         학생 계정만 접근할 수 있습니다.
       </section>
     );
@@ -424,12 +424,12 @@ function StudentUploadContent() {
       : "사진 제출";
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-[#E8DEC7] bg-paper-base shadow-sm">
-      <section className="bg-student-accent px-8 pb-7 pt-6 text-[#FFFAF0]">
+    <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
+      <section className="bg-student-accent px-8 pb-7 pt-6 text-paper-surface">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <Link
-              className="inline-flex min-h-8 items-center whitespace-nowrap rounded-md bg-[#FFFAF0]/15 px-3 text-xs font-semibold text-[#FFFAF0] hover:bg-[#FFFAF0]/25"
+              className="inline-flex min-h-8 items-center whitespace-nowrap rounded-md bg-paper-surface/15 px-3 text-xs font-semibold text-paper-surface hover:bg-paper-surface/25"
               href="/student"
             >
               ← 내 책장
@@ -449,7 +449,7 @@ function StudentUploadContent() {
           </div>
 
           <div className="flex flex-col items-start gap-2 xl:items-end">
-            <Badge className="border-[#FFFAF0]/30 bg-[#FFFAF0]/20 text-[#FFFAF0]" tone="neutral">
+            <Badge className="border-paper-surface/30 bg-paper-surface/20 text-paper-surface" tone="neutral">
               {statusBadgeLabel}
             </Badge>
             <p className="text-xs opacity-80">
@@ -462,16 +462,16 @@ function StudentUploadContent() {
       <section className="px-6 py-8 xl:px-10">
         <div className="mx-auto flex w-full max-w-[820px] flex-col gap-5">
           {isLoading ? (
-            <div className="rounded-xl border border-dashed border-[#C9B998] bg-[#FFFAF0] px-6 py-12 text-center text-sm text-[#8B8170]">
+            <div className="rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-12 text-center text-sm text-ink-500">
               글쓰기 주제를 불러오는 중입니다...
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-4 rounded-lg border border-[#E8DEC7] bg-[#FFFAF0] px-4 py-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-4 rounded-lg border border-ink-100 bg-paper-surface px-4 py-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
             {selectedSubmission ? (
               <div>
-                <p className="text-sm font-semibold text-[#2E2A24]">내가 제출한 공책 보기</p>
-                <p className="mt-1 text-xs leading-5 text-[#8B8170]">
+                <p className="text-sm font-semibold text-ink-900">내가 제출한 공책 보기</p>
+                <p className="mt-1 text-xs leading-5 text-ink-500">
                   새 글쓰기 입력창 대신 저장된 원문을 보여줍니다.
                 </p>
               </div>
@@ -491,8 +491,8 @@ function StudentUploadContent() {
                       className={cx(
                         "inline-flex min-h-10 items-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-semibold shadow-none",
                         isActive
-                          ? "bg-[#FFFAF0] text-[#2E2A24]"
-                          : "bg-transparent text-[#8B8170] hover:bg-[#FFFAF0]/70 hover:text-[#2E2A24]",
+                          ? "bg-paper-surface text-ink-900"
+                          : "bg-transparent text-ink-500 hover:bg-paper-surface/70 hover:text-ink-900",
                       )}
                       type="button"
                       onClick={() => handleTypeChange(type.id)}
@@ -505,13 +505,13 @@ function StudentUploadContent() {
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-3 text-xs text-[#8B8170]">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-ink-500">
               {selectedSubmission ? (
                 <span>{selectedSubmission.finalFeedback ? "선생님 피드백을 확인할 수 있어요." : "선생님 피드백을 기다리고 있어요."}</span>
               ) : activeType === "TYPED" ? (
                 <span className="tabular-nums">
-                  <strong className="text-[#2E2A24]">{content.length}</strong>자 · 약{" "}
-                  <strong className="text-[#2E2A24]">{estimatedMinutes}</strong>분
+                  <strong className="text-ink-900">{content.length}</strong>자 · 약{" "}
+                  <strong className="text-ink-900">{estimatedMinutes}</strong>분
                 </span>
               ) : (
                 <span className="max-w-[320px] truncate">
@@ -522,11 +522,11 @@ function StudentUploadContent() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-[#5A5247]" htmlFor="topicId">
+            <label className="mb-2 block text-sm font-semibold text-ink-700" htmlFor="topicId">
               주제 선택
             </label>
             <select
-              className="h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] focus:border-student-accent focus:ring-student-accent/20"
+              className="h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-student-accent focus:ring-student-accent/20"
               id="topicId"
               value={topicId}
               onChange={(event) => {
@@ -552,12 +552,12 @@ function StudentUploadContent() {
             />
           ) : activeType === "TYPED" ? (
             <form className="space-y-5" onSubmit={handleTypedSubmit}>
-              <div className="overflow-hidden rounded-md border border-[#E8DEC7] bg-[#FBF6E9] shadow-[0_1px_2px_rgba(60,40,20,.06),0_12px_28px_rgba(60,40,20,.06)]">
+              <div className="overflow-hidden rounded-md border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_12px_28px_rgba(60,40,20,.06)]">
                 <div className="flex items-baseline justify-between gap-4 border-b-2 border-[#D9926A]/25 px-8 py-4">
-                  <p className="text-sm font-semibold text-[#5A5247]">
+                  <p className="text-sm font-semibold text-ink-700">
                     {topicDate} · {user?.name ?? "학생"}
                   </p>
-                  <p className="text-xs text-[#A89C85]">생각을 천천히 적어 보세요</p>
+                  <p className="text-xs text-ink-300">생각을 천천히 적어 보세요</p>
                 </div>
                 <div className="p-5 sm:p-7">
                   <NotebookTextArea
@@ -570,7 +570,7 @@ function StudentUploadContent() {
                 </div>
               </div>
 
-              <div className="flex justify-end text-xs text-[#8B8170]">
+              <div className="flex justify-end text-xs text-ink-500">
                 <span className="tabular-nums">
                   {content.length} / {typedMaxLength}자
                 </span>
@@ -580,38 +580,38 @@ function StudentUploadContent() {
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Link
-                  className="inline-flex min-h-11 items-center justify-center rounded-md px-[18px] py-[13px] text-[15px] font-semibold text-[#5A5247] hover:bg-[#FFFAF0]/70"
+                  className="inline-flex min-h-11 items-center justify-center rounded-md px-[18px] py-[13px] text-[15px] font-semibold text-ink-700 hover:bg-paper-surface/70"
                   href="/student"
                 >
                   ← 내 책장
                 </Link>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <span className="text-xs text-[#8B8170]">한 번 제출하면 다시 고치기 어려워요.</span>
+                  <span className="text-xs text-ink-500">한 번 제출하면 다시 고치기 어려워요.</span>
                   <PrimaryButton type="submit">선생님께 제출하기 →</PrimaryButton>
                 </div>
               </div>
             </form>
           ) : (
             <form className="space-y-5" onSubmit={handlePhotoSubmit}>
-              <div className="rounded-md border border-[#E8DEC7] bg-[#FFFAF0] p-6 shadow-[0_1px_2px_rgba(60,40,20,.06),0_12px_28px_rgba(60,40,20,.06)]">
-                <div className="rounded-lg border border-dashed border-[#C9B998] bg-paper-base/70 px-6 py-12 text-center">
+              <div className="rounded-md border border-ink-100 bg-paper-surface p-6 shadow-[0_1px_2px_rgba(60,40,20,.06),0_12px_28px_rgba(60,40,20,.06)]">
+                <div className="rounded-lg border border-dashed border-ink-200 bg-paper-base/70 px-6 py-12 text-center">
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-student-accent/15 text-lg font-bold text-student-accent">
                     ▣
                   </div>
-                  <label className="mt-5 block text-base font-semibold text-[#2E2A24]" htmlFor="writingPhoto">
+                  <label className="mt-5 block text-base font-semibold text-ink-900" htmlFor="writingPhoto">
                     공책 사진 선택
                   </label>
-                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#5A5247]">
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink-700">
                     공책에 쓴 글이 선명하게 보이는 사진을 올려 주세요. 기존 OCR 처리 흐름으로 제출됩니다.
                   </p>
                   <input
-                    className="mx-auto mt-5 max-w-md rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#5A5247] file:mr-4 file:rounded-md file:border-0 file:bg-student-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#FFFAF0] hover:file:bg-student-accent/90"
+                    className="mx-auto mt-5 max-w-md rounded-md border-ink-100 bg-paper-surface text-sm text-ink-700 file:mr-4 file:rounded-md file:border-0 file:bg-student-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-paper-surface hover:file:bg-student-accent/90"
                     id="writingPhoto"
                     type="file"
                     accept="image/*"
                     onChange={(event) => setImage(event.target.files?.[0] || null)}
                   />
-                  {image ? <p className="mt-3 text-xs text-[#8B8170]">{image.name}</p> : null}
+                  {image ? <p className="mt-3 text-xs text-ink-500">{image.name}</p> : null}
                 </div>
               </div>
 
@@ -619,13 +619,13 @@ function StudentUploadContent() {
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Link
-                  className="inline-flex min-h-11 items-center justify-center rounded-md px-[18px] py-[13px] text-[15px] font-semibold text-[#5A5247] hover:bg-[#FFFAF0]/70"
+                  className="inline-flex min-h-11 items-center justify-center rounded-md px-[18px] py-[13px] text-[15px] font-semibold text-ink-700 hover:bg-paper-surface/70"
                   href="/student"
                 >
                   ← 내 책장
                 </Link>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <span className="text-xs text-[#8B8170]">사진 속 글이 잘 보이는지 확인해 주세요.</span>
+                  <span className="text-xs text-ink-500">사진 속 글이 잘 보이는지 확인해 주세요.</span>
                   <PrimaryButton type="submit">사진 업로드하기 →</PrimaryButton>
                 </div>
               </div>
@@ -641,7 +641,7 @@ export default function StudentUploadPage() {
   return (
     <Suspense
       fallback={
-        <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-6 text-[#5A5247] shadow-sm">
+        <section className="rounded-xl border border-ink-100 bg-paper-surface p-6 text-ink-700 shadow-sm">
           불러오는 중...
         </section>
       }

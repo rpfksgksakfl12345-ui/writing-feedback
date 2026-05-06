@@ -8,22 +8,25 @@
   font-display: swap;
 }
 
-body {
-  @apply bg-slate-100 text-slate-900 antialiased;
-}
+@layer base {
+  body {
+    @apply bg-paper-base text-ink-900 antialiased;
+  }
 
-input,
-select,
-textarea {
-  @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200;
-}
+  input,
+  select,
+  textarea {
+    @apply w-full rounded-md border border-ink-100 bg-paper-surface px-3 py-2.5 text-sm text-ink-900 outline-none transition placeholder:text-ink-300 focus:border-student-accent focus:ring-2 focus:ring-student-accent/20;
+  }
 
-button {
-  @apply rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400;
-}
+  button {
+    font: inherit;
+    @apply transition disabled:cursor-not-allowed;
+  }
 
-a {
-  @apply transition;
+  a {
+    @apply transition;
+  }
 }
 
 @layer components {

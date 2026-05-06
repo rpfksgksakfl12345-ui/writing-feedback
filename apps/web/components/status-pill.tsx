@@ -6,8 +6,8 @@ const statusLabel: Record<SubmissionStatus, string> = {
 };
 
 const statusClasses: Record<SubmissionStatus, string> = {
-  PENDING: "bg-amber-100 text-amber-900",
-  REVIEWED: "bg-emerald-100 text-emerald-900",
+  PENDING: "bg-status-writing/15 text-status-writing",
+  REVIEWED: "bg-status-feedbackDone/15 text-status-feedbackDone",
 };
 
 export function StatusPill({ status }: { status: SubmissionStatus }) {

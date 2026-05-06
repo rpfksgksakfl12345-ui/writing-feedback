@@ -24,7 +24,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
 
   if (!isReady || user?.role !== "TEACHER") {
     return (
-      <section className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-6 text-[#5A5247] shadow-sm">
+      <section className="rounded-xl border border-ink-100 bg-paper-surface p-6 text-ink-700 shadow-sm">
         로그인 화면으로 이동 중입니다...
       </section>
     );
@@ -32,7 +32,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-      <aside className="rounded-[24px] border border-[#E8DEC7] bg-[#FFFAF0] p-4 shadow-sm">
+      <aside className="rounded-[24px] border border-ink-100 bg-paper-surface/95 p-4 shadow-[0_1px_2px_rgba(60,40,20,.05),0_10px_26px_rgba(60,40,20,.07)]">
         <p className="px-3 text-xs font-semibold uppercase tracking-[0.18em] text-teacher-accent">
           교사 메뉴
         </p>
@@ -46,8 +46,8 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                 href={link.href}
                 className={`block whitespace-nowrap rounded-2xl px-4 py-3 text-sm font-medium transition ${
                   isActive
-                    ? "bg-teacher-accent text-white shadow-sm"
-                    : "bg-paper-base text-[#5A5247] hover:bg-paper-base/70"
+                    ? "bg-teacher-accent text-paper-surface shadow-sm"
+                    : "bg-paper-base text-ink-700 hover:bg-paper-base/70"
                 }`}
               >
                 {link.label}
@@ -55,7 +55,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
             );
           })}
         </nav>
-        <div className="mt-6 rounded-2xl border border-[#E8DEC7] bg-paper-base/70 p-4 text-sm leading-6 text-[#5A5247]">
+        <div className="mt-6 rounded-2xl border border-ink-100 bg-paper-base/70 p-4 text-sm leading-6 text-ink-700">
           학급을 만들고 주제를 준비한 뒤 학생 제출 글에 피드백을 남깁니다.
         </div>
       </aside>

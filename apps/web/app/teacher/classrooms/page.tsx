@@ -99,7 +99,7 @@ export default function TeacherClassroomsPage() {
       <section className="bg-[radial-gradient(rgba(90,110,133,.05)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-sm font-semibold text-teacher-accent">Teacher Classrooms</p>
+            <p className="text-sm font-semibold text-teacher-accent">교사 학급</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#2E2A24]">학급 관리</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[#5A5247]">
               학급을 만들고 학생 접속에 사용할 학급코드를 확인합니다.
@@ -124,7 +124,7 @@ export default function TeacherClassroomsPage() {
       <section className="grid gap-6 px-8 pb-10 pt-7 xl:grid-cols-[minmax(340px,.85fr)_minmax(0,1.15fr)]">
         <section className="h-fit rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
-            New Classroom
+            새 학급
           </p>
           <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">학급 만들기</h2>
           <form className="mt-5 space-y-4" onSubmit={handleCreateClassroom}>
@@ -168,7 +168,7 @@ export default function TeacherClassroomsPage() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
-                Classroom List
+                학급 목록
               </p>
               <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">학급 목록</h2>
               <p className="mt-2 text-sm leading-6 text-[#5A5247]">

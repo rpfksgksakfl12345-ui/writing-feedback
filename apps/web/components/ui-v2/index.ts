@@ -1,5 +1,7 @@
 export {
   Badge,
+  NotebookPaper,
+  NotebookText,
   NotebookTextArea,
   PaperCard,
   PrimaryButton,

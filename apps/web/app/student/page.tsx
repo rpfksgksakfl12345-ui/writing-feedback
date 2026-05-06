@@ -193,6 +193,7 @@ export default function StudentLibraryPage() {
       createdAt: topic.createdAt,
       status,
       href: `/student/upload?topicId=${topic.id}`,
+      actionLabel: status === "NOT_STARTED" ? "글쓰기" : "공책 보기",
     };
   });
 
@@ -225,17 +226,8 @@ export default function StudentLibraryPage() {
             <p className="text-sm font-semibold text-student-accent">안녕, {user?.name ?? "친구"}!</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#2E2A24]">내 책장</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[#5A5247]">
-              선생님이 낸 글쓰기 주제를 책처럼 모아두었어요. 카드를 열면 바로 글쓰기 화면에서
-              이어서 제출할 수 있습니다.
-            </p>
-          </div>
-
-          <div className="text-left text-sm text-[#8B8170] lg:text-right">
-            <p>
-              <span className="font-semibold text-[#2E2A24]">{cards.length}</span>편의 글쓰기 주제
-            </p>
-            <p className="mt-1 text-xs text-[#A89C85]">
-              {user?.grade ? `${user.grade}학년 주제만 보여요` : "학년 정보가 있는 주제를 보여요"}
+              선생님이 낸 글쓰기 주제를 책처럼 모아두었어요. 새 주제는 공책에 쓰고, 제출한 주제는
+              내가 쓴 공책과 선생님 피드백을 확인할 수 있습니다.
             </p>
           </div>
         </div>
@@ -254,7 +246,7 @@ export default function StudentLibraryPage() {
               </div>
             </div>
             <Link
-              className="inline-flex min-h-11 items-center justify-center rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
               href={firstTodoCard.href}
             >
               시작하기
@@ -270,7 +262,7 @@ export default function StudentLibraryPage() {
               return (
                 <button
                   key={tab.id}
-                  className={`flex min-h-0 items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold shadow-none ${
+                  className={`flex min-h-0 items-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-semibold shadow-none ${
                     isActive
                       ? "bg-[#FFFAF0] text-[#2E2A24]"
                       : "bg-transparent text-[#5A5247] hover:bg-[#FFFAF0]/60"
@@ -355,10 +347,10 @@ export default function StudentLibraryPage() {
                           </p>
                           <Badge tone={statusMeta.badgeTone}>{statusMeta.label}</Badge>
                         </div>
-                        <h2 className="mt-5 line-clamp-3 pl-3 text-[22px] font-bold leading-tight">
+                        <h2 className="mt-5 line-clamp-3 pl-3 text-[22px] font-bold leading-[1.35] [overflow-wrap:break-word] [word-break:keep-all]">
                           {card.title}
                         </h2>
-                        <p className="mt-4 line-clamp-3 pl-3 text-sm leading-6 text-[#5A5247]">
+                        <p className="mt-4 line-clamp-3 pl-3 text-sm leading-6 text-[#5A5247] [overflow-wrap:break-word] [word-break:keep-all]">
                           {card.description || statusMeta.description}
                         </p>
                         <div className="mt-auto pl-3">
@@ -368,8 +360,8 @@ export default function StudentLibraryPage() {
                             </p>
                             <div className="mt-2 flex items-center justify-between gap-3">
                               <span className="text-sm font-semibold text-[#2E2A24]">{card.grade}학년</span>
-                              <span className="text-sm text-[#5A5247] group-hover:text-student-accent">
-                                열기
+                              <span className="whitespace-nowrap text-sm text-[#5A5247] group-hover:text-student-accent">
+                                {card.actionLabel}
                               </span>
                             </div>
                           </div>

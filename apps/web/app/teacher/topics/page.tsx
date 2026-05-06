@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { NoticeBanner } from "../../../components/notice-banner";
 import { useAuth } from "../../../components/auth-provider";
-import { Badge, PrimaryButton, SecondaryButton } from "../../../components/ui-v2";
+import { Badge, PrimaryButton } from "../../../components/ui-v2";
 import { apiFetch } from "../../../lib/api";
 
 type Topic = {
@@ -23,8 +23,13 @@ type Classroom = {
   classCode: string;
 };
 
+type TopicSuggestion = {
+  title: string;
+  studentGuide: string;
+};
+
 type TopicSuggestionResult = {
-  topics: string[];
+  topics: Array<string | Partial<TopicSuggestion>>;
 };
 
 function formatTopicDate(createdAt: string) {
@@ -40,6 +45,33 @@ function formatTopicDate(createdAt: string) {
   }).format(date);
 }
 
+function getDefaultGradeFromClassrooms(classrooms: Classroom[]) {
+  return classrooms[0]?.grade ? String(classrooms[0].grade) : "3";
+}
+
+function normalizeTopicSuggestion(value: string | Partial<TopicSuggestion>): TopicSuggestion | null {
+  if (typeof value === "string") {
+    const title = value.trim();
+    return title ? { title, studentGuide: "" } : null;
+  }
+
+  const title = typeof value.title === "string" ? value.title.trim() : "";
+  const studentGuide =
+    typeof value.studentGuide === "string" ? value.studentGuide.trim() : "";
+
+  if (!title) {
+    return null;
+  }
+
+  return { title, studentGuide };
+}
+
+function normalizeTopicSuggestions(values: Array<string | Partial<TopicSuggestion>>) {
+  return values
+    .map(normalizeTopicSuggestion)
+    .filter((suggestion): suggestion is TopicSuggestion => Boolean(suggestion));
+}
+
 export default function TeacherTopicsPage() {
   const { token, user, isReady } = useAuth();
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -53,8 +85,8 @@ export default function TeacherTopicsPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoadingTopics, setIsLoadingTopics] = useState(true);
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
-  const [suggestedTopics, setSuggestedTopics] = useState<string[]>([]);
-  const [selectedSuggestion, setSelectedSuggestion] = useState("");
+  const [suggestedTopics, setSuggestedTopics] = useState<TopicSuggestion[]>([]);
+  const [selectedSuggestionTitle, setSelectedSuggestionTitle] = useState("");
 
   async function loadTopics() {
     if (!token) {
@@ -71,6 +103,21 @@ export default function TeacherTopicsPage() {
 
       setTopics(nextTopics);
       setClassrooms(nextClassrooms);
+      setGrade((currentGrade) => {
+        const selectedClassroom = classroomId
+          ? nextClassrooms.find((classroom) => String(classroom.id) === classroomId)
+          : null;
+
+        if (selectedClassroom) {
+          return String(selectedClassroom.grade);
+        }
+
+        if (currentGrade === "3" && nextClassrooms[0]?.grade) {
+          return String(nextClassrooms[0].grade);
+        }
+
+        return currentGrade;
+      });
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "주제를 불러오지 못했습니다.");
     } finally {
@@ -111,10 +158,10 @@ export default function TeacherTopicsPage() {
 
       setTitle("");
       setDescription("");
-      setGrade("3");
+      setGrade(getDefaultGradeFromClassrooms(classrooms));
       setClassroomId("");
       setSuggestedTopics([]);
-      setSelectedSuggestion("");
+      setSelectedSuggestionTitle("");
       setMessage("주제가 등록되었습니다. 학생은 이제 해당 학년에서 이 주제를 선택할 수 있습니다.");
       await loadTopics();
     } catch (submitError) {
@@ -142,11 +189,11 @@ export default function TeacherTopicsPage() {
         body: JSON.stringify({ grade: Number(grade) }),
       });
 
-      setSuggestedTopics(response.topics);
-      setSelectedSuggestion(response.topics[0] ?? "");
+      setSuggestedTopics(normalizeTopicSuggestions(response.topics));
+      setSelectedSuggestionTitle("");
     } catch (generateError) {
       setSuggestedTopics([]);
-      setSelectedSuggestion("");
+      setSelectedSuggestionTitle("");
       setAiError(
         generateError instanceof Error
           ? generateError.message
@@ -157,14 +204,13 @@ export default function TeacherTopicsPage() {
     }
   }
 
-  function applySuggestedTopic() {
-    if (!selectedSuggestion) {
-      setAiError("추천된 주제 중 하나를 먼저 선택해 주세요.");
-      return;
-    }
-
-    setTitle(selectedSuggestion);
-    setDescription(`${grade}학년 학생이 300자 이내로 쓰기 좋은 글쓰기 주제입니다.`);
+  function applySuggestedTopic(suggestion: TopicSuggestion) {
+    setSelectedSuggestionTitle(suggestion.title);
+    setTitle(suggestion.title);
+    setDescription(
+      suggestion.studentGuide ||
+        `${grade}학년 학생이 300자 이내로 쓰기 좋은 글쓰기 주제입니다.`,
+    );
     setAiError("");
   }
 
@@ -184,7 +230,7 @@ export default function TeacherTopicsPage() {
       <section className="bg-[radial-gradient(rgba(90,110,133,.05)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-sm font-semibold text-teacher-accent">Teacher Topics</p>
+            <p className="text-sm font-semibold text-teacher-accent">교사 주제 관리</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#2E2A24]">
               글쓰기 주제 관리
             </h1>
@@ -218,7 +264,7 @@ export default function TeacherTopicsPage() {
                 </p>
                 <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">오늘의 글쓰기 주제 찾기</h2>
                 <p className="mt-2 text-sm leading-6 text-[#5A5247]">
-                  버튼을 누를 때에만 AI를 호출하며, 선택한 학년에 맞는 주제 10개를 추천합니다.
+                  버튼을 누를 때에만 AI를 호출하며, 선택한 학년에 맞는 주제를 추천합니다.
                 </p>
               </div>
               <Badge tone="teacher">{grade}학년</Badge>
@@ -248,7 +294,7 @@ export default function TeacherTopicsPage() {
                 tone="teacher"
                 type="button"
               >
-                {isGenerating ? "추천 생성 중..." : "AI로 주제 10개 추천"}
+                {isGenerating ? "추천 생성 중..." : "AI로 주제 추천"}
               </PrimaryButton>
             </div>
 
@@ -260,35 +306,39 @@ export default function TeacherTopicsPage() {
 
             {suggestedTopics.length > 0 ? (
               <div className="mt-5 space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-[#5A5247]">
-                    추천 결과 중 하나를 고른 뒤 입력칸으로 가져올 수 있습니다.
-                  </p>
-                  <SecondaryButton onClick={applySuggestedTopic} type="button">
-                    선택한 주제로 입력
-                  </SecondaryButton>
-                </div>
+                <p className="text-sm font-semibold text-[#5A5247]">
+                  추천 결과를 클릭하면 주제 제목과 학생 안내가 바로 입력됩니다.
+                </p>
 
                 <div className="grid gap-3">
                   {suggestedTopics.map((suggestion, index) => {
-                    const isSelected = selectedSuggestion === suggestion;
+                    const isSelected = selectedSuggestionTitle === suggestion.title;
 
                     return (
                       <button
-                        key={suggestion}
+                        key={`${suggestion.title}-${index}`}
                         className={`rounded-lg border px-4 py-3 text-left shadow-none ${
                           isSelected
                             ? "border-teacher-accent bg-teacher-accent/10 text-[#2E2A24]"
                             : "border-[#E8DEC7] bg-paper-base/55 text-[#5A5247] hover:bg-paper-base"
                         }`}
-                        onClick={() => setSelectedSuggestion(suggestion)}
+                        onClick={() => applySuggestedTopic(suggestion)}
                         type="button"
                       >
                         <div className="flex items-start gap-3">
                           <span className="mt-0.5 text-xs font-semibold text-teacher-accent">
                             {String(index + 1).padStart(2, "0")}
                           </span>
-                          <span className="text-sm font-semibold leading-6">{suggestion}</span>
+                          <span>
+                            <span className="block text-sm font-semibold leading-6">
+                              {suggestion.title}
+                            </span>
+                            {suggestion.studentGuide ? (
+                              <span className="mt-1 block text-xs leading-5 text-[#8B8170]">
+                                {suggestion.studentGuide}
+                              </span>
+                            ) : null}
+                          </span>
                         </div>
                       </button>
                     );
@@ -335,7 +385,18 @@ export default function TeacherTopicsPage() {
                 <select
                   className="mt-2 h-11 rounded-md border-[#E8DEC7] bg-[#FFFAF0] text-sm text-[#2E2A24] focus:border-teacher-accent focus:ring-teacher-accent/20"
                   value={classroomId}
-                  onChange={(event) => setClassroomId(event.target.value)}
+                  onChange={(event) => {
+                    const nextClassroomId = event.target.value;
+                    const nextClassroom = classrooms.find(
+                      (classroom) => String(classroom.id) === nextClassroomId,
+                    );
+
+                    setClassroomId(nextClassroomId);
+
+                    if (nextClassroom) {
+                      setGrade(String(nextClassroom.grade));
+                    }
+                  }}
                 >
                   <option value="">전체 학생에게 공개</option>
                   {classrooms.map((classroom) => (
@@ -389,7 +450,7 @@ export default function TeacherTopicsPage() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
-                Topic Library
+                주제 목록
               </p>
               <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">주제 목록</h2>
               <p className="mt-2 text-sm leading-6 text-[#5A5247]">

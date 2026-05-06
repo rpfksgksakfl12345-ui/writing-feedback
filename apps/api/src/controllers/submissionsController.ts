@@ -106,6 +106,21 @@ export async function createSubmission(req: AuthRequest, res: Response) {
       return res.status(403).json({ message: "Topic is not available for this classroom" });
     }
 
+    const existingSubmission = await prisma.submission.findFirst({
+      where: {
+        studentId: req.user.userId,
+        topicId,
+      },
+      select: { id: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (existingSubmission) {
+      return res.status(409).json({
+        message: "이미 제출한 주제입니다. 책장에서 저장된 공책을 확인해 주세요.",
+      });
+    }
+
     if (inputType === InputType.TYPED) {
       const content = typeof req.body.content === "string" ? req.body.content.trim() : "";
 

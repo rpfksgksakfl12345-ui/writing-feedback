@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { NoticeBanner } from "../../../components/notice-banner";
 import { useAuth } from "../../../components/auth-provider";
 import { Badge } from "../../../components/ui-v2";
-import { API_BASE_URL, apiFetch } from "../../../lib/api";
+import { apiFetch } from "../../../lib/api";
 
 type SubmissionItem = {
   id: number;
@@ -18,10 +18,6 @@ type SubmissionItem = {
   student: { name: string; grade: number | null };
   topic: { title: string; grade: number };
 };
-
-function getInputTypeLabel(inputType: SubmissionItem["inputType"]) {
-  return inputType === "TYPED" ? "직접쓰기" : "사진제출";
-}
 
 function getStatusMeta(status: SubmissionItem["status"]) {
   if (status === "REVIEWED") {
@@ -110,7 +106,7 @@ function TeacherSubmissionsContent() {
       <section className="bg-[radial-gradient(rgba(90,110,133,.05)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-sm font-semibold text-teacher-accent">Teacher Review</p>
+            <p className="text-sm font-semibold text-teacher-accent">교사 피드백</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#2E2A24]">제출물 목록</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[#5A5247]">
               학생이 제출한 글과 사진을 확인하고, 피드백 작성이 필요한 항목을 빠르게 찾습니다.
@@ -186,31 +182,15 @@ function TeacherSubmissionsContent() {
               return (
                 <article
                   key={submission.id}
-                  className={`grid gap-5 rounded-xl border bg-[#FFFAF0] p-5 shadow-sm lg:grid-cols-[132px_1fr_auto] ${
+                  className={`grid gap-5 rounded-xl border bg-[#FFFAF0] p-5 shadow-sm lg:grid-cols-[1fr_auto] ${
                     submission.status === "PENDING"
                       ? "border-student-accent/35"
                       : "border-[#E8DEC7]"
                   }`}
                 >
-                  <div className="overflow-hidden rounded-lg border border-[#E8DEC7] bg-paper-base">
-                    {submission.inputType === "PHOTO" && submission.imageUrl ? (
-                      <img
-                        src={`${API_BASE_URL}${submission.imageUrl}`}
-                        alt="제출 이미지"
-                        className="h-32 w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-32 flex-col items-center justify-center px-4 text-center">
-                        <span className="text-2xl font-bold text-teacher-accent">Aa</span>
-                        <p className="mt-2 text-sm font-semibold text-[#5A5247]">직접 쓴 글</p>
-                      </div>
-                    )}
-                  </div>
-
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge tone={statusMeta.tone}>{statusMeta.label}</Badge>
-                      <Badge tone="teacher">{getInputTypeLabel(submission.inputType)}</Badge>
                       <Badge tone={hasFinalFeedback ? "feedback" : "neutral"}>
                         {hasFinalFeedback ? "최종 피드백 있음" : "최종 피드백 없음"}
                       </Badge>
@@ -230,7 +210,7 @@ function TeacherSubmissionsContent() {
 
                   <div className="flex items-start lg:items-center">
                     <Link
-                      className={`inline-flex min-h-11 w-full items-center justify-center rounded-md px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(40,60,90,.15),0_2px_6px_rgba(60,80,120,.18)] lg:w-auto ${
+                      className={`inline-flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-md px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(40,60,90,.15),0_2px_6px_rgba(60,80,120,.18)] lg:w-auto ${
                         submission.status === "PENDING"
                           ? "bg-teacher-accent hover:bg-teacher-accent/90"
                           : "bg-feedback-pen hover:bg-feedback-pen/90"

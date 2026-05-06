@@ -5,17 +5,15 @@ import Link from "next/link";
 import { NoticeBanner } from "../../../components/notice-banner";
 import { useAuth } from "../../../components/auth-provider";
 import { Badge } from "../../../components/ui-v2";
-import { API_BASE_URL, apiFetch } from "../../../lib/api";
+import { apiFetch } from "../../../lib/api";
 
 type SubmissionItem = {
   id: number;
   inputType: "TYPED" | "PHOTO";
-  imageUrl: string | null;
-  content: string | null;
   status: "PENDING" | "REVIEWED";
   finalFeedback: string | null;
   createdAt: string;
-  topic: { title: string };
+  topic: { id: number; title: string };
 };
 
 function formatSubmissionDate(createdAt: string) {
@@ -40,14 +38,14 @@ function getInputTypeLabel(inputType: SubmissionItem["inputType"]) {
 function getStatusMeta(status: SubmissionItem["status"]) {
   if (status === "REVIEWED") {
     return {
-      label: "피드백완료",
+      label: "피드백 완료",
       tone: "feedback" as const,
       description: "선생님 피드백이 도착했어요.",
     };
   }
 
   return {
-    label: "제출완료",
+    label: "피드백 대기",
     tone: "teacher" as const,
     description: "선생님 피드백을 기다리고 있어요.",
   };
@@ -78,6 +76,9 @@ export default function StudentHistoryPage() {
     );
   }
 
+  const pendingCount = submissions.filter((submission) => submission.status === "PENDING").length;
+  const reviewedCount = submissions.filter((submission) => submission.status === "REVIEWED").length;
+
   return (
     <div className="overflow-hidden rounded-[28px] border border-[#E8DEC7] bg-paper-base shadow-sm">
       <section className="bg-[radial-gradient(rgba(120,90,50,.04)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
@@ -87,18 +88,18 @@ export default function StudentHistoryPage() {
               {user?.name ? `${user.name}의 글쓰기` : "학생 글쓰기"}
             </p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#2E2A24]">
-              내 글쓰기 기록
+              제출 기록
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[#5A5247]">
-              제출한 글과 사진, 선생님 피드백을 한곳에서 확인할 수 있습니다.
+              제출한 주제와 피드백 상태만 간단히 확인합니다. 글 원본과 선생님 피드백은 책장에서 주제를 열어 봅니다.
             </p>
           </div>
 
           <Link
-            className="inline-flex min-h-11 w-fit items-center justify-center rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
-            href="/student/upload"
+            className="inline-flex min-h-11 w-fit shrink-0 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
+            href="/student"
           >
-            새 글 제출하기 →
+            내 책장으로 가기
           </Link>
         </div>
 
@@ -109,15 +110,11 @@ export default function StudentHistoryPage() {
           </div>
           <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0]/80 px-4 py-3">
             <p className="text-xs text-[#8B8170]">피드백 대기</p>
-            <p className="mt-1 text-lg font-semibold text-[#2E2A24]">
-              {submissions.filter((submission) => submission.status === "PENDING").length}
-            </p>
+            <p className="mt-1 text-lg font-semibold text-[#2E2A24]">{pendingCount}</p>
           </div>
           <div className="rounded-lg border border-[#E8DEC7] bg-[#FFFAF0]/80 px-4 py-3">
             <p className="text-xs text-[#8B8170]">피드백 완료</p>
-            <p className="mt-1 text-lg font-semibold text-feedback-pen">
-              {submissions.filter((submission) => submission.status === "REVIEWED").length}
-            </p>
+            <p className="mt-1 text-lg font-semibold text-feedback-pen">{reviewedCount}</p>
           </div>
         </div>
       </section>
@@ -129,90 +126,35 @@ export default function StudentHistoryPage() {
           </div>
         ) : null}
 
-        <div className="space-y-5">
+        <div className="space-y-3">
           {submissions.map((submission) => {
             const statusMeta = getStatusMeta(submission.status);
 
             return (
               <article
                 key={submission.id}
-                className="grid gap-5 rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm lg:grid-cols-[180px_1fr]"
+                className="rounded-xl border border-[#E8DEC7] bg-[#FFFAF0] p-5 shadow-sm"
               >
-                <div className="overflow-hidden rounded-lg border border-[#E8DEC7] bg-paper-base">
-                  {submission.inputType === "PHOTO" && submission.imageUrl ? (
-                    <img
-                      src={`${API_BASE_URL}${submission.imageUrl}`}
-                      alt="제출 이미지"
-                      className="h-44 w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-44 flex-col items-center justify-center px-5 text-center">
-                      <span className="text-2xl font-bold text-student-accent">Aa</span>
-                      <p className="mt-2 text-sm font-semibold text-[#5A5247]">직접 쓴 글</p>
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge tone="student">{getInputTypeLabel(submission.inputType)}</Badge>
+                      <Badge tone={statusMeta.tone}>{statusMeta.label}</Badge>
+                      {submission.finalFeedback ? <Badge tone="feedback">피드백 있음</Badge> : null}
                     </div>
-                  )}
-                </div>
-
-                <div className="min-w-0">
-                  <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge tone="student">{getInputTypeLabel(submission.inputType)}</Badge>
-                        <Badge tone={statusMeta.tone}>{statusMeta.label}</Badge>
-                      </div>
-                      <h2 className="mt-3 text-[22px] font-bold leading-tight text-[#2E2A24]">
-                        {submission.topic.title}
-                      </h2>
-                      <p className="mt-2 text-sm text-[#8B8170]">
-                        {formatSubmissionDate(submission.createdAt)} · {statusMeta.description}
-                      </p>
-                    </div>
-                    <Link
-                      className="inline-flex min-h-10 w-fit items-center justify-center rounded-md border border-[#E8DEC7] bg-[#FFFAF0] px-4 py-2 text-sm font-semibold text-[#5A5247] hover:bg-paper-base"
-                      href="/student"
-                    >
-                      책장에서 보기
-                    </Link>
-                  </div>
-
-                  {submission.inputType === "TYPED" ? (
-                    <div className="mt-5 rounded-lg border border-[#E8DEC7] bg-[#FBF6E9] px-5 py-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8B8170]">
-                        제출 내용
-                      </p>
-                      <p className="mt-3 max-h-52 overflow-auto whitespace-pre-line text-sm leading-7 text-[#2E2A24]">
-                        {submission.content}
-                      </p>
-                    </div>
-                  ) : null}
-
-                  <div
-                    className={`mt-5 rounded-lg border px-5 py-4 ${
-                      submission.finalFeedback
-                        ? "border-feedback-pen/25 bg-[#F4F8FD]"
-                        : "border-[#E8DEC7] bg-paper-base/60"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <p
-                        className={`text-xs font-semibold uppercase tracking-[0.18em] ${
-                          submission.finalFeedback ? "text-feedback-pen" : "text-[#8B8170]"
-                        }`}
-                      >
-                        선생님 피드백
-                      </p>
-                      {submission.finalFeedback ? (
-                        <span className="text-xs font-semibold text-feedback-pen">도착</span>
-                      ) : null}
-                    </div>
-                    <p
-                      className={`mt-3 whitespace-pre-line text-sm leading-7 ${
-                        submission.finalFeedback ? "text-feedback-pen" : "text-[#5A5247]"
-                      }`}
-                    >
-                      {submission.finalFeedback || "아직 교사 피드백이 등록되지 않았습니다."}
+                    <h2 className="mt-3 text-xl font-bold leading-tight text-[#2E2A24]">
+                      {submission.topic.title}
+                    </h2>
+                    <p className="mt-2 text-sm text-[#8B8170]">
+                      {formatSubmissionDate(submission.createdAt)} · {statusMeta.description}
                     </p>
                   </div>
+                  <Link
+                    className="inline-flex min-h-10 w-fit shrink-0 items-center justify-center whitespace-nowrap rounded-md border border-[#E8DEC7] bg-[#FFFAF0] px-4 py-2 text-sm font-semibold text-[#5A5247] hover:bg-paper-base"
+                    href={`/student/upload?topicId=${submission.topic.id}`}
+                  >
+                    책장에서 확인하기
+                  </Link>
                 </div>
               </article>
             );
@@ -222,10 +164,10 @@ export default function StudentHistoryPage() {
             <div className="rounded-xl border border-dashed border-[#C9B998] bg-[#FFFAF0] px-6 py-14 text-center">
               <p className="text-lg font-semibold text-[#2E2A24]">아직 제출한 글이 없습니다.</p>
               <p className="mt-2 text-sm text-[#5A5247]">
-                책장에서 주제를 고른 뒤 글로 쓰기 또는 사진 제출을 진행해 보세요.
+                책장에서 주제를 고른 뒤 공책에 글을 써 보세요.
               </p>
               <Link
-                className="mt-5 inline-flex min-h-11 items-center justify-center rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
+                className="mt-5 inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
                 href="/student"
               >
                 내 책장으로 가기

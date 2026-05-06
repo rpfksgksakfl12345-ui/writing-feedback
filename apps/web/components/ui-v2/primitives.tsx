@@ -31,7 +31,7 @@ export function PrimaryButton({ className, tone = "student", ...props }: Primary
   return (
     <button
       className={cx(
-        "inline-flex min-h-11 items-center justify-center rounded-md px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] disabled:cursor-not-allowed disabled:bg-[#D6CCB3]",
+        "inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md px-[18px] py-[13px] text-[15px] font-semibold text-[#FFFAF0] disabled:cursor-not-allowed disabled:bg-[#D6CCB3]",
         toneClass,
         className,
       )}
@@ -44,7 +44,7 @@ export function SecondaryButton({ className, ...props }: ButtonHTMLAttributes<HT
   return (
     <button
       className={cx(
-        "inline-flex min-h-11 items-center justify-center rounded-md border border-[#E8DEC7] bg-[#FFFAF0] px-[18px] py-[13px] text-[15px] font-semibold text-[#2E2A24] hover:bg-[#F4ECDC] disabled:cursor-not-allowed disabled:text-[#A89C85]",
+        "inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md border border-[#E8DEC7] bg-[#FFFAF0] px-[18px] py-[13px] text-[15px] font-semibold text-[#2E2A24] hover:bg-[#F4ECDC] disabled:cursor-not-allowed disabled:text-[#A89C85]",
         className,
       )}
       {...props}
@@ -102,7 +102,7 @@ export function Badge({ className, tone = "neutral", ...props }: BadgeProps) {
   return (
     <span
       className={cx(
-        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-none",
+        "inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-none",
         toneClass,
         className,
       )}
@@ -111,13 +111,26 @@ export function Badge({ className, tone = "neutral", ...props }: BadgeProps) {
   );
 }
 
+export function NotebookPaper({ className, ...props }: ComponentPropsWithoutRef<"div">) {
+  return (
+    <div
+      className={cx("ui-v2-notebook-paper rounded-xl border border-[#E8DEC7] px-5 py-6", className)}
+      {...props}
+    />
+  );
+}
+
+export function NotebookText({ className, ...props }: ComponentPropsWithoutRef<"div">) {
+  return <div className={cx("ui-v2-notebook-content min-h-[264px]", className)} {...props} />;
+}
+
 export function NotebookTextArea({
   className,
   ...props
 }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
-    <div className="ui-v2-notebook-paper rounded-xl border border-[#E8DEC7] px-5 py-6">
+    <NotebookPaper>
       <textarea className={cx("ui-v2-notebook-textarea min-h-[264px]", className)} {...props} />
-    </div>
+    </NotebookPaper>
   );
 }

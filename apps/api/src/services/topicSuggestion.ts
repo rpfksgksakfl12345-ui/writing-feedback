@@ -5,7 +5,12 @@ const TOPIC_COUNT = 10;
 const KOREA_TIME_ZONE = "Asia/Seoul";
 
 type TopicSuggestionResponse = {
-  topics: string[];
+  topics: Array<string | Partial<TopicSuggestion>>;
+};
+
+export type TopicSuggestion = {
+  title: string;
+  studentGuide: string;
 };
 
 let client: GoogleGenAI | null = null;
@@ -42,18 +47,49 @@ function normalizeTopic(value: string) {
     .trim();
 }
 
-function dedupeTopics(values: string[]) {
+function normalizeStudentGuide(value: string | null | undefined) {
+  if (!value) {
+    return "";
+  }
+
+  return value
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+}
+
+function normalizeSuggestion(value: string | Partial<TopicSuggestion>): TopicSuggestion | null {
+  if (typeof value === "string") {
+    const title = normalizeTopic(value);
+    return title ? { title, studentGuide: "" } : null;
+  }
+
+  const title = typeof value.title === "string" ? normalizeTopic(value.title) : "";
+  const studentGuide =
+    typeof value.studentGuide === "string" ? normalizeStudentGuide(value.studentGuide) : "";
+
+  if (!title) {
+    return null;
+  }
+
+  return { title, studentGuide };
+}
+
+function dedupeSuggestions(values: Array<string | Partial<TopicSuggestion>>) {
   const seen = new Set<string>();
-  const topics: string[] = [];
+  const topics: TopicSuggestion[] = [];
 
   for (const value of values) {
-    const topic = normalizeTopic(value);
+    const topic = normalizeSuggestion(value);
 
     if (!topic) {
       continue;
     }
 
-    const key = topic.toLocaleLowerCase("ko-KR");
+    const key = topic.title.toLocaleLowerCase("ko-KR");
 
     if (seen.has(key)) {
       continue;
@@ -200,7 +236,7 @@ function getGradeGuidance(grade: number) {
   ];
 }
 
-function parseTopics(rawText: string): string[] {
+function parseTopics(rawText: string): TopicSuggestion[] {
   const text = rawText.trim();
 
   if (!text) {
@@ -211,7 +247,7 @@ function parseTopics(rawText: string): string[] {
     const parsed = JSON.parse(text) as Partial<TopicSuggestionResponse>;
 
     if (Array.isArray(parsed.topics)) {
-      const topics = dedupeTopics(parsed.topics.filter((value): value is string => typeof value === "string"));
+      const topics = dedupeSuggestions(parsed.topics);
 
       if (topics.length >= TOPIC_COUNT) {
         return topics.slice(0, TOPIC_COUNT);
@@ -221,7 +257,7 @@ function parseTopics(rawText: string): string[] {
     // Fall back to line-based parsing for unexpected model output.
   }
 
-  const normalizedTopics = dedupeTopics(
+  const normalizedTopics = dedupeSuggestions(
     text
       .split("\n")
       .map((line) => line.replace(/^[\s\-*\d.]+/, "").trim())
@@ -241,7 +277,7 @@ function buildPrompt(grade: number, retryHint?: string) {
 
   return [
     "You are helping an elementary school teacher in Korea prepare classroom writing topics.",
-    `Suggest exactly ${TOPIC_COUNT} Korean writing topic titles for grade ${grade} students.`,
+    `Suggest exactly ${TOPIC_COUNT} Korean writing topic titles for grade ${grade} students, with one short student-facing guide sentence for each title.`,
     `Current Korea classroom context: month ${seasonContext.month}, ${seasonContext.season}, ${seasonContext.schoolPeriod}.`,
     `Seasonal and school-life hints you may use when natural: ${seasonContext.eventHints.join(", ")}.`,
     "Grade guidance:",
@@ -256,7 +292,8 @@ function buildPrompt(grade: number, retryHint?: string) {
     "- Avoid political, highly sensitive, violent, philosophical, or adult-sounding topics.",
     "- Avoid vague prompts that are too hard to start writing immediately.",
     "- Write each topic as a clear Korean title or prompt a teacher could use right away.",
-    '- Return JSON only in this exact format: {"topics":["...","...","...","...","...","...","...","...","...","..."]}',
+    "- For each studentGuide, write a warm Korean sentence or two that helps students start writing. Keep it concrete and age-appropriate.",
+    '- Return JSON only in this exact format: {"topics":[{"title":"...","studentGuide":"..."},{"title":"...","studentGuide":"..."}]}',
     retryHint ? `Retry instruction: ${retryHint}` : "",
   ]
     .filter(Boolean)
@@ -267,7 +304,7 @@ export async function generateTopicSuggestions(grade: number) {
   const ai = getClient();
   const retryHints = [
     undefined,
-    `The previous response was unusable. Return ${TOPIC_COUNT} distinct, concrete topics with no duplicates and no abstract themes.`,
+    `The previous response was unusable. Return ${TOPIC_COUNT} distinct, concrete topics with studentGuide values, no duplicates, and no abstract themes.`,
   ];
 
   for (const retryHint of retryHints) {
@@ -287,7 +324,17 @@ export async function generateTopicSuggestions(grade: number) {
               minItems: TOPIC_COUNT,
               maxItems: TOPIC_COUNT,
               items: {
-                type: "string",
+                type: "object",
+                additionalProperties: false,
+                required: ["title", "studentGuide"],
+                properties: {
+                  title: {
+                    type: "string",
+                  },
+                  studentGuide: {
+                    type: "string",
+                  },
+                },
               },
             },
           },

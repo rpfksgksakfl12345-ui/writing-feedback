@@ -38,21 +38,21 @@ export default function HomePage() {
         <div className="mt-6 flex flex-wrap gap-3">
           {isLoggedIn ? (
             <Link
-              className="rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-slate-900"
+              className="whitespace-nowrap rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-slate-900"
               href={user?.role === "TEACHER" ? "/teacher/topics" : "/student"}
             >
               {user?.role === "TEACHER" ? "교사 작업 이어가기" : "학생 제출 이어가기"}
             </Link>
           ) : (
             <Link
-              className="rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-slate-900"
+              className="whitespace-nowrap rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-slate-900"
               href="/login"
             >
               체험 계정으로 로그인
             </Link>
           )}
           <Link
-            className="rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-medium text-white"
+            className="whitespace-nowrap rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-medium text-white"
             href="/student/history"
           >
             학생 기록 화면 보기
@@ -71,13 +71,13 @@ export default function HomePage() {
           </ol>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
-              className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white"
+              className="whitespace-nowrap rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white"
               href="/teacher/topics"
             >
               교사 화면으로 이동
             </Link>
             <Link
-              className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700"
+              className="whitespace-nowrap rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700"
               href="/teacher/submissions"
             >
               제출물 바로 보기
@@ -95,13 +95,13 @@ export default function HomePage() {
           </ol>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
-              className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white"
+              className="whitespace-nowrap rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white"
               href="/student"
             >
               학생 제출하러 가기
             </Link>
             <Link
-              className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700"
+              className="whitespace-nowrap rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700"
               href="/student/history"
             >
               내 기록 보기

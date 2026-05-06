@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "GangwonEduAllLight";
+  src: url("/fonts/GangwonEduAll-Light.ttf") format("truetype");
+  font-display: swap;
+}
+
 body {
   @apply bg-slate-100 text-slate-900 antialiased;
 }
@@ -35,20 +41,117 @@ a {
   }
 
   .ui-v2-notebook-paper {
+    --notebook-line-height: 38px;
+    --notebook-font-size: 16px;
+    --notebook-padding-top: 24px;
+    --notebook-padding-x: 22px;
+    --notebook-line-color: rgba(180, 150, 100, 0.3);
     background-color: #fbf6e9;
     background-image: repeating-linear-gradient(
       to bottom,
       transparent 0,
-      transparent 43px,
-      rgba(180, 150, 100, 0.28) 43px,
-      rgba(180, 150, 100, 0.28) 44px
+      transparent calc(var(--notebook-line-height) - 1px),
+      var(--notebook-line-color) calc(var(--notebook-line-height) - 1px),
+      var(--notebook-line-color) var(--notebook-line-height)
     );
-    background-size: 100% 44px;
+    background-origin: padding-box;
+    background-position: 0 var(--notebook-padding-top);
+    background-size: 100% var(--notebook-line-height);
+    padding: var(--notebook-padding-top) var(--notebook-padding-x) 30px;
   }
 
   .ui-v2-notebook-textarea {
-    @apply w-full resize-none border-0 bg-transparent p-0 text-sm leading-[44px] text-slate-900 outline-none focus:border-0 focus:ring-0;
-    position: relative;
-    top: -7px;
+    @apply block w-full resize-none border-0 bg-transparent p-0 text-slate-900 outline-none focus:border-0 focus:ring-0;
+    appearance: none;
+    font-family: "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    font-size: var(--notebook-font-size);
+    font-weight: 400;
+    line-height: var(--notebook-line-height);
+    overflow-wrap: anywhere;
+    vertical-align: top;
+  }
+
+  .ui-v2-notebook-textarea::placeholder {
+    color: #a89c85;
+    opacity: 1;
+  }
+
+  .ui-v2-notebook-content {
+    white-space: pre-wrap;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    color: #2e2a24;
+    font-family: "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    font-size: var(--notebook-font-size);
+    font-weight: 400;
+    line-height: var(--notebook-line-height);
+  }
+
+  .ui-v2-teacher-feedback-note {
+    font-family: "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    font-size: var(--notebook-font-size, 16px);
+    font-weight: 400;
+    line-height: var(--notebook-line-height, 38px);
+  }
+
+  @media print {
+    @page {
+      size: A4;
+      margin: 10mm;
+    }
+
+    body[data-print-mode] * {
+      visibility: hidden;
+    }
+
+    body[data-print-mode="roster"] .print-roster-area,
+    body[data-print-mode="roster"] .print-roster-area *,
+    body[data-print-mode="labels"] .print-label-area,
+    body[data-print-mode="labels"] .print-label-area * {
+      visibility: visible;
+    }
+
+    body[data-print-mode="roster"] .print-roster-area,
+    body[data-print-mode="labels"] .print-label-area {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      width: 100%;
+      background: #fff;
+      color: #2e2a24;
+    }
+
+    body[data-print-mode="roster"] .print-roster-table-wrap {
+      overflow: visible !important;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    body[data-print-mode="roster"] .print-roster-table-wrap::-webkit-scrollbar {
+      display: none;
+    }
+
+    body[data-print-mode="roster"] .print-roster-table-wrap table {
+      min-width: 0 !important;
+    }
+
+    .print-label-grid {
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+    }
+
+    .print-label-card {
+      min-height: 32mm;
+      break-inside: avoid;
+      border: 1px solid #d8cbb2 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      padding: 4mm !important;
+    }
+
+    .no-print {
+      display: none !important;
+    }
   }
 }

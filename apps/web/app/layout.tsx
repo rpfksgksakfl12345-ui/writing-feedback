@@ -3,8 +3,8 @@ import { AppShell } from "../components/app-shell";
 import { AuthProvider } from "../components/auth-provider";
 
 export const metadata = {
-  title: "Writing Feedback MVP",
-  description: "Elementary writing feedback web app",
+  title: "주제 글쓰기",
+  description: "초등 글쓰기 피드백 앱",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

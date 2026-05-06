@@ -14,7 +14,7 @@ export function NoticeBanner({ tone, title, description }: NoticeBannerProps) {
   return (
     <div className={`rounded-xl border px-4 py-3 ${toneClasses[tone]}`}>
       <p className="text-sm font-semibold">{title}</p>
-      {description ? <p className="mt-1 text-sm opacity-90">{description}</p> : null}
+      {description ? <p className="mt-1 whitespace-pre-line text-sm opacity-90">{description}</p> : null}
     </div>
   );
 }

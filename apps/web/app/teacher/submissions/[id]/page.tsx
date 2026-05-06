@@ -34,13 +34,13 @@ type FeedbackDraftResult = {
 function getOcrStatusLabel(ocrStatus: SubmissionDetail["ocrStatus"]) {
   switch (ocrStatus) {
     case "PROCESSING":
-      return "OCR processing";
+      return "OCR 처리 중";
     case "DONE":
-      return "OCR complete";
+      return "OCR 완료";
     case "FAILED":
-      return "OCR failed";
+      return "OCR 실패";
     default:
-      return "Waiting to start OCR";
+      return "OCR 대기";
   }
 }
 
@@ -137,7 +137,7 @@ export default function SubmissionDetailPage() {
       setFinalFeedback(data.finalFeedback || "");
       setError("");
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Failed to load submission.");
+      setError(loadError instanceof Error ? loadError.message : "제출물을 불러오지 못했습니다.");
     }
   }
 
@@ -171,7 +171,7 @@ export default function SubmissionDetailPage() {
       editableExtractedText !== getEditableExtractedText(submission)
     ) {
       setDraftMessage("");
-      setDraftError("Save the edited text before generating an AI draft.");
+      setDraftError("AI 초안을 생성하기 전에 수정한 텍스트를 먼저 저장해 주세요.");
       return;
     }
 
@@ -197,10 +197,10 @@ export default function SubmissionDetailPage() {
       ].join("\n");
 
       setFinalFeedback(nextFeedback);
-      setDraftMessage("AI draft loaded into the feedback box. Review it before saving.");
+      setDraftMessage("AI 초안이 피드백 입력칸에 들어갔습니다. 저장 전 내용을 확인해 주세요.");
     } catch (generateError) {
       setDraftError(
-        generateError instanceof Error ? generateError.message : "Failed to generate AI feedback draft.",
+        generateError instanceof Error ? generateError.message : "AI 피드백 초안 생성에 실패했습니다.",
       );
     } finally {
       setIsGeneratingDraft(false);
@@ -247,10 +247,10 @@ export default function SubmissionDetailPage() {
           : current,
       );
       setEditableExtractedText(nextEditableExtractedText);
-      setExtractedTextMessage("Edited text saved.");
+      setExtractedTextMessage("수정 텍스트를 저장했습니다.");
     } catch (saveError) {
       setExtractedTextError(
-        saveError instanceof Error ? saveError.message : "Failed to save extracted text.",
+        saveError instanceof Error ? saveError.message : "수정 텍스트 저장에 실패했습니다.",
       );
     } finally {
       setIsSavingExtractedText(false);
@@ -270,7 +270,7 @@ export default function SubmissionDetailPage() {
       });
       router.push("/teacher/submissions?saved=1");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Failed to save feedback.");
+      setError(submitError instanceof Error ? submitError.message : "피드백 저장에 실패했습니다.");
     } finally {
       setIsSaving(false);
     }
@@ -306,10 +306,10 @@ export default function SubmissionDetailPage() {
       !hasUnsavedExtractedTextChanges);
   const draftUnavailableDescription =
     submission.inputType === "PHOTO" && hasUnsavedExtractedTextChanges
-      ? "Save the edited text before generating an AI draft."
+      ? "AI 초안을 생성하기 전에 수정 텍스트를 저장해 주세요."
       : submission.inputType === "PHOTO" && submission.ocrStatus === "DONE" && !savedPhotoText
-        ? "Add and save text before generating an AI draft."
-        : "Photo submissions can generate a draft only after OCR completes.";
+        ? "AI 초안을 생성하기 전에 텍스트를 추가하고 저장해 주세요."
+        : "사진 제출은 OCR이 완료된 뒤 AI 초안을 생성할 수 있습니다.";
   const statusMeta = getSubmissionStatusMeta(submission.status);
   const submittedAt = formatSubmissionDate(submission.createdAt);
 
@@ -488,7 +488,7 @@ export default function SubmissionDetailPage() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-feedback-pen">
-                Teacher Feedback
+                교사 피드백
               </p>
               <h2 className="mt-1 text-xl font-bold text-[#2E2A24]">최종 피드백 작성</h2>
               <p className="mt-2 text-sm leading-6 text-[#5A5247]">
@@ -540,12 +540,12 @@ export default function SubmissionDetailPage() {
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Link
-                className="inline-flex min-h-11 items-center justify-center rounded-md border border-[#E8DEC7] bg-[#FFFAF0] px-[18px] py-[13px] text-[15px] font-semibold text-[#2E2A24] hover:bg-paper-base"
+                className="inline-flex min-h-11 min-w-[150px] items-center justify-center whitespace-nowrap rounded-md border border-[#E8DEC7] bg-[#FFFAF0] px-[18px] py-[13px] text-[15px] font-semibold text-[#2E2A24] hover:bg-paper-base"
                 href="/teacher/submissions"
               >
                 목록으로 돌아가기
               </Link>
-              <PrimaryButton tone="teacher" type="submit" disabled={isSaving}>
+              <PrimaryButton className="min-w-[150px] whitespace-nowrap" tone="teacher" type="submit" disabled={isSaving}>
                 {isSaving ? "저장 중..." : "최종 피드백 저장"}
               </PrimaryButton>
             </div>

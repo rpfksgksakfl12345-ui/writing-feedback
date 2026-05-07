@@ -122,7 +122,7 @@ export default function TeacherClassroomsPage() {
       </section>
 
       <section className="grid gap-6 px-8 pb-10 pt-7 xl:grid-cols-[minmax(340px,.85fr)_minmax(0,1.15fr)]">
-        <section className="h-fit rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
+        <section className="h-fit rounded-xl border border-dashed border-teacher-accent/30 bg-paper-soft/75 p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
             새 학급
           </p>
@@ -157,7 +157,7 @@ export default function TeacherClassroomsPage() {
             {error ? <NoticeBanner tone="error" title="학급 처리 실패" description={error} /> : null}
 
             <div className="flex justify-end">
-              <PrimaryButton disabled={isSaving} tone="teacher" type="submit">
+              <PrimaryButton className="min-w-[120px]" disabled={isSaving} tone="teacher" type="submit">
                 {isSaving ? "생성 중..." : "학급 생성"}
               </PrimaryButton>
             </div>
@@ -194,15 +194,16 @@ export default function TeacherClassroomsPage() {
           ) : null}
 
           {!isLoading && classrooms.length > 0 ? (
-            <div className="mt-5 grid gap-3">
+            <div className="mt-5 grid gap-4">
               {classrooms.map((classroom) => (
                 <Link
                   key={classroom.id}
-                  className="rounded-xl border border-ink-100 bg-paper-base/45 p-4 transition hover:bg-paper-base/70"
+                  className="group relative overflow-hidden rounded-xl border border-ink-100 bg-paper-surface p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-teacher-accent/35 hover:bg-paper-base/60"
                   href={`/teacher/classrooms/${classroom.id}`}
                 >
+                  <span className="absolute inset-y-0 left-0 w-2 bg-teacher-accent/80" />
                   <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
+                    <div className="pl-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge tone="teacher">{classroom.grade}학년</Badge>
                         <span className="text-xs font-semibold text-ink-500">
@@ -213,10 +214,13 @@ export default function TeacherClassroomsPage() {
                         {classroom.name}
                       </h3>
                     </div>
-                    <div className="rounded-lg border border-ink-100 bg-paper-surface px-4 py-3 text-right">
+                    <div className="rounded-lg border border-teacher-accent/20 bg-teacher-soft/70 px-4 py-3 text-right">
                       <p className="text-xs text-ink-500">학급코드</p>
                       <p className="mt-1 font-mono text-lg font-bold tracking-[0.12em] text-teacher-accent">
                         {classroom.classCode}
+                      </p>
+                      <p className="mt-1 text-xs font-semibold text-teacher-deep group-hover:text-teacher-accent">
+                        명단 관리 →
                       </p>
                     </div>
                   </div>

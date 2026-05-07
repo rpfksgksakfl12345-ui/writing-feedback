@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Hahmlet:wght@600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -11,6 +13,7 @@
 @layer base {
   body {
     @apply bg-paper-base text-ink-900 antialiased;
+    word-break: keep-all;
   }
 
   input,
@@ -29,6 +32,20 @@
   }
 }
 
+@layer utilities {
+  .font-login-display {
+    font-family: "Hahmlet", "Noto Serif KR", "Nanum Myeongjo", serif;
+  }
+
+  .font-login-hand {
+    font-family: "Gaegu", "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  }
+
+  .font-hand {
+    font-family: "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  }
+}
+
 @layer components {
   .ui-v2-class-code {
     @apply font-mono uppercase tracking-[0.18em];
@@ -41,6 +58,11 @@
   .ui-v2-login-password {
     @apply font-mono tracking-[0.2em] text-feedback-pen;
     font-variant-numeric: tabular-nums;
+  }
+
+  .kr-keep {
+    word-break: keep-all;
+    overflow-wrap: normal;
   }
 
   .ui-v2-notebook-paper {

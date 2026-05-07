@@ -72,6 +72,13 @@ function normalizeTopicSuggestions(values: Array<string | Partial<TopicSuggestio
     .filter((suggestion): suggestion is TopicSuggestion => Boolean(suggestion));
 }
 
+const recommendationTiltClasses = [
+  "-rotate-[0.8deg]",
+  "rotate-[0.5deg]",
+  "-rotate-[0.3deg]",
+  "rotate-[0.7deg]",
+];
+
 export default function TeacherTopicsPage() {
   const { token, user, isReady } = useAuth();
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -224,6 +231,9 @@ export default function TeacherTopicsPage() {
 
   const gradeOptions = [1, 2, 3, 4, 5, 6];
   const currentGradeTopicCount = topics.filter((topic) => String(topic.grade) === grade).length;
+  const selectedClassroom = classroomId
+    ? classrooms.find((classroom) => String(classroom.id) === classroomId)
+    : null;
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
@@ -234,7 +244,7 @@ export default function TeacherTopicsPage() {
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">
               글쓰기 주제 관리
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-700">
+            <p className="kr-keep mt-3 max-w-2xl text-sm leading-6 text-ink-700">
               학년별 글쓰기 주제를 만들고, 학생 책장에 꽂힐 주제를 준비합니다.
             </p>
           </div>
@@ -250,42 +260,58 @@ export default function TeacherTopicsPage() {
                 {grade}학년 · {currentGradeTopicCount}
               </p>
             </div>
+            <div className="col-span-2 rounded-lg border border-teacher-accent/20 bg-teacher-soft/60 px-3 py-2">
+              <p className="text-xs text-ink-500">현재 학급</p>
+              <p className="mt-1 truncate text-sm font-semibold text-teacher-deep">
+                {selectedClassroom
+                  ? `${selectedClassroom.name} · ${selectedClassroom.classCode}`
+                  : "전체 공개 주제"}
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="grid gap-6 px-8 pb-10 pt-7 xl:grid-cols-[minmax(360px,.9fr)_minmax(0,1.1fr)]">
         <div className="space-y-5">
-          <section className="rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
+          <section className="rounded-xl border border-dashed border-teacher-accent/30 bg-paper-soft/75 p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                   AI 추천
                 </p>
-                <h2 className="mt-1 text-xl font-bold text-ink-900">오늘의 글쓰기 주제 찾기</h2>
-                <p className="mt-2 text-sm leading-6 text-ink-700">
+                <h2 className="kr-keep mt-1 text-xl font-bold text-ink-900">오늘의 글쓰기 주제 찾기</h2>
+                <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
                   버튼을 누를 때에만 AI를 호출하며, 선택한 학년에 맞는 주제를 추천합니다.
                 </p>
               </div>
               <Badge tone="teacher">{grade}학년</Badge>
             </div>
 
-            <div className="mt-5 grid gap-4 lg:grid-cols-[160px_1fr] lg:items-end">
-              <label className="block text-sm font-semibold text-ink-700" htmlFor="ai-grade">
-                추천 받을 학년
-                <select
-                  className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-teacher-accent focus:ring-teacher-accent/20"
-                  id="ai-grade"
-                  value={grade}
-                  onChange={(event) => setGrade(event.target.value)}
-                >
-                  {gradeOptions.map((value) => (
-                    <option key={value} value={value}>
-                      {value}학년
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+              <div>
+                <p className="text-sm font-semibold text-ink-700">추천 받을 학년</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {gradeOptions.map((value) => {
+                    const isActive = grade === String(value);
+
+                    return (
+                      <button
+                        key={value}
+                        className={`h-9 min-w-[52px] shrink-0 whitespace-nowrap rounded-lg border px-2.5 text-[12px] font-semibold leading-none transition ${
+                          isActive
+                            ? "border-teacher-accent bg-teacher-accent text-paper-surface"
+                            : "border-ink-100 bg-paper-surface text-ink-700 hover:border-teacher-accent/40 hover:bg-teacher-soft/70"
+                        }`}
+                        type="button"
+                        onClick={() => setGrade(String(value))}
+                      >
+                        {value}학년
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
               <PrimaryButton
                 className="w-full lg:w-fit"
@@ -294,7 +320,7 @@ export default function TeacherTopicsPage() {
                 tone="teacher"
                 type="button"
               >
-                {isGenerating ? "추천 생성 중..." : "AI로 주제 추천"}
+                {isGenerating ? "추천 생성 중..." : suggestedTopics.length > 0 ? "다시 추천 받기" : "추천 받기"}
               </PrimaryButton>
             </div>
 
@@ -306,40 +332,45 @@ export default function TeacherTopicsPage() {
 
             {suggestedTopics.length > 0 ? (
               <div className="mt-5 space-y-4">
-                <p className="text-sm font-semibold text-ink-700">
+                <p className="kr-keep text-sm font-semibold text-ink-700">
                   추천 결과를 클릭하면 주제 제목과 학생 안내가 바로 입력됩니다.
                 </p>
 
                 <div className="grid gap-3">
                   {suggestedTopics.map((suggestion, index) => {
                     const isSelected = selectedSuggestionTitle === suggestion.title;
+                    const tiltClass = recommendationTiltClasses[index % recommendationTiltClasses.length];
 
                     return (
                       <button
                         key={`${suggestion.title}-${index}`}
-                        className={`rounded-lg border px-4 py-3 text-left shadow-none ${
+                        className={`group relative rounded-xl border px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:rotate-0 ${
                           isSelected
-                            ? "border-teacher-accent bg-teacher-accent/10 text-ink-900"
-                            : "border-ink-100 bg-paper-base/55 text-ink-700 hover:bg-paper-base"
-                        }`}
+                            ? "border-teacher-accent bg-teacher-accent/10 text-ink-900 ring-2 ring-teacher-accent/20"
+                            : "border-ink-100 bg-paper-surface text-ink-700 hover:bg-paper-base"
+                        } ${tiltClass}`}
                         onClick={() => applySuggestedTopic(suggestion)}
                         type="button"
                       >
+                        <span className="absolute -top-2 left-5 h-4 w-4 rounded-full bg-student-accent shadow-sm" />
                         <div className="flex items-start gap-3">
                           <span className="mt-0.5 text-xs font-semibold text-teacher-accent">
                             {String(index + 1).padStart(2, "0")}
                           </span>
                           <span>
-                            <span className="block text-sm font-semibold leading-6">
+                            <span className="kr-keep block text-sm font-semibold leading-6">
                               {suggestion.title}
                             </span>
                             {suggestion.studentGuide ? (
-                              <span className="mt-1 block text-xs leading-5 text-ink-500">
+                              <span className="kr-keep mt-1 block text-xs leading-5 text-ink-500">
                                 {suggestion.studentGuide}
                               </span>
                             ) : null}
                           </span>
                         </div>
+                        <span className="mt-3 block text-xs font-semibold text-teacher-accent">
+                          {isSelected ? "✓ 옮겨짐" : "이 주제로 옮기기 →"}
+                        </span>
                       </button>
                     );
                   })}
@@ -347,7 +378,9 @@ export default function TeacherTopicsPage() {
               </div>
             ) : (
               <div className="mt-5 rounded-lg border border-dashed border-ink-200 bg-paper-base/60 px-5 py-6 text-sm text-ink-500">
-                아직 추천 결과가 없습니다. 학년을 고른 뒤 AI 추천을 생성해 보세요.
+                <span className="kr-keep block">
+                  아직 추천 결과가 없습니다. 학년을 고른 뒤 AI 추천을 생성해 보세요.
+                </span>
               </div>
             )}
           </section>
@@ -356,7 +389,7 @@ export default function TeacherTopicsPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
               새 주제 등록
             </p>
-            <h2 className="mt-1 text-xl font-bold text-ink-900">학생 책장에 펼칠 주제</h2>
+            <h2 className="kr-keep mt-1 text-xl font-bold text-ink-900">학생 책장에 펼칠 주제</h2>
 
             <form className="mt-5 space-y-4" onSubmit={handleCreateTopic}>
               <label className="block text-sm font-semibold text-ink-700">
@@ -419,21 +452,6 @@ export default function TeacherTopicsPage() {
                 )}
               </label>
 
-              <label className="block text-sm font-semibold text-ink-700">
-                학년
-                <select
-                  className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-teacher-accent focus:ring-teacher-accent/20"
-                  value={grade}
-                  onChange={(event) => setGrade(event.target.value)}
-                >
-                  {gradeOptions.map((value) => (
-                    <option key={value} value={value}>
-                      {value}학년
-                    </option>
-                  ))}
-                </select>
-              </label>
-
               {message ? <NoticeBanner tone="success" title="주제 등록 완료" description={message} /> : null}
               {error ? <NoticeBanner tone="error" title="주제 등록 실패" description={error} /> : null}
 
@@ -469,8 +487,8 @@ export default function TeacherTopicsPage() {
 
             {!isLoadingTopics && topics.length === 0 ? (
               <div className="rounded-xl border border-dashed border-ink-200 bg-paper-base/60 px-6 py-12 text-center">
-                <p className="text-lg font-semibold text-ink-900">등록된 주제가 없습니다.</p>
-                <p className="mt-2 text-sm text-ink-700">
+                <p className="kr-keep text-lg font-semibold text-ink-900">등록된 주제가 없습니다.</p>
+                <p className="kr-keep mt-2 text-sm text-ink-700">
                   첫 주제를 만들면 학생 책장에서 바로 선택할 수 있습니다.
                 </p>
               </div>
@@ -490,12 +508,12 @@ export default function TeacherTopicsPage() {
                             {formatTopicDate(topic.createdAt)}
                           </span>
                         </div>
-                        <h3 className="mt-3 text-lg font-bold leading-tight text-ink-900">
+                        <h3 className="kr-keep mt-3 text-lg font-bold leading-tight text-ink-900">
                           {topic.title}
                         </h3>
                       </div>
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-ink-700">
+                    <p className="kr-keep mt-3 text-sm leading-6 text-ink-700">
                       {topic.description || "설명 없음"}
                     </p>
                   </article>

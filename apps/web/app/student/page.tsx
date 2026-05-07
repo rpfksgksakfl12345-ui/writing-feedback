@@ -65,6 +65,15 @@ const bookTiltClasses = [
   "rotate-[0.4deg]",
 ];
 
+const bookCoverClasses = [
+  "bg-student-soft",
+  "bg-paper-surface",
+  "bg-teacher-soft",
+  "bg-feedback-soft",
+  "bg-paper-base",
+  "bg-paper-soft",
+];
+
 function formatTopicDate(createdAt: string) {
   const date = new Date(createdAt);
 
@@ -211,6 +220,13 @@ export default function StudentLibraryPage() {
   const filteredCards = cards.filter((card) => matchesFilter(card.status, filter));
   const firstTodoCard = cards.find((card) => card.status === "NOT_STARTED");
   const shelfRows = chunkCards(filteredCards, 3);
+  const studentProfile = user?.studentProfile;
+  const studentMeta = [
+    studentProfile?.classroomName ? { label: "학급", value: studentProfile.classroomName } : null,
+    studentProfile?.classCode ? { label: "코드", value: studentProfile.classCode } : null,
+    studentProfile?.studentNumber ? { label: "번호", value: `${studentProfile.studentNumber}번` } : null,
+    { label: "책", value: `${cards.length}권` },
+  ].filter((item): item is { label: string; value: string } => Boolean(item));
   const filterTabs: Array<{ id: TopicFilter; label: string; count: number }> = [
     { id: "ALL", label: "전체", count: cards.length },
     { id: "TODO", label: "해야 할 글", count: statusCounts.NOT_STARTED },
@@ -225,10 +241,20 @@ export default function StudentLibraryPage() {
           <div>
             <p className="text-sm font-semibold text-student-accent">안녕, {user?.name ?? "친구"}!</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">내 책장</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-700">
+            <p className="kr-keep mt-3 max-w-2xl text-sm leading-6 text-ink-700">
               선생님이 낸 글쓰기 주제를 책처럼 모아두었어요. 새 주제는 공책에 쓰고, 제출한 주제는
               내가 쓴 공책과 선생님 피드백을 확인할 수 있습니다.
             </p>
+          </div>
+          <div className="grid w-full gap-2 rounded-xl border border-ink-100 bg-paper-soft/85 p-3 shadow-sm sm:grid-cols-2 lg:w-auto lg:min-w-[300px]">
+            {studentMeta.map((item) => (
+              <div key={item.label} className="rounded-lg border border-ink-100 bg-paper-surface px-3 py-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-500">
+                  {item.label}
+                </p>
+                <p className="mt-1 truncate text-sm font-bold text-ink-900">{item.value}</p>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -239,8 +265,8 @@ export default function StudentLibraryPage() {
                 <span className="text-lg font-bold">✎</span>
               </div>
               <div>
-                <p className="font-semibold text-ink-900">새로 써야 할 주제가 있어요</p>
-                <p className="mt-1 text-sm text-ink-700">
+                <p className="kr-keep font-semibold text-ink-900">새로 써야 할 주제가 있어요</p>
+                <p className="kr-keep mt-1 text-sm text-ink-700">
                   {firstTodoCard.title} · {formatTopicDate(firstTodoCard.createdAt)}
                 </p>
               </div>
@@ -309,8 +335,13 @@ export default function StudentLibraryPage() {
 
         {!isLoading && cards.length === 0 ? (
           <div className="mt-7 rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-14 text-center">
-            <p className="text-lg font-semibold text-ink-900">첫 글이 곧 도착할 거예요</p>
-            <p className="mt-2 text-sm text-ink-700">
+            <div className="mx-auto mb-6 flex h-28 max-w-[260px] items-end justify-center gap-2 rounded-b-lg border-b-[10px] border-ink-200 bg-paper-soft px-6 pb-2">
+              <span className="h-16 w-8 rounded-t-sm border border-dashed border-ink-200 bg-paper-surface" />
+              <span className="h-20 w-8 rounded-t-sm border border-dashed border-student-accent/35 bg-student-soft/50" />
+              <span className="h-14 w-8 rounded-t-sm border border-dashed border-teacher-accent/30 bg-teacher-soft/50" />
+            </div>
+            <p className="kr-keep text-lg font-semibold text-ink-900">첫 글이 곧 도착할 거예요</p>
+            <p className="kr-keep mt-2 text-sm text-ink-700">
               선생님이 주제를 보내면 여기에 책처럼 쌓입니다.
             </p>
           </div>
@@ -318,7 +349,7 @@ export default function StudentLibraryPage() {
 
         {!isLoading && cards.length > 0 && filteredCards.length === 0 ? (
           <div className="mt-7 rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-14 text-center text-sm text-ink-700">
-            이 조건에 맞는 주제가 없습니다.
+            <span className="kr-keep block">이 조건에 맞는 주제가 없습니다.</span>
           </div>
         ) : null}
 
@@ -329,39 +360,54 @@ export default function StudentLibraryPage() {
                 <div className="grid items-end gap-5 md:grid-cols-2 xl:grid-cols-3">
                   {row.map((card, cardIndex) => {
                     const statusMeta = topicStatusMeta[card.status];
-                    const tiltClass = bookTiltClasses[(rowIndex * 3 + cardIndex) % bookTiltClasses.length];
+                    const absoluteIndex = rowIndex * 3 + cardIndex;
+                    const tiltClass = bookTiltClasses[absoluteIndex % bookTiltClasses.length];
+                    const coverClass =
+                      card.status === "NOT_STARTED"
+                        ? "border-dashed border-ink-200 bg-paper-soft"
+                        : `${bookCoverClasses[absoluteIndex % bookCoverClasses.length]} border-ink-100`;
+                    const hasFeedback = card.status === "FEEDBACK_READY";
 
                     return (
                       <Link
                         key={card.id}
                         href={card.href}
-                        className={`group relative flex min-h-[260px] flex-col overflow-hidden rounded-[6px_12px_12px_6px] border border-ink-100 bg-paper-surface p-5 text-ink-900 shadow-[0_1px_2px_rgba(60,40,20,.08),0_10px_22px_rgba(60,40,20,.07)] transition hover:-translate-y-1 hover:rotate-0 hover:shadow-[0_2px_4px_rgba(60,40,20,.1),0_18px_30px_rgba(60,40,20,.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-student-accent ${tiltClass}`}
+                        className={`group relative flex aspect-[5/7] min-h-[260px] flex-col overflow-hidden rounded-[6px_14px_14px_6px] border p-5 text-ink-900 shadow-[0_1px_2px_rgba(60,40,20,.08),0_12px_24px_rgba(60,40,20,.09)] transition duration-300 hover:-translate-y-1.5 hover:rotate-0 hover:shadow-[0_2px_4px_rgba(60,40,20,.1),0_18px_32px_rgba(60,40,20,.13)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-student-accent ${coverClass} ${tiltClass}`}
                       >
                         <span
                           aria-hidden
-                          className={`absolute inset-y-0 left-0 w-2 ${statusMeta.spineClass} opacity-80`}
+                          className={`absolute inset-y-0 left-0 w-2 ${statusMeta.spineClass} opacity-85 shadow-[inset_-1px_0_rgba(46,42,36,.16)]`}
                         />
+                        <span
+                          aria-hidden
+                          className="absolute inset-y-0 left-3 w-px bg-paper-surface/70"
+                        />
+                        {hasFeedback ? (
+                          <span className="absolute right-4 top-4 inline-flex h-3 w-3 rounded-full bg-feedback-pen shadow-[0_0_0_4px_rgba(58,111,176,.14)]">
+                            <span className="sr-only">새 피드백 있음</span>
+                          </span>
+                        ) : null}
                         <div className="flex items-start justify-between gap-3 pl-3">
                           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                             {formatTopicDate(card.createdAt)}
                           </p>
                           <Badge tone={statusMeta.badgeTone}>{statusMeta.label}</Badge>
                         </div>
-                        <h2 className="mt-5 line-clamp-3 pl-3 text-[22px] font-bold leading-[1.35] [overflow-wrap:break-word] [word-break:keep-all]">
+                        <h2 className="kr-keep mt-5 line-clamp-3 pl-3 text-[22px] font-bold leading-[1.35]">
                           {card.title}
                         </h2>
-                        <p className="mt-4 line-clamp-3 pl-3 text-sm leading-6 text-ink-700 [overflow-wrap:break-word] [word-break:keep-all]">
+                        <p className="kr-keep mt-4 line-clamp-3 pl-3 text-sm leading-6 text-ink-700">
                           {card.description || statusMeta.description}
                         </p>
                         <div className="mt-auto pl-3">
-                          <div className="rounded-lg border border-ink-100 bg-paper-base/60 px-4 py-3">
+                          <div className="rounded-lg border border-ink-100 bg-paper-surface/70 px-4 py-3 shadow-[inset_0_1px_rgba(255,255,255,.45)]">
                             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
-                              진행 상태
+                              도서 라벨
                             </p>
                             <div className="mt-2 flex items-center justify-between gap-3">
                               <span className="text-sm font-semibold text-ink-900">{card.grade}학년</span>
                               <span className="whitespace-nowrap text-sm text-ink-700 group-hover:text-student-accent">
-                                {card.actionLabel}
+                                {card.status === "NOT_STARTED" ? "쓰러 가기" : card.actionLabel}
                               </span>
                             </div>
                           </div>

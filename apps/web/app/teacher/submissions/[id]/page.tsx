@@ -363,7 +363,7 @@ export default function SubmissionDetailPage() {
         </div>
       </section>
 
-      <section className="grid gap-6 px-8 pb-10 pt-7 xl:grid-cols-[minmax(0,1.08fr)_minmax(360px,.92fr)]">
+      <section className="grid gap-6 px-8 pb-10 pt-7 xl:grid-cols-[minmax(0,1.15fr)_minmax(380px,.85fr)]">
         <div className="space-y-5">
           <section className="rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
             <div className="flex items-center justify-between gap-3">
@@ -379,13 +379,13 @@ export default function SubmissionDetailPage() {
             </div>
 
             {submission.inputType === "TYPED" ? (
-              <div className="mt-5 rounded-lg border border-ink-100 bg-paper-soft px-5 py-5">
+              <div className="mt-5 rounded-lg border border-ink-100 bg-paper-soft px-5 py-5 shadow-[inset_0_1px_rgba(255,255,255,.55)]">
                 <p className="max-h-[540px] overflow-auto whitespace-pre-line text-sm leading-7 text-ink-900">
                   {submission.content || "제출된 글 내용이 없습니다."}
                 </p>
               </div>
             ) : (
-              <div className="mt-5 rounded-lg border border-ink-100 bg-paper-base p-3">
+              <div className="mt-5 rounded-lg border border-ink-100 bg-paper-base p-3 shadow-[inset_0_1px_rgba(255,255,255,.45)]">
                 <img
                   src={`${API_BASE_URL}${submission.imageUrl}`}
                   alt="학생 제출 이미지"
@@ -415,7 +415,7 @@ export default function SubmissionDetailPage() {
                 </div>
               ) : null}
 
-              <div className="mt-5 rounded-lg border border-ink-100 bg-paper-base/60 px-5 py-4">
+              <div className="mt-5 rounded-lg border border-ink-100 bg-paper-base/60 px-5 py-4 shadow-[inset_0_1px_rgba(255,255,255,.45)]">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                   OCR 원본
                 </p>
@@ -430,7 +430,7 @@ export default function SubmissionDetailPage() {
                 )}
               </div>
 
-              <div className="mt-5 rounded-lg border border-ink-100 bg-paper-soft px-5 py-4">
+              <div className="mt-5 rounded-lg border border-ink-100 bg-paper-soft px-5 py-4 shadow-[inset_0_1px_rgba(255,255,255,.45)]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
@@ -484,7 +484,8 @@ export default function SubmissionDetailPage() {
           ) : null}
         </div>
 
-        <section className="h-fit rounded-xl border border-feedback-pen/20 bg-feedback-soft p-5 shadow-sm">
+        <section className="h-fit rounded-xl border border-feedback-pen/25 bg-feedback-soft p-5 shadow-sm xl:sticky xl:top-6">
+          <div className="mb-4 h-1.5 rounded-full bg-feedback-pen/70" />
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-feedback-pen">
@@ -529,7 +530,7 @@ export default function SubmissionDetailPage() {
 
           <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
             <textarea
-              className="min-h-[360px] rounded-md border-feedback-pen/20 bg-paper-surface text-sm leading-7 text-feedback-pen placeholder:text-ink-500 focus:border-feedback-pen focus:ring-feedback-pen/20"
+              className="min-h-[360px] rounded-md border-feedback-pen/20 bg-paper-surface bg-[linear-gradient(transparent_31px,rgba(58,111,176,.12)_32px)] bg-[length:100%_32px] text-sm leading-7 text-feedback-pen placeholder:text-ink-500 focus:border-feedback-pen focus:ring-feedback-pen/20"
               rows={12}
               value={finalFeedback}
               onChange={(event) => setFinalFeedback(event.target.value)}

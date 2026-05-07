@@ -319,16 +319,16 @@ export default function TeacherClassroomDetailPage() {
             </p>
           </div>
 
-          <div className="grid min-w-[280px] grid-cols-2 gap-3 rounded-xl border border-ink-100 bg-paper-surface/85 p-4 shadow-sm">
+          <div className="grid min-w-[300px] gap-3 rounded-xl border border-ink-100 bg-paper-surface/85 p-4 shadow-sm">
             <div>
               <p className="text-xs text-ink-500">학년</p>
               <p className="mt-1 text-lg font-semibold text-ink-900">
                 {classroom ? `${classroom.grade}학년` : "-"}
               </p>
             </div>
-            <div>
-              <p className="text-xs text-ink-500">학급코드</p>
-              <p className="mt-1 font-mono text-lg font-bold tracking-[0.12em] text-teacher-accent">
+            <div className="rounded-xl border border-teacher-accent/25 bg-teacher-soft/70 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teacher-deep">학급코드</p>
+              <p className="mt-2 font-mono text-3xl font-bold tracking-[0.14em] text-teacher-accent">
                 {classroom?.classCode ?? "-"}
               </p>
             </div>
@@ -338,7 +338,8 @@ export default function TeacherClassroomDetailPage() {
 
       <section className="grid gap-6 px-8 pb-10 pt-7">
         <div className="grid gap-6 xl:grid-cols-2">
-          <section className="h-fit rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
+          <section className="h-fit rounded-xl border border-teacher-accent/20 bg-paper-surface p-5 shadow-sm">
+            <div className="mb-4 h-1.5 rounded-full bg-teacher-accent/70" />
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
               단건 발급
             </p>
@@ -389,7 +390,8 @@ export default function TeacherClassroomDetailPage() {
             </form>
           </section>
 
-          <section className="h-fit rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
+          <section className="h-fit rounded-xl border border-dashed border-teacher-accent/30 bg-paper-soft/75 p-5 shadow-sm">
+            <div className="mb-4 h-1.5 rounded-full bg-student-accent/70" />
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
               단체 발급
             </p>
@@ -403,7 +405,7 @@ export default function TeacherClassroomDetailPage() {
                 {bulkRows.map((row) => (
                   <div
                     key={row.rowId}
-                    className="grid grid-cols-[76px_minmax(0,1fr)_56px] items-end gap-2 rounded-lg border border-ink-100 bg-paper-base/45 p-3"
+                    className="grid grid-cols-[76px_minmax(0,1fr)_56px] items-end gap-2 rounded-lg border border-ink-100 bg-paper-surface p-3 shadow-sm"
                   >
                     <label className="block min-w-0 text-sm font-semibold text-ink-700">
                       번호
@@ -469,15 +471,14 @@ export default function TeacherClassroomDetailPage() {
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <Badge tone="teacher">{students.length}명</Badge>
-                <PrimaryButton
+                <SecondaryButton
                   className="no-print"
                   disabled={students.length === 0}
                   onClick={handlePrintRoster}
-                  tone="teacher"
                   type="button"
                 >
                   학생 명단 출력
-                </PrimaryButton>
+                </SecondaryButton>
               </div>
             </div>
 
@@ -498,20 +499,20 @@ export default function TeacherClassroomDetailPage() {
 
             {!isLoading && students.length > 0 ? (
               <div className="print-roster-table-wrap mt-5 overflow-x-auto rounded-xl border border-ink-100 bg-paper-base/35">
-                <table className="min-w-[780px] w-full border-collapse text-left text-sm">
+                <table className="w-full min-w-[780px] table-fixed border-collapse text-left text-sm">
                   <thead className="bg-paper-base text-xs font-semibold uppercase tracking-[0.12em] text-ink-500">
                     <tr>
-                      <th className="px-4 py-3">번호</th>
-                      <th className="px-4 py-3">학생 이름</th>
+                      <th className="w-[90px] px-4 py-3">번호</th>
+                      <th className="w-[160px] px-4 py-3">학생 이름</th>
                       <th className="px-4 py-3">학급</th>
-                      <th className="px-4 py-3">학급코드</th>
-                      <th className="px-4 py-3">로그인 비밀번호</th>
-                      <th className="px-4 py-3">발급일</th>
+                      <th className="w-[150px] px-4 py-3">학급코드</th>
+                      <th className="w-[170px] px-4 py-3">로그인 비밀번호</th>
+                      <th className="w-[140px] px-4 py-3">발급일</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-ink-100 bg-paper-surface text-ink-900">
                     {students.map((student) => (
-                      <tr key={student.id}>
+                      <tr key={student.id} className="transition hover:bg-paper-base/60">
                         <td className="whitespace-nowrap px-4 py-4 font-semibold">
                           {student.studentNumber}번
                         </td>
@@ -522,8 +523,10 @@ export default function TeacherClassroomDetailPage() {
                         <td className="whitespace-nowrap px-4 py-4 font-mono font-bold tracking-[0.12em] text-teacher-accent">
                           {classroom?.classCode ?? "-"}
                         </td>
-                        <td className="whitespace-nowrap px-4 py-4 font-mono font-bold text-ink-900">
-                          {student.classroomLoginPassword}
+                        <td className="whitespace-nowrap px-4 py-4">
+                          <span className="rounded-md border border-feedback-pen/20 bg-feedback-soft px-2 py-1 font-mono font-bold text-feedback-pen">
+                            {student.classroomLoginPassword}
+                          </span>
                         </td>
                         <td className="whitespace-nowrap px-4 py-4 text-ink-700">
                           {formatDate(student.createdAt)}

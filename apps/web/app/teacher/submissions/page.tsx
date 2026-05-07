@@ -178,17 +178,18 @@ function TeacherSubmissionsContent() {
             {submissions.map((submission) => {
               const statusMeta = getStatusMeta(submission.status);
               const hasFinalFeedback = Boolean(submission.finalFeedback);
+              const isPending = submission.status === "PENDING";
 
               return (
                 <article
                   key={submission.id}
-                  className={`grid gap-5 rounded-xl border bg-paper-surface p-5 shadow-sm lg:grid-cols-[1fr_auto] ${
-                    submission.status === "PENDING"
-                      ? "border-student-accent/35"
-                      : "border-ink-100"
+                  className={`grid gap-5 overflow-hidden rounded-xl border bg-paper-surface p-0 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(60,40,20,.09)] lg:grid-cols-[1fr_auto] ${
+                    isPending
+                      ? "border-feedback-pen/25 border-l-[4px] border-l-feedback-pen"
+                      : "border-ink-100 border-l-[4px] border-l-status-feedbackDone"
                   }`}
                 >
-                  <div className="min-w-0">
+                  <div className="min-w-0 p-5">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge tone={statusMeta.tone}>{statusMeta.label}</Badge>
                       <Badge tone={hasFinalFeedback ? "feedback" : "neutral"}>
@@ -208,16 +209,16 @@ function TeacherSubmissionsContent() {
                     </p>
                   </div>
 
-                  <div className="flex items-start lg:items-center">
+                  <div className="flex items-start bg-paper-base/45 p-5 lg:items-center">
                     <Link
                       className={`inline-flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-md px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(40,60,90,.15),0_2px_6px_rgba(60,80,120,.18)] lg:w-auto ${
-                        submission.status === "PENDING"
+                        isPending
                           ? "bg-teacher-accent hover:bg-teacher-accent/90"
                           : "bg-feedback-pen hover:bg-feedback-pen/90"
                       }`}
                       href={`/teacher/submissions/${submission.id}`}
                     >
-                      {submission.status === "PENDING" ? "피드백 작성" : "다시 보기"}
+                      {isPending ? "피드백 작성" : "다시 보기"}
                     </Link>
                   </div>
                 </article>

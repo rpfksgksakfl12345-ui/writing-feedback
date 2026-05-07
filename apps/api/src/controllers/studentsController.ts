@@ -14,12 +14,22 @@ export async function getStudentSubmissions(req: AuthRequest, res: Response) {
       },
     });
 
-    if (studentProfile && studentProfile.classroom.teacherId !== req.user?.userId) {
+    if (!studentProfile) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    if (studentProfile.classroom.teacherId !== req.user?.userId) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
     const submissions = await prisma.submission.findMany({
-      where: { studentId },
+      where: {
+        studentId,
+        OR: [
+          { classroomId: studentProfile.classroomId },
+          { topic: { classroomId: studentProfile.classroomId } },
+        ],
+      },
       include: {
         topic: {
           select: { id: true, title: true, grade: true },

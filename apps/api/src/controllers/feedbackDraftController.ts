@@ -17,6 +17,19 @@ function getPreferredOcrText(submission: {
   );
 }
 
+function isSubmissionOwnedByTeacher(
+  submission: {
+    classroom?: { teacherId: number } | null;
+    topic?: { classroom?: { teacherId: number } | null } | null;
+  },
+  teacherId: number,
+) {
+  return (
+    submission.classroom?.teacherId === teacherId ||
+    submission.topic?.classroom?.teacherId === teacherId
+  );
+}
+
 export async function createFeedbackDraft(req: AuthRequest, res: Response) {
   const submissionId = Number(req.params.id);
 
@@ -28,13 +41,26 @@ export async function createFeedbackDraft(req: AuthRequest, res: Response) {
     const submission = await prisma.submission.findUnique({
       where: { id: submissionId },
       include: {
+        classroom: {
+          select: { teacherId: true },
+        },
         student: true,
-        topic: true,
+        topic: {
+          include: {
+            classroom: {
+              select: { teacherId: true },
+            },
+          },
+        },
       },
     });
 
     if (!submission) {
       return res.status(404).json({ message: "제출물을 찾을 수 없습니다." });
+    }
+
+    if (!req.user?.userId || !isSubmissionOwnedByTeacher(submission, req.user.userId)) {
+      return res.status(403).json({ message: "Forbidden" });
     }
 
     const preferredOcrText = getPreferredOcrText(submission);

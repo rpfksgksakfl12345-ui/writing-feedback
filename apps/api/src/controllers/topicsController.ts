@@ -1,4 +1,5 @@
 import { Response } from "express";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../services/prisma";
 import { AuthRequest } from "../types";
 
@@ -15,21 +16,24 @@ export async function getTopics(req: AuthRequest, res: Response) {
   try {
     const grade = req.query.grade ? Number(req.query.grade) : undefined;
     const classroomId = req.query.classroomId ? Number(req.query.classroomId) : undefined;
-    const where: {
-      grade?: number;
-      classroomId?: number;
-      OR?: Array<{ classroomId: number | null } | { teacherId: number }>;
-    } = {};
+    const where: Prisma.TopicWhereInput = {};
 
     if (grade) {
+      if (!Number.isInteger(grade) || grade < 1 || grade > 6) {
+        return res.status(400).json({ message: "Invalid grade" });
+      }
+
       where.grade = grade;
     }
 
     if (req.user?.role === "STUDENT" && req.user.userId) {
       const studentClassroomId = await getStudentClassroomId(req.user.userId);
-      where.OR = studentClassroomId
-        ? [{ classroomId: studentClassroomId }, { classroomId: null }]
-        : [{ classroomId: null }];
+
+      if (!studentClassroomId) {
+        return res.json([]);
+      }
+
+      where.classroomId = studentClassroomId;
     } else if (req.user?.role === "TEACHER" && classroomId) {
       if (!Number.isInteger(classroomId) || classroomId < 1 || !req.user?.userId) {
         return res.status(400).json({ message: "Invalid classroom ID" });
@@ -49,11 +53,11 @@ export async function getTopics(req: AuthRequest, res: Response) {
 
       where.classroomId = classroomId;
     } else if (req.user?.role === "TEACHER" && req.user.userId) {
-      where.OR = [{ classroomId: null }, { teacherId: req.user.userId }];
+      where.classroom = { teacherId: req.user.userId };
     }
 
     const topics = await prisma.topic.findMany({
-      where: Object.keys(where).length > 0 ? where : undefined,
+      where,
       include: {
         teacher: {
           select: { id: true, name: true, email: true },
@@ -73,6 +77,9 @@ export async function getTopic(req: AuthRequest, res: Response) {
     const topic = await prisma.topic.findUnique({
       where: { id: Number(req.params.id) },
       include: {
+        classroom: {
+          select: { teacherId: true },
+        },
         teacher: {
           select: { id: true, name: true, email: true },
         },
@@ -86,15 +93,13 @@ export async function getTopic(req: AuthRequest, res: Response) {
     if (req.user?.role === "STUDENT" && req.user.userId) {
       const studentClassroomId = await getStudentClassroomId(req.user.userId);
 
-      if (topic.classroomId && topic.classroomId !== studentClassroomId) {
+      if (!studentClassroomId || topic.classroomId !== studentClassroomId) {
         return res.status(403).json({ message: "Forbidden" });
       }
-    } else if (
-      req.user?.role === "TEACHER" &&
-      topic.classroomId &&
-      topic.teacherId !== req.user.userId
-    ) {
-      return res.status(403).json({ message: "Forbidden" });
+    } else if (req.user?.role === "TEACHER") {
+      if (topic.classroom?.teacherId !== req.user.userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
     }
 
     return res.json(topic);
@@ -106,11 +111,19 @@ export async function getTopic(req: AuthRequest, res: Response) {
 export async function createTopic(req: AuthRequest, res: Response) {
   try {
     const { title, description, grade } = req.body;
-    const classroomId = req.body?.classroomId ? Number(req.body.classroomId) : null;
+    const requestedClassroomId = req.body?.classroomId ? Number(req.body.classroomId) : null;
 
     if (!title || !grade || !req.user?.userId) {
       return res.status(400).json({ message: "Missing required fields" });
     }
+
+    const nextGrade = Number(grade);
+
+    if (!Number.isInteger(nextGrade) || nextGrade < 1 || nextGrade > 6) {
+      return res.status(400).json({ message: "Invalid grade" });
+    }
+
+    let classroomId = requestedClassroomId;
 
     if (classroomId) {
       if (!Number.isInteger(classroomId) || classroomId < 1) {
@@ -128,13 +141,29 @@ export async function createTopic(req: AuthRequest, res: Response) {
       if (!classroom) {
         return res.status(404).json({ message: "Classroom not found" });
       }
+    } else {
+      const ownedClassrooms = await prisma.classroom.findMany({
+        where: { teacherId: req.user.userId },
+        select: { id: true },
+        take: 2,
+      });
+
+      if (ownedClassrooms.length === 0) {
+        return res.status(400).json({ message: "먼저 학급을 만들어야 주제를 등록할 수 있습니다." });
+      }
+
+      if (ownedClassrooms.length > 1) {
+        return res.status(400).json({ message: "classroomId is required" });
+      }
+
+      classroomId = ownedClassrooms[0].id;
     }
 
     const topic = await prisma.topic.create({
       data: {
         title,
         description,
-        grade: Number(grade),
+        grade: nextGrade,
         teacherId: req.user.userId,
         classroomId,
       },
@@ -149,13 +178,20 @@ export async function createTopic(req: AuthRequest, res: Response) {
 export async function deleteTopic(req: AuthRequest, res: Response) {
   try {
     const topicId = Number(req.params.id);
-    const topic = await prisma.topic.findUnique({ where: { id: topicId } });
+    const topic = await prisma.topic.findUnique({
+      where: { id: topicId },
+      include: {
+        classroom: {
+          select: { teacherId: true },
+        },
+      },
+    });
 
     if (!topic) {
       return res.status(404).json({ message: "Topic not found" });
     }
 
-    if (topic.teacherId !== req.user?.userId) {
+    if (topic.classroom?.teacherId !== req.user?.userId) {
       return res.status(403).json({ message: "Forbidden" });
     }
 

@@ -91,40 +91,59 @@ export default function TeacherTopicsPage() {
   const [aiError, setAiError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoadingTopics, setIsLoadingTopics] = useState(true);
+  const [isLoadingClassrooms, setIsLoadingClassrooms] = useState(true);
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [suggestedTopics, setSuggestedTopics] = useState<TopicSuggestion[]>([]);
   const [selectedSuggestionTitle, setSelectedSuggestionTitle] = useState("");
 
-  async function loadTopics() {
+  async function loadClassrooms() {
     if (!token) {
+      return;
+    }
+
+    setIsLoadingClassrooms(true);
+    setError("");
+
+    try {
+      const nextClassrooms = await apiFetch<Classroom[]>("/api/classrooms", { token });
+      const nextSelectedClassroom = nextClassrooms.find(
+        (classroom) => String(classroom.id) === classroomId,
+      ) ?? nextClassrooms[0] ?? null;
+
+      setClassrooms(nextClassrooms);
+      setClassroomId(nextSelectedClassroom ? String(nextSelectedClassroom.id) : "");
+      setGrade(nextSelectedClassroom ? String(nextSelectedClassroom.grade) : "3");
+
+      if (nextClassrooms.length === 0) {
+        setTopics([]);
+        setIsLoadingTopics(false);
+      }
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "학급 목록을 불러오지 못했습니다.");
+    } finally {
+      setIsLoadingClassrooms(false);
+    }
+  }
+
+  async function loadTopicsForClassroom(nextClassroomId = classroomId) {
+    if (!token) {
+      return;
+    }
+
+    if (!nextClassroomId) {
+      setTopics([]);
+      setIsLoadingTopics(false);
       return;
     }
 
     setIsLoadingTopics(true);
 
     try {
-      const [nextTopics, nextClassrooms] = await Promise.all([
-        apiFetch<Topic[]>("/api/topics", { token }),
-        apiFetch<Classroom[]>("/api/classrooms", { token }),
-      ]);
+      const nextTopics = await apiFetch<Topic[]>(`/api/topics?classroomId=${nextClassroomId}`, {
+        token,
+      });
 
       setTopics(nextTopics);
-      setClassrooms(nextClassrooms);
-      setGrade((currentGrade) => {
-        const selectedClassroom = classroomId
-          ? nextClassrooms.find((classroom) => String(classroom.id) === classroomId)
-          : null;
-
-        if (selectedClassroom) {
-          return String(selectedClassroom.grade);
-        }
-
-        if (currentGrade === "3" && nextClassrooms[0]?.grade) {
-          return String(nextClassrooms[0].grade);
-        }
-
-        return currentGrade;
-      });
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "주제를 불러오지 못했습니다.");
     } finally {
@@ -133,29 +152,35 @@ export default function TeacherTopicsPage() {
   }
 
   useEffect(() => {
-    void loadTopics();
+    void loadClassrooms();
   }, [token]);
+
+  useEffect(() => {
+    void loadTopicsForClassroom();
+  }, [token, classroomId]);
 
   async function handleCreateTopic(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
     setError("");
 
+    if (!classroomId) {
+      setError("주제를 등록하기 전에 학급을 먼저 만들어 주세요.");
+      return;
+    }
+
     try {
       const body: {
         title: string;
         description: string;
         grade: number;
-        classroomId?: number;
+        classroomId: number;
       } = {
         title,
         description,
         grade: Number(grade),
+        classroomId: Number(classroomId),
       };
-
-      if (classroomId) {
-        body.classroomId = Number(classroomId);
-      }
 
       await apiFetch("/api/topics", {
         method: "POST",
@@ -165,12 +190,11 @@ export default function TeacherTopicsPage() {
 
       setTitle("");
       setDescription("");
-      setGrade(getDefaultGradeFromClassrooms(classrooms));
-      setClassroomId("");
+      setGrade(selectedClassroom ? String(selectedClassroom.grade) : getDefaultGradeFromClassrooms(classrooms));
       setSuggestedTopics([]);
       setSelectedSuggestionTitle("");
       setMessage("주제가 등록되었습니다. 학생은 이제 해당 학년에서 이 주제를 선택할 수 있습니다.");
-      await loadTopics();
+      await loadTopicsForClassroom(classroomId);
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -182,6 +206,11 @@ export default function TeacherTopicsPage() {
 
   async function handleGenerateTopics() {
     if (!token || isGenerating) {
+      return;
+    }
+
+    if (!classroomId) {
+      setAiError("추천을 받기 전에 학급을 먼저 만들어 주세요.");
       return;
     }
 
@@ -234,6 +263,8 @@ export default function TeacherTopicsPage() {
   const selectedClassroom = classroomId
     ? classrooms.find((classroom) => String(classroom.id) === classroomId)
     : null;
+  const hasClassrooms = classrooms.length > 0;
+  const isTopicWorkDisabled = isLoadingClassrooms || !hasClassrooms || !classroomId;
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
@@ -265,7 +296,9 @@ export default function TeacherTopicsPage() {
               <p className="mt-1 truncate text-sm font-semibold text-teacher-deep">
                 {selectedClassroom
                   ? `${selectedClassroom.name} · ${selectedClassroom.classCode}`
-                  : "전체 공개 주제"}
+                  : isLoadingClassrooms
+                    ? "학급 확인 중"
+                    : "학급 없음"}
               </p>
             </div>
           </div>
@@ -282,10 +315,12 @@ export default function TeacherTopicsPage() {
                 </p>
                 <h2 className="kr-keep mt-1 text-xl font-bold text-ink-900">오늘의 글쓰기 주제 찾기</h2>
                 <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
-                  버튼을 누를 때에만 AI를 호출하며, 선택한 학년에 맞는 주제를 추천합니다.
+                  버튼을 누를 때에만 AI를 호출하며, 선택한 학급의 학년에 맞는 주제를 추천합니다.
                 </p>
               </div>
-              <Badge tone="teacher">{grade}학년</Badge>
+              <Badge tone="teacher">
+                {selectedClassroom ? `${selectedClassroom.name} · ${grade}학년` : `${grade}학년`}
+              </Badge>
             </div>
 
             <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
@@ -304,6 +339,7 @@ export default function TeacherTopicsPage() {
                             : "border-ink-100 bg-paper-surface text-ink-700 hover:border-teacher-accent/40 hover:bg-teacher-soft/70"
                         }`}
                         type="button"
+                        disabled={isTopicWorkDisabled}
                         onClick={() => setGrade(String(value))}
                       >
                         {value}학년
@@ -315,7 +351,7 @@ export default function TeacherTopicsPage() {
 
               <PrimaryButton
                 className="w-full lg:w-fit"
-                disabled={isGenerating}
+                disabled={isGenerating || isTopicWorkDisabled}
                 onClick={handleGenerateTopics}
                 tone="teacher"
                 type="button"
@@ -379,7 +415,9 @@ export default function TeacherTopicsPage() {
             ) : (
               <div className="mt-5 rounded-lg border border-dashed border-ink-200 bg-paper-base/60 px-5 py-6 text-sm text-ink-500">
                 <span className="kr-keep block">
-                  아직 추천 결과가 없습니다. 학년을 고른 뒤 AI 추천을 생성해 보세요.
+                  {hasClassrooms
+                    ? "아직 추천 결과가 없습니다. 학급과 학년을 확인한 뒤 AI 추천을 생성해 보세요."
+                    : "먼저 학급을 만든 뒤 AI 추천을 받을 수 있습니다."}
                 </span>
               </div>
             )}
@@ -418,6 +456,7 @@ export default function TeacherTopicsPage() {
                 <select
                   className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-teacher-accent focus:ring-teacher-accent/20"
                   value={classroomId}
+                  disabled={!hasClassrooms}
                   onChange={(event) => {
                     const nextClassroomId = event.target.value;
                     const nextClassroom = classrooms.find(
@@ -431,7 +470,6 @@ export default function TeacherTopicsPage() {
                     }
                   }}
                 >
-                  <option value="">전체 학생에게 공개</option>
                   {classrooms.map((classroom) => (
                     <option key={classroom.id} value={classroom.id}>
                       {classroom.name} · {classroom.grade}학년 · {classroom.classCode}
@@ -440,14 +478,14 @@ export default function TeacherTopicsPage() {
                 </select>
                 {classrooms.length === 0 ? (
                   <span className="mt-2 block text-xs leading-5 text-ink-500">
-                    아직 학급이 없습니다.{" "}
+                    먼저 학급을 만든 뒤 주제를 등록할 수 있습니다.{" "}
                     <Link className="font-semibold text-teacher-accent hover:underline" href="/teacher/classrooms">
-                      학급을 먼저 만들 수 있습니다.
+                      학급 만들기
                     </Link>
                   </span>
                 ) : (
                   <span className="mt-2 block text-xs leading-5 text-ink-500">
-                    선택하지 않으면 기존처럼 전체 학생용 주제로 저장됩니다.
+                    선택한 학급 학생에게만 이 주제가 보입니다.
                   </span>
                 )}
               </label>
@@ -456,7 +494,7 @@ export default function TeacherTopicsPage() {
               {error ? <NoticeBanner tone="error" title="주제 등록 실패" description={error} /> : null}
 
               <div className="flex justify-end">
-                <PrimaryButton tone="teacher" type="submit">
+                <PrimaryButton disabled={isTopicWorkDisabled} tone="teacher" type="submit">
                   주제 저장
                 </PrimaryButton>
               </div>
@@ -487,10 +525,22 @@ export default function TeacherTopicsPage() {
 
             {!isLoadingTopics && topics.length === 0 ? (
               <div className="rounded-xl border border-dashed border-ink-200 bg-paper-base/60 px-6 py-12 text-center">
-                <p className="kr-keep text-lg font-semibold text-ink-900">등록된 주제가 없습니다.</p>
-                <p className="kr-keep mt-2 text-sm text-ink-700">
-                  첫 주제를 만들면 학생 책장에서 바로 선택할 수 있습니다.
+                <p className="kr-keep text-lg font-semibold text-ink-900">
+                  {hasClassrooms ? "이 학급에 등록된 주제가 없습니다." : "먼저 학급을 만들어주세요."}
                 </p>
+                <p className="kr-keep mt-2 text-sm text-ink-700">
+                  {hasClassrooms
+                    ? "첫 주제를 만들면 선택한 학급의 학생 책장에서 바로 볼 수 있습니다."
+                    : "학급을 만든 뒤 학생에게 보낼 주제를 등록할 수 있습니다."}
+                </p>
+                {!hasClassrooms ? (
+                  <Link
+                    className="mt-5 inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-teacher-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface hover:bg-teacher-accent/90"
+                    href="/teacher/classrooms"
+                  >
+                    학급 만들기
+                  </Link>
+                ) : null}
               </div>
             ) : null}
 

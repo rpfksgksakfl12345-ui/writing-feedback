@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../components/auth-provider";
 import { apiFetch } from "../../../lib/api";
@@ -77,6 +78,7 @@ export default function LoginPage() {
   );
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [registeredNotice, setRegisteredNotice] = useState(false);
 
   useEffect(() => {
     if (!isReady || !user) {
@@ -85,6 +87,11 @@ export default function LoginPage() {
 
     router.replace(getHomeHref(user.role));
   }, [isReady, router, user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setRegisteredNotice(params.get("registered") === "1");
+  }, []);
 
   function selectMode(nextMode: LoginMode) {
     setMode(nextMode);
@@ -230,6 +237,12 @@ export default function LoginPage() {
               "교사는 수업을 준비하고, 학생은 책장에서 글쓰기 주제를 골라 공책을 엽니다."}
           </p>
 
+          {registeredNotice ? (
+            <div className="kr-keep mt-5 rounded-xl border border-status-feedbackDone/25 bg-status-feedbackDone/15 px-4 py-3 text-sm leading-6 text-status-feedbackDone">
+              교사 계정이 만들어졌어요. 이메일과 비밀번호로 로그인해 주세요.
+            </div>
+          ) : null}
+
           <div className="mt-6 grid rounded-xl bg-paper-base p-1 sm:grid-cols-2">
             {(
               [
@@ -340,6 +353,15 @@ export default function LoginPage() {
             >
               {loading ? "로그인 중..." : "교사실로 들어가기 →"}
             </button>
+            <p className="kr-keep text-center text-sm leading-6 text-ink-700">
+              계정이 아직 없나요?{" "}
+              <Link
+                className="whitespace-nowrap font-semibold text-teacher-accent hover:text-teacher-deep"
+                href="/register"
+              >
+                교사 계정 만들기
+              </Link>
+            </p>
           </form>
         ) : (
           <form className="mt-6 grid gap-5 rounded-xl border border-student-accent/20 bg-paper-soft/70 p-5 shadow-sm" onSubmit={handleStudentLogin}>
@@ -389,6 +411,9 @@ export default function LoginPage() {
             >
               {loading ? "접속 중..." : "내 책장 열기 →"}
             </button>
+            <p className="kr-keep text-center text-sm leading-6 text-ink-500">
+              학생 계정은 선생님이 학급 관리에서 발급해요.
+            </p>
           </form>
         )}
         </div>

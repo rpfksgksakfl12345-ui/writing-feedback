@@ -10,8 +10,23 @@ import topicsRoutes from "./routes/topics";
 
 const app = express();
 const port = Number(process.env.PORT || 4000);
+const allowedOrigins = (process.env.CORS_ORIGIN || process.env.WEB_ORIGIN || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
+  }),
+);
 app.use(express.json());
 app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 

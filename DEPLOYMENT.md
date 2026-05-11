@@ -1,0 +1,277 @@
+# Deployment Readiness Guide
+
+This guide is for the first public web deployment of the writing feedback app.
+The recommended first launch shape is:
+
+- Web: Vercel
+- API: Railway
+- Database: Railway PostgreSQL
+- Upload files: Railway Volume mounted into the API service
+
+Do not put real secrets in this file or in git.
+
+## 1. Build And Start Commands
+
+Run these locally before deploying:
+
+```bash
+npm run build --workspace @writing-feedback/web
+npm run build --workspace @writing-feedback/api
+```
+
+Vercel web:
+
+```bash
+npm run build --workspace @writing-feedback/web
+```
+
+Railway API build:
+
+```bash
+npm run build --workspace @writing-feedback/api
+```
+
+Railway API start:
+
+```bash
+npm run start --workspace @writing-feedback/api
+```
+
+Production DB migration:
+
+```bash
+npm run prisma:deploy --workspace @writing-feedback/api
+```
+
+## 2. API Environment Variables
+
+Set these on the Railway API service. Use real values in Railway, not the examples below.
+
+| Name | Required in production | Notes |
+| --- | --- | --- |
+| `NODE_ENV` | Recommended | Set to `production`. Railway runtime env also triggers production validation. |
+| `DATABASE_URL` | Yes | Railway PostgreSQL connection string. |
+| `JWT_SECRET` | Yes | Strong random secret, at least 32 characters. Never use `change-me`. |
+| `PORT` | Railway sets this | Keep app default as fallback only. |
+| `CORS_ORIGIN` | Yes | Exact web origin, for example `https://your-app.vercel.app`. Comma-separated origins are supported. |
+| `WEB_ORIGIN` | Alternative | Used only when `CORS_ORIGIN` is not set. |
+| `TEACHER_SIGNUP_CODE` | Yes | Required so teacher signup is not publicly open. |
+| `TRUST_PROXY_HOPS` | Yes | Use `1` on Railway so rate limiting reads the proxied client IP correctly. |
+| `UPLOADS_DIR` | Yes | Use a Railway Volume path, for example `/data/uploads`. |
+| `GOOGLE_CLOUD_PROJECT` | Yes | Vertex AI project. |
+| `GOOGLE_CLOUD_LOCATION` | Yes | Vertex AI location. |
+| `GOOGLE_GENAI_USE_VERTEXAI` | Yes | Must be `true`. |
+| `GOOGLE_CLOUD_DOCUMENTAI_PROJECT` | Yes | Document AI project. |
+| `GOOGLE_CLOUD_DOCUMENTAI_LOCATION` | Yes | Document AI location. |
+| `GOOGLE_CLOUD_DOCUMENTAI_PROCESSOR_ID` | Yes | Document AI processor ID. |
+
+The API fails fast in `NODE_ENV=production` or Railway runtime if required
+values are missing, if `JWT_SECRET` is weak, or if Vertex mode is not enabled.
+
+## 3. Web Environment Variables
+
+Set these on the Vercel project.
+
+| Name | Required | Notes |
+| --- | --- | --- |
+| `NEXT_PUBLIC_API_BASE_URL` | Yes | Public Railway API URL, for example `https://your-api.up.railway.app`. |
+| `NEXT_PUBLIC_REQUIRE_API_BASE_URL` | Recommended | Set to `true` so production builds fail if the API URL is missing. |
+
+`NEXT_PUBLIC_API_BASE_URL` is baked into the web build. If the API URL changes,
+redeploy the web app.
+
+## 4. Railway API Setup
+
+1. Create a Railway project.
+2. Add a PostgreSQL service.
+3. Add an API service connected to the repository.
+4. Add a Railway Volume to the API service.
+5. Mount the volume at `/data`.
+6. Set `UPLOADS_DIR=/data/uploads`.
+7. Set the API environment variables from section 2.
+8. Deploy the API.
+9. Run production migrations:
+
+```bash
+npm run prisma:deploy --workspace @writing-feedback/api
+```
+
+10. Set Railway healthcheck path to:
+
+```text
+/health
+```
+
+11. Confirm logs show the API listening without env validation errors.
+
+Railway service filesystems are ephemeral unless a Volume is mounted. Without a
+Volume, uploaded student images can disappear after redeploys or restarts.
+
+## 5. Vercel Web Setup
+
+1. Create a Vercel project from the same repository.
+2. Set the web root/build command to use the web workspace.
+3. Set `NEXT_PUBLIC_API_BASE_URL` to the Railway API URL.
+4. Set `NEXT_PUBLIC_REQUIRE_API_BASE_URL=true`.
+5. Deploy a preview first.
+6. Smoke test the preview against the Railway API.
+7. Promote to production after the checklist passes.
+
+When sharing Vercel preview URLs externally, consider Vercel preview protection
+or keep the URL private until production env and CORS are correct.
+
+## 6. Uploads
+
+Current first-launch approach:
+
+- API stores uploads on a local filesystem path.
+- `UPLOADS_DIR` chooses that path.
+- Railway Volume makes that path persistent.
+- Protected `/uploads/:filename` still requires authentication and ownership.
+
+Example Railway setup:
+
+```text
+Volume mount path: /data
+UPLOADS_DIR=/data/uploads
+```
+
+The API creates the upload directory if it does not exist.
+
+Upload guardrails:
+
+- Accepted MIME types: `image/jpeg`, `image/png`, `image/webp`
+- Max image size: 10 MB
+- Stored filenames are generated with a timestamp, random suffix, and sanitized extension
+
+Longer term, move uploads to object storage such as Railway Storage Buckets or an
+S3-compatible bucket. Object storage gives better backups, CDN options, and
+safer scaling than local service volumes.
+
+## 7. Rate Limits
+
+The API has in-memory rate limits for:
+
+- Teacher login
+- Student classroom login
+- Teacher signup
+- Teacher password change
+- AI topic generation
+- AI feedback draft generation
+- Student upload
+
+The student login limiter is keyed by classroom code and student number when
+available, not by IP only, so one school network should not block the whole
+classroom. Teacher login combines email and IP. In-memory rate limits are fine
+for the first single-instance launch, but they reset on API restart and are not
+shared across multiple API instances. Use Redis or another shared store before
+running multiple API replicas.
+
+## 8. Security Checklist
+
+Before launch:
+
+- Use a strong `JWT_SECRET`.
+- Set exact `CORS_ORIGIN`.
+- Set `TEACHER_SIGNUP_CODE`.
+- Set `TRUST_PROXY_HOPS=1` on Railway.
+- Confirm `/uploads/:filename` requires a Bearer token.
+- Confirm teacher signup fails without the signup code.
+- Confirm rate limited auth requests return HTTP 429 with a Korean message.
+- Do not expose API keys or service account credentials to the web app.
+
+Known follow-up security work:
+
+- Add Redis-backed rate limit store before multi-instance API scaling.
+- Add login audit logs.
+- Revisit 4-character or low-entropy student passwords if usage grows.
+- Consider forced password change after admin reset.
+
+## 9. Database And Backups
+
+Production migrations should use:
+
+```bash
+npm run prisma:deploy --workspace @writing-feedback/api
+```
+
+Do not run `prisma migrate dev` against production.
+
+Before the first real user launch:
+
+- Enable or verify Railway PostgreSQL backups.
+- Record the restore procedure.
+- Back up before applying future migrations.
+- Treat migration rollback as a planned operation, not a casual deploy revert.
+
+## 10. Logs, Health, And Cost Controls
+
+Railway:
+
+- Use Railway logs for API startup failures, env validation errors, OCR errors,
+  and AI request failures.
+- Set healthcheck path to `/health`.
+
+Google Cloud:
+
+- Set a budget alert before opening access.
+- Check Vertex AI quotas.
+- Check Document AI quotas.
+- Watch OCR and AI logs during the first classroom test.
+
+AI/OCR cost control already in code:
+
+- AI and OCR calls are server-side only.
+- Topic generation and feedback draft endpoints require teacher auth.
+- Upload requires student auth and has a file size limit.
+- AI endpoints now have lightweight per-teacher rate limits.
+
+## 11. First Deploy Order
+
+1. Push the latest committed code to GitHub.
+2. Create Railway PostgreSQL.
+3. Create Railway API service.
+4. Mount Railway Volume at `/data`.
+5. Set API env.
+6. Deploy API.
+7. Run `npm run prisma:deploy --workspace @writing-feedback/api`.
+8. Check `/health`.
+9. Create Vercel web project.
+10. Set web env.
+11. Deploy Vercel preview.
+12. Update `CORS_ORIGIN` to the final Vercel production domain if needed.
+13. Redeploy API after CORS changes.
+14. Redeploy web if `NEXT_PUBLIC_API_BASE_URL` changes.
+
+## 12. Smoke Test Checklist
+
+Run this immediately after deploy:
+
+- `/health` returns `{ ok: true }`.
+- Teacher signup requires `TEACHER_SIGNUP_CODE`.
+- Teacher login works.
+- Teacher password change works.
+- A classroom can be created.
+- A student account can be issued.
+- The student password is visible only right after issue/reissue.
+- Student classroom login works.
+- Student typed writing submission works.
+- Student photo upload works.
+- Teacher can view protected uploaded image.
+- AI topic generation works.
+- AI topic refinement works.
+- AI feedback draft works.
+- Railway logs show no repeated errors.
+- Google Cloud budget/quota dashboards look normal.
+
+## 13. Rollback Notes
+
+For web/API code problems, redeploy the previous known-good commit from Vercel
+or Railway.
+
+For database changes, do not rely on a quick code rollback. Back up before
+migrations and use a deliberate restore or forward-fix plan if migration data
+changes are involved.
+
+For upload issues, confirm the Railway Volume is still mounted and that
+`UPLOADS_DIR` points to the mounted path.

@@ -40,6 +40,11 @@ export async function register(req: Request, res: Response) {
   try {
     const { email, password, name, role } = req.body;
     const nextRole = role ?? Role.TEACHER;
+    const configuredSignupCode = process.env.TEACHER_SIGNUP_CODE?.trim() || "";
+    const providedSignupCode =
+      typeof req.body?.teacherSignupCode === "string"
+        ? req.body.teacherSignupCode.trim()
+        : req.get("x-teacher-signup-code")?.trim() || "";
 
     if (!email || !password || !name) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -47,6 +52,10 @@ export async function register(req: Request, res: Response) {
 
     if (nextRole !== Role.TEACHER) {
       return res.status(400).json({ message: "Only teacher registration is supported" });
+    }
+
+    if (configuredSignupCode && providedSignupCode !== configuredSignupCode) {
+      return res.status(403).json({ message: "교사 가입 코드가 올바르지 않습니다." });
     }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });

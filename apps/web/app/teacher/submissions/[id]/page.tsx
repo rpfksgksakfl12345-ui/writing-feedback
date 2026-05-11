@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { NoticeBanner } from "../../../../components/notice-banner";
 import { useAuth } from "../../../../components/auth-provider";
 import { Badge, PrimaryButton, SecondaryButton } from "../../../../components/ui-v2";
-import { API_BASE_URL, apiFetch } from "../../../../lib/api";
+import { apiFetch, apiFetchBlob } from "../../../../lib/api";
 
 type SubmissionDetail = {
   id: number;
@@ -149,6 +149,8 @@ export default function SubmissionDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingExtractedText, setIsSavingExtractedText] = useState(false);
   const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
+  const [submissionImageObjectUrl, setSubmissionImageObjectUrl] = useState("");
+  const [submissionImageLoadError, setSubmissionImageLoadError] = useState(false);
 
   async function loadSubmission() {
     if (!token) {
@@ -185,6 +187,42 @@ export default function SubmissionDetailPage() {
 
     return () => window.clearInterval(pollTimer);
   }, [submission, token]);
+
+  useEffect(() => {
+    if (!token || submission?.inputType !== "PHOTO" || !submission.imageUrl) {
+      setSubmissionImageObjectUrl("");
+      setSubmissionImageLoadError(false);
+      return;
+    }
+
+    let ignore = false;
+    let objectUrl = "";
+    setSubmissionImageObjectUrl("");
+    setSubmissionImageLoadError(false);
+
+    apiFetchBlob(submission.imageUrl, { token })
+      .then((blob) => {
+        if (ignore) {
+          return;
+        }
+
+        objectUrl = URL.createObjectURL(blob);
+        setSubmissionImageObjectUrl(objectUrl);
+      })
+      .catch(() => {
+        if (!ignore) {
+          setSubmissionImageObjectUrl("");
+          setSubmissionImageLoadError(true);
+        }
+      });
+
+    return () => {
+      ignore = true;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [submission?.imageUrl, submission?.inputType, token]);
 
   async function handleGenerateDraft() {
     if (!token || !submission || isGeneratingDraft) {
@@ -402,11 +440,19 @@ export default function SubmissionDetailPage() {
               </div>
             ) : (
               <div className="mt-5 rounded-lg border border-ink-100 bg-paper-base p-3 shadow-[inset_0_1px_rgba(255,255,255,.45)]">
-                <img
-                  src={`${API_BASE_URL}${submission.imageUrl}`}
-                  alt="학생 제출 이미지"
-                  className="max-h-[520px] w-full rounded-md object-contain"
-                />
+                {submissionImageObjectUrl ? (
+                  <img
+                    src={submissionImageObjectUrl}
+                    alt="학생 제출 이미지"
+                    className="max-h-[520px] w-full rounded-md object-contain"
+                  />
+                ) : (
+                  <div className="rounded-md border border-dashed border-ink-200 bg-paper-surface/70 px-5 py-12 text-center text-sm text-ink-500">
+                    {submissionImageLoadError
+                      ? "이미지를 불러오지 못했습니다. 접근 권한을 다시 확인해 주세요."
+                      : "이미지를 불러오는 중입니다..."}
+                  </div>
+                )}
               </div>
             )}
           </section>

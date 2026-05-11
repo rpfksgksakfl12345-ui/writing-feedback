@@ -25,6 +25,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [teacherSignupCode, setTeacherSignupCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -55,6 +56,7 @@ export default function RegisterPage() {
           name: trimmedName,
           email: trimmedEmail,
           password,
+          teacherSignupCode: teacherSignupCode.trim(),
         }),
       });
 
@@ -122,6 +124,21 @@ export default function RegisterPage() {
               autoComplete="new-password"
               type="password"
             />
+          </label>
+
+          <label className="block text-[13px] font-medium text-ink-700">
+            교사 가입 코드
+            <input
+              className={inputClass}
+              value={teacherSignupCode}
+              onChange={(event) => setTeacherSignupCode(event.target.value)}
+              autoComplete="off"
+              placeholder="관리자에게 받은 가입 코드를 입력해 주세요"
+              type="password"
+            />
+            <span className="kr-keep mt-2 block text-xs leading-5 text-ink-500">
+              처음 가입할 때만 필요해요. 코드를 모르면 관리자에게 문의해 주세요.
+            </span>
           </label>
 
           {error ? (

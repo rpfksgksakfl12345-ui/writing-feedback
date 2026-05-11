@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { NoticeBanner } from "../../../components/notice-banner";
 import { useAuth } from "../../../components/auth-provider";
 import { Badge, NotebookPaper, NotebookText, NotebookTextArea, PrimaryButton } from "../../../components/ui-v2";
-import { API_BASE_URL, apiFetch } from "../../../lib/api";
+import { apiFetch, apiFetchBlob } from "../../../lib/api";
 
 type Topic = {
   id: number;
@@ -88,11 +88,15 @@ function getPhotoText(submission: SubmissionItem) {
 
 function SubmissionNotebookView({
   message,
+  photoImageLoadError,
+  photoImageSrc,
   submission,
   topic,
   userName,
 }: {
   message: string;
+  photoImageLoadError?: boolean;
+  photoImageSrc?: string;
   submission: SubmissionItem;
   topic?: Topic;
   userName?: string;
@@ -146,11 +150,19 @@ function SubmissionNotebookView({
           ) : (
             <div className="space-y-4 rounded-xl border border-ink-100 bg-paper-surface p-4">
               {submission.imageUrl ? (
-                <img
-                  src={`${API_BASE_URL}${submission.imageUrl}`}
-                  alt="내가 제출한 공책 사진"
-                  className="max-h-[560px] w-full rounded-lg object-contain"
-                />
+                photoImageSrc ? (
+                  <img
+                    src={photoImageSrc}
+                    alt="내가 제출한 공책 사진"
+                    className="max-h-[560px] w-full rounded-lg object-contain"
+                  />
+                ) : (
+                  <div className="rounded-lg border border-dashed border-ink-200 bg-paper-base/60 px-5 py-12 text-center text-sm text-ink-500">
+                    {photoImageLoadError
+                      ? "이미지를 불러오지 못했습니다. 접근 권한을 다시 확인해 주세요."
+                      : "이미지를 불러오는 중입니다..."}
+                  </div>
+                )
               ) : (
                 <div className="rounded-lg border border-dashed border-ink-200 bg-paper-base/60 px-5 py-12 text-center text-sm text-ink-500">
                   제출한 사진 정보를 불러오지 못했습니다.
@@ -277,6 +289,46 @@ function StudentUploadContent() {
   }, [submissions]);
 
   const selectedSubmission = topicId ? latestSubmissionByTopicId.get(Number(topicId)) : undefined;
+  const selectedPhotoImagePath =
+    selectedSubmission?.inputType === "PHOTO" ? selectedSubmission.imageUrl : null;
+  const [selectedPhotoObjectUrl, setSelectedPhotoObjectUrl] = useState("");
+  const [selectedPhotoLoadError, setSelectedPhotoLoadError] = useState(false);
+
+  useEffect(() => {
+    if (!token || !selectedPhotoImagePath) {
+      setSelectedPhotoObjectUrl("");
+      setSelectedPhotoLoadError(false);
+      return;
+    }
+
+    let ignore = false;
+    let objectUrl = "";
+    setSelectedPhotoObjectUrl("");
+    setSelectedPhotoLoadError(false);
+
+    apiFetchBlob(selectedPhotoImagePath, { token })
+      .then((blob) => {
+        if (ignore) {
+          return;
+        }
+
+        objectUrl = URL.createObjectURL(blob);
+        setSelectedPhotoObjectUrl(objectUrl);
+      })
+      .catch(() => {
+        if (!ignore) {
+          setSelectedPhotoObjectUrl("");
+          setSelectedPhotoLoadError(true);
+        }
+      });
+
+    return () => {
+      ignore = true;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [selectedPhotoImagePath, token]);
 
   function buildSubmittedView(
     createdSubmission: SubmissionItem,
@@ -546,6 +598,8 @@ function StudentUploadContent() {
           {selectedSubmission ? (
             <SubmissionNotebookView
               message={message}
+              photoImageLoadError={selectedPhotoLoadError}
+              photoImageSrc={selectedPhotoObjectUrl}
               submission={selectedSubmission}
               topic={selectedTopic}
               userName={user?.name}

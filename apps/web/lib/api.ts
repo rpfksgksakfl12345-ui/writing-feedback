@@ -4,7 +4,7 @@ type RequestOptions = RequestInit & {
   token?: string | null;
 };
 
-export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
+function createApiHeaders(options: RequestOptions) {
   const headers = new Headers(options.headers);
 
   if (!(options.body instanceof FormData)) {
@@ -14,6 +14,12 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
   if (options.token) {
     headers.set("Authorization", `Bearer ${options.token}`);
   }
+
+  return headers;
+}
+
+export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const headers = createApiHeaders(options);
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
@@ -30,4 +36,19 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
   }
 
   return response.json() as Promise<T>;
+}
+
+export async function apiFetchBlob(path: string, options: RequestOptions = {}) {
+  const headers = createApiHeaders(options);
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error("Request failed");
+  }
+
+  return response.blob();
 }

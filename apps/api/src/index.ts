@@ -1,4 +1,5 @@
 import "dotenv/config";
+import fs from "fs/promises";
 import path from "path";
 import cors from "cors";
 import express from "express";
@@ -7,6 +8,9 @@ import classroomsRoutes from "./routes/classrooms";
 import studentsRoutes from "./routes/students";
 import submissionsRoutes from "./routes/submissions";
 import topicsRoutes from "./routes/topics";
+import { authMiddleware } from "./middlewares/auth";
+import { prisma } from "./services/prisma";
+import { AuthRequest } from "./types";
 
 const app = express();
 const port = Number(process.env.PORT || 4000);
@@ -28,7 +32,71 @@ app.use(
   }),
 );
 app.use(express.json());
-app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
+
+app.get("/uploads/:filename", authMiddleware, async (req: AuthRequest, res) => {
+  const rawFilename = req.params.filename;
+
+  if (Array.isArray(rawFilename)) {
+    return res.status(400).json({ message: "Invalid file path" });
+  }
+
+  const filename = path.basename(rawFilename);
+  if (!filename || filename !== rawFilename || filename.includes("..")) {
+    return res.status(400).json({ message: "Invalid file path" });
+  }
+
+  const uploadPath = `/uploads/${filename}`;
+  const uploadsDir = path.resolve(process.cwd(), "uploads");
+  const filePath = path.resolve(uploadsDir, filename);
+
+  if (!filePath.startsWith(`${uploadsDir}${path.sep}`)) {
+    return res.status(400).json({ message: "Invalid file path" });
+  }
+
+  try {
+    const submission = await prisma.submission.findFirst({
+      where: { imageUrl: uploadPath },
+      include: {
+        classroom: {
+          select: { teacherId: true },
+        },
+        topic: {
+          select: {
+            classroom: {
+              select: { teacherId: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!submission) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    const user = req.user;
+    const canAccess =
+      user?.role === "STUDENT"
+        ? submission.studentId === user.userId
+        : user?.role === "TEACHER" &&
+          (submission.classroom?.teacherId === user.userId ||
+            submission.topic?.classroom?.teacherId === user.userId);
+
+    if (!canAccess) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    await fs.access(filePath);
+
+    return res.sendFile(filePath);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    return res.status(500).json({ message: "Failed to load file" });
+  }
+});
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true });

@@ -48,7 +48,7 @@ function toStudentRosterItem(studentProfile: {
     name: studentProfile.user.name,
     grade: studentProfile.user.grade,
     studentNumber: studentProfile.studentNumber,
-    classroomLoginPassword: studentProfile.classroomLoginPassword,
+    hasLoginPassword: Boolean(studentProfile.classroomLoginPassword),
     createdAt: studentProfile.createdAt,
   };
 }
@@ -125,11 +125,12 @@ export async function createClassroomStudent(req: AuthRequest, res: Response) {
     const classroomId = Number(req.params.classroomId);
     const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
     const studentNumber = Number(req.body?.studentNumber);
-    const classroomLoginPassword =
+    const issuedLoginPassword =
       typeof req.body?.classroomLoginPassword === "string" &&
       req.body.classroomLoginPassword.trim()
         ? req.body.classroomLoginPassword.trim()
         : createClassroomLoginPassword();
+    const classroomLoginPasswordHash = await hashPassword(issuedLoginPassword);
 
     if (!Number.isInteger(classroomId) || classroomId < 1) {
       return res.status(400).json({ message: "Invalid classroom ID" });
@@ -174,7 +175,7 @@ export async function createClassroomStudent(req: AuthRequest, res: Response) {
           userId: user.id,
           classroomId,
           studentNumber,
-          classroomLoginPassword,
+          classroomLoginPassword: classroomLoginPasswordHash,
         },
         include: {
           user: {
@@ -187,9 +188,78 @@ export async function createClassroomStudent(req: AuthRequest, res: Response) {
       });
     });
 
-    return res.status(201).json(toStudentRosterItem(studentProfile));
+    return res.status(201).json({
+      ...toStudentRosterItem(studentProfile),
+      issuedLoginPassword,
+    });
   } catch (error) {
     return res.status(500).json({ message: "Failed to create student", error });
+  }
+}
+
+export async function reissueClassroomStudentPassword(req: AuthRequest, res: Response) {
+  try {
+    if (!req.user?.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const classroomId = Number(req.params.classroomId);
+    const studentProfileId = Number(req.params.studentProfileId);
+
+    if (!Number.isInteger(classroomId) || classroomId < 1) {
+      return res.status(400).json({ message: "Invalid classroom ID" });
+    }
+
+    if (!Number.isInteger(studentProfileId) || studentProfileId < 1) {
+      return res.status(400).json({ message: "Invalid student ID" });
+    }
+
+    const studentProfile = await prisma.studentProfile.findFirst({
+      where: {
+        id: studentProfileId,
+        classroomId,
+        classroom: {
+          teacherId: req.user.userId,
+        },
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            grade: true,
+          },
+        },
+      },
+    });
+
+    if (!studentProfile) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const issuedLoginPassword = createClassroomLoginPassword();
+    const classroomLoginPasswordHash = await hashPassword(issuedLoginPassword);
+
+    const updatedStudentProfile = await prisma.studentProfile.update({
+      where: { id: studentProfile.id },
+      data: {
+        classroomLoginPassword: classroomLoginPasswordHash,
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            grade: true,
+          },
+        },
+      },
+    });
+
+    return res.json({
+      ...toStudentRosterItem(updatedStudentProfile),
+      issuedLoginPassword,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to reissue login password", error });
   }
 }
 

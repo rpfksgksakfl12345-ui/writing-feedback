@@ -9,7 +9,9 @@
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "prisma db seed"
+    "prisma:seed": "prisma db seed",
+    "student-passwords:hash-existing": "tsx scripts/hash-student-login-passwords.ts",
+    "teacher:reset-password": "tsx scripts/reset-teacher-password.ts"
   },
   "dependencies": {
     "@google/genai": "^1.48.0",

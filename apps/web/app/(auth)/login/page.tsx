@@ -428,6 +428,9 @@ export default function LoginPage() {
                 type="password"
               />
             </label>
+            <p className="kr-keep text-sm leading-6 text-ink-600">
+              비밀번호를 잊으셨나요? 관리자에게 문의해 주세요.
+            </p>
             {error ? (
               <p className="kr-keep text-sm font-semibold leading-6 text-status-error">{error}</p>
             ) : null}

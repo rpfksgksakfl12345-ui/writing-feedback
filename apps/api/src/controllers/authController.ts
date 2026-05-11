@@ -114,6 +114,47 @@ export async function login(req: Request, res: Response) {
   }
 }
 
+export async function changePassword(req: AuthRequest, res: Response) {
+  try {
+    if (!req.user?.userId || req.user.role !== Role.TEACHER) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const currentPassword =
+      typeof req.body?.currentPassword === "string" ? req.body.currentPassword : "";
+    const newPassword = typeof req.body?.newPassword === "string" ? req.body.newPassword : "";
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "현재 비밀번호와 새 비밀번호를 입력해 주세요." });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: "새 비밀번호는 8자 이상이어야 합니다." });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
+
+    if (!user || user.role !== Role.TEACHER) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!(await comparePassword(currentPassword, user.password))) {
+      return res.status(400).json({ message: "현재 비밀번호가 맞지 않습니다." });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: await hashPassword(newPassword),
+      },
+    });
+
+    return res.json({ message: "비밀번호를 바꿨어요." });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to change password", error });
+  }
+}
+
 export async function studentLogin(req: Request, res: Response) {
   try {
     const classCode =
@@ -155,11 +196,19 @@ export async function studentLogin(req: Request, res: Response) {
       },
     });
 
-    if (
-      !studentProfile ||
-      studentProfile.user.role !== Role.STUDENT ||
-      studentProfile.classroomLoginPassword !== classroomLoginPassword
-    ) {
+    let isPasswordValid = false;
+    if (studentProfile) {
+      try {
+        isPasswordValid = await comparePassword(
+          classroomLoginPassword,
+          studentProfile.classroomLoginPassword,
+        );
+      } catch {
+        isPasswordValid = false;
+      }
+    }
+
+    if (!studentProfile || studentProfile.user.role !== Role.STUDENT || !isPasswordValid) {
       return res.status(401).json({ message: "Invalid classroom login credentials" });
     }
 

@@ -22,8 +22,12 @@ type ClassroomStudent = {
   name: string;
   grade: number | null;
   studentNumber: number;
-  classroomLoginPassword: string;
+  hasLoginPassword: boolean;
   createdAt: string;
+};
+
+type IssuedClassroomStudent = ClassroomStudent & {
+  issuedLoginPassword?: string;
 };
 
 type BulkStudentRow = {
@@ -57,6 +61,13 @@ function getStudentLabel(student: Pick<ClassroomStudent, "name" | "studentNumber
   return student.name || `${student.studentNumber}번 학생`;
 }
 
+function getIssuedLoginPassword(
+  student: Pick<ClassroomStudent, "id">,
+  issuedLoginPasswords: Record<number, string>,
+) {
+  return issuedLoginPasswords[student.id] ?? "";
+}
+
 export default function TeacherClassroomDetailPage() {
   const params = useParams<{ id: string }>();
   const classroomId = Number(params.id);
@@ -74,6 +85,8 @@ export default function TeacherClassroomDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isBulkSaving, setIsBulkSaving] = useState(false);
+  const [issuedLoginPasswords, setIssuedLoginPasswords] = useState<Record<number, string>>({});
+  const [reissuingStudentId, setReissuingStudentId] = useState<number | null>(null);
 
   const classroom = useMemo(
     () => classrooms.find((item) => item.id === classroomId) ?? null,
@@ -145,7 +158,7 @@ export default function TeacherClassroomDetailPage() {
         body.classroomLoginPassword = classroomLoginPassword.trim();
       }
 
-      const student = await apiFetch<ClassroomStudent>(`/api/classrooms/${classroomId}/students`, {
+      const student = await apiFetch<IssuedClassroomStudent>(`/api/classrooms/${classroomId}/students`, {
         method: "POST",
         token,
         body: JSON.stringify(body),
@@ -154,7 +167,15 @@ export default function TeacherClassroomDetailPage() {
       setName("");
       setStudentNumber("");
       setClassroomLoginPassword("");
-      setMessage(`${student.name} 학생이 발급되었습니다. 번호 ${student.studentNumber}`);
+      if (student.issuedLoginPassword) {
+        setIssuedLoginPasswords((current) => ({
+          ...current,
+          [student.id]: student.issuedLoginPassword ?? "",
+        }));
+      }
+      setMessage(
+        `${student.name} 학생을 발급했어요. 로그인 비밀번호는 지금 한 번만 확인할 수 있어요.`,
+      );
       await loadClassroomData();
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : "학생을 발급하지 못했습니다.");
@@ -208,7 +229,7 @@ export default function TeacherClassroomDetailPage() {
 
     setIsBulkSaving(true);
 
-    const successes: ClassroomStudent[] = [];
+    const successes: IssuedClassroomStudent[] = [];
     const failures: Array<{ row: BulkStudentRow; reason: string; label: string }> = [];
 
     for (const row of preparedRows) {
@@ -221,7 +242,7 @@ export default function TeacherClassroomDetailPage() {
           studentNumber: row.studentNumberValue,
         };
 
-        const student = await apiFetch<ClassroomStudent>(`/api/classrooms/${classroomId}/students`, {
+        const student = await apiFetch<IssuedClassroomStudent>(`/api/classrooms/${classroomId}/students`, {
           method: "POST",
           token,
           body: JSON.stringify(body),
@@ -237,7 +258,18 @@ export default function TeacherClassroomDetailPage() {
     }
 
     if (successes.length > 0) {
-      setBulkMessage(`${successes.length}명의 학생을 발급했습니다.`);
+      setIssuedLoginPasswords((current) => {
+        const nextPasswords = { ...current };
+        for (const student of successes) {
+          if (student.issuedLoginPassword) {
+            nextPasswords[student.id] = student.issuedLoginPassword;
+          }
+        }
+        return nextPasswords;
+      });
+      setBulkMessage(
+        `${successes.length}명의 학생을 발급했어요. 로그인 비밀번호는 지금 한 번만 확인할 수 있어요.`,
+      );
       await loadClassroomData();
     }
 
@@ -254,6 +286,47 @@ export default function TeacherClassroomDetailPage() {
     }
 
     setIsBulkSaving(false);
+  }
+
+  async function handleReissueStudentPassword(student: ClassroomStudent) {
+    setMessage("");
+    setError("");
+    setReissuingStudentId(student.id);
+
+    try {
+      const updatedStudent = await apiFetch<IssuedClassroomStudent>(
+        `/api/classrooms/${classroomId}/students/${student.id}/login-password`,
+        {
+          method: "POST",
+          token,
+        },
+      );
+
+      setStudents((currentStudents) =>
+        currentStudents.map((currentStudent) =>
+          currentStudent.id === updatedStudent.id ? updatedStudent : currentStudent,
+        ),
+      );
+
+      if (updatedStudent.issuedLoginPassword) {
+        setIssuedLoginPasswords((current) => ({
+          ...current,
+          [updatedStudent.id]: updatedStudent.issuedLoginPassword ?? "",
+        }));
+      }
+
+      setMessage(
+        `${updatedStudent.name} 학생의 새 로그인 비밀번호를 발급했어요. 이전 비밀번호는 더 이상 사용할 수 없어요.`,
+      );
+    } catch (reissueError) {
+      setError(
+        reissueError instanceof Error
+          ? reissueError.message
+          : "로그인 비밀번호를 재발급하지 못했습니다.",
+      );
+    } finally {
+      setReissuingStudentId(null);
+    }
   }
 
   function handlePrintRoster() {
@@ -315,7 +388,7 @@ export default function TeacherClassroomDetailPage() {
               {classroom?.name ?? "학급을 불러오는 중"}
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-700">
-              학생을 발급하고 학급코드, 번호, 로그인 비밀번호를 확인합니다.
+              학생을 발급하고 학급코드, 번호, 로그인 비밀번호를 전달합니다.
             </p>
           </div>
 
@@ -377,6 +450,10 @@ export default function TeacherClassroomDetailPage() {
                   value={classroomLoginPassword}
                   onChange={(event) => setClassroomLoginPassword(event.target.value)}
                 />
+                <span className="mt-2 block text-xs font-normal leading-5 text-ink-500">
+                  로그인 비밀번호는 발급 직후 한 번만 확인할 수 있어요. 잊어버리면 새로
+                  재발급해야 해요.
+                </span>
               </label>
 
               {message ? <NoticeBanner tone="success" title="학생 발급 완료" description={message} /> : null}
@@ -466,7 +543,7 @@ export default function TeacherClassroomDetailPage() {
                 </p>
                 <h2 className="mt-1 text-xl font-bold text-ink-900">발급된 학생과 로그인 정보</h2>
                 <p className="mt-2 text-sm leading-6 text-ink-700">
-                  학생에게는 학급코드, 번호, 로그인 비밀번호만 안내하면 됩니다.
+                  로그인 비밀번호는 발급 직후 또는 재발급 직후에만 확인할 수 있습니다.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -492,7 +569,7 @@ export default function TeacherClassroomDetailPage() {
               <div className="mt-5 rounded-xl border border-dashed border-ink-200 bg-paper-base/60 px-6 py-12 text-center">
                 <p className="text-lg font-semibold text-ink-900">아직 학생이 없습니다.</p>
                 <p className="mt-2 text-sm text-ink-700">
-                  학생을 발급하면 이곳에서 로그인 정보를 확인할 수 있습니다.
+                  학생을 발급하면 이곳에서 로그인 정보를 확인할 수 있습니다. 비밀번호를 잊었다면 새로 재발급해 주세요.
                 </p>
               </div>
             ) : null}
@@ -520,9 +597,23 @@ export default function TeacherClassroomDetailPage() {
                           {classroom?.classCode ?? "-"}
                         </td>
                         <td className="whitespace-nowrap px-4 py-4">
-                          <span className="rounded-md border border-feedback-pen/20 bg-feedback-soft px-2 py-1 font-mono font-bold text-feedback-pen">
-                            {student.classroomLoginPassword}
-                          </span>
+                          {getIssuedLoginPassword(student, issuedLoginPasswords) ? (
+                            <span className="rounded-md border border-feedback-pen/20 bg-feedback-soft px-2 py-1 font-mono font-bold text-feedback-pen">
+                              {getIssuedLoginPassword(student, issuedLoginPasswords)}
+                            </span>
+                          ) : (
+                            <span className="text-xs font-semibold text-ink-500">
+                              재발급 후 표시
+                            </span>
+                          )}
+                          <SecondaryButton
+                            className="no-print ml-2 min-h-8 px-3 py-1 text-xs"
+                            disabled={reissuingStudentId === student.id}
+                            onClick={() => void handleReissueStudentPassword(student)}
+                            type="button"
+                          >
+                            {reissuingStudentId === student.id ? "재발급 중" : "재발급"}
+                          </SecondaryButton>
                         </td>
                         <td className="whitespace-nowrap px-4 py-4 text-ink-700">
                           {formatDate(student.createdAt)}
@@ -594,14 +685,15 @@ export default function TeacherClassroomDetailPage() {
                         <div className="rounded-lg border border-ink-100 bg-paper-surface px-3 py-2">
                           <p className="text-xs text-ink-500">비밀번호</p>
                           <p className="mt-1 font-mono text-lg font-bold text-ink-900">
-                            {student.classroomLoginPassword}
+                            {getIssuedLoginPassword(student, issuedLoginPasswords) ||
+                              "재발급 후 표시"}
                           </p>
                         </div>
                       </div>
                     </div>
 
                     <p className="mt-4 rounded-lg bg-paper-sunk px-3 py-2 text-xs leading-5 text-ink-700">
-                      학생 로그인에서 학급 코드, 번호, 로그인 비밀번호를 입력하세요. 비밀번호를 잊었다면 담임 선생님께 물어보세요.
+                      학생 로그인에서 학급 코드, 번호, 로그인 비밀번호를 입력하세요. 비밀번호를 잊었다면 담임 선생님께 재발급을 요청하세요.
                     </p>
                   </article>
                 ))}

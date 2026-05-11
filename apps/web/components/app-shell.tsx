@@ -45,6 +45,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <span className="whitespace-nowrap rounded-full bg-paper-base px-3 py-1 font-medium text-ink-700">
                   {roleLabel}
                 </span>
+                {user.role === "TEACHER" ? (
+                  <Link
+                    className="whitespace-nowrap text-ink-500 hover:text-ink-900"
+                    href="/teacher/account"
+                  >
+                    내 계정
+                  </Link>
+                ) : null}
                 <button
                   className="whitespace-nowrap bg-transparent px-0 py-0 text-ink-500 hover:bg-transparent hover:text-ink-900"
                   onClick={handleLogout}

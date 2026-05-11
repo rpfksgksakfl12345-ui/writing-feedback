@@ -5,6 +5,7 @@ import {
   createClassroomStudent,
   getClassrooms,
   getClassroomStudents,
+  reissueClassroomStudentPassword,
 } from "../controllers/classroomsController";
 import { authMiddleware, requireRoleMiddleware } from "../middlewares/auth";
 
@@ -15,5 +16,6 @@ router.get("/", getClassrooms);
 router.post("/", createClassroom);
 router.get("/:classroomId/students", getClassroomStudents);
 router.post("/:classroomId/students", createClassroomStudent);
+router.post("/:classroomId/students/:studentProfileId/login-password", reissueClassroomStudentPassword);
 
 export default router;

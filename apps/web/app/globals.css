@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Hahmlet:wght@600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Hahmlet:wght@600;700;800&family=Nanum+Pen+Script&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -39,6 +39,10 @@
 
   .font-login-hand {
     font-family: "Gaegu", "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  }
+
+  .font-notebook-hand {
+    font-family: "Nanum Pen Script", "Gaegu", "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   }
 
   .font-hand {
@@ -88,8 +92,8 @@
   .ui-v2-notebook-textarea {
     @apply block w-full resize-none border-0 bg-transparent p-0 text-slate-900 outline-none focus:border-0 focus:ring-0;
     appearance: none;
-    font-family: "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
-    font-size: var(--notebook-font-size);
+    font-family: "Nanum Pen Script", "Gaegu", "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    font-size: 18px;
     font-weight: 400;
     line-height: var(--notebook-line-height);
     overflow-wrap: anywhere;
@@ -106,15 +110,15 @@
     word-break: keep-all;
     overflow-wrap: anywhere;
     color: #2e2a24;
-    font-family: "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
-    font-size: var(--notebook-font-size);
+    font-family: "Nanum Pen Script", "Gaegu", "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    font-size: 18px;
     font-weight: 400;
     line-height: var(--notebook-line-height);
   }
 
   .ui-v2-teacher-feedback-note {
-    font-family: "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
-    font-size: var(--notebook-font-size, 16px);
+    font-family: "Nanum Pen Script", "Gaegu", "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    font-size: 18px;
     font-weight: 400;
     line-height: var(--notebook-line-height, 38px);
   }

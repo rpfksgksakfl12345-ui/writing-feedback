@@ -57,8 +57,59 @@ const devStudentLoginDefaults = {
   classroomLoginPassword: "866554",
 };
 
-function getHomeHref(role: "TEACHER" | "STUDENT") {
-  return role === "TEACHER" ? "/teacher/topics" : "/student";
+function getHomeHref(
+  role: "TEACHER" | "STUDENT",
+  options: { registeredNotice?: boolean; hasNoClassrooms?: boolean } = {},
+) {
+  if (role === "STUDENT") {
+    return "/student";
+  }
+
+  return options.registeredNotice || options.hasNoClassrooms
+    ? "/teacher/classrooms"
+    : "/teacher/topics";
+}
+
+function getLoginErrorMessage(error: unknown, mode: LoginMode) {
+  const rawMessage = error instanceof Error ? error.message : "";
+  const normalizedMessage = rawMessage.toLowerCase();
+
+  if (
+    normalizedMessage.includes("failed to fetch") ||
+    normalizedMessage.includes("networkerror") ||
+    normalizedMessage.includes("network request failed")
+  ) {
+    return "서버와 연결하지 못했어요. 잠시 후 다시 시도해 주세요.";
+  }
+
+  if (
+    normalizedMessage.includes("invalid credentials") ||
+    normalizedMessage.includes("invalid classroom login credentials") ||
+    normalizedMessage.includes("invalid email or password") ||
+    normalizedMessage.includes("credentials") ||
+    normalizedMessage.includes("unauthorized") ||
+    normalizedMessage.includes("user not found") ||
+    normalizedMessage.includes("password")
+  ) {
+    return mode === "STUDENT"
+      ? "학급코드, 번호, 로그인 비밀번호를 다시 확인해 주세요."
+      : "이메일 또는 비밀번호가 올바르지 않아요.";
+  }
+
+  return "로그인 중 문제가 생겼어요. 입력한 정보를 다시 확인해 주세요.";
+}
+
+async function getTeacherLoginHref(token: string, registeredNotice: boolean) {
+  if (registeredNotice) {
+    return "/teacher/classrooms";
+  }
+
+  try {
+    const classrooms = await apiFetch<Array<{ id: number }>>("/api/classrooms", { token });
+    return getHomeHref("TEACHER", { hasNoClassrooms: classrooms.length === 0 });
+  } catch {
+    return getHomeHref("TEACHER");
+  }
 }
 
 export default function LoginPage() {
@@ -79,14 +130,15 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [registeredNotice, setRegisteredNotice] = useState(false);
+  const [postLoginHref, setPostLoginHref] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isReady || !user) {
       return;
     }
 
-    router.replace(getHomeHref(user.role));
-  }, [isReady, router, user]);
+    router.replace(postLoginHref ?? getHomeHref(user.role, { registeredNotice }));
+  }, [isReady, postLoginHref, registeredNotice, router, user]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -117,10 +169,16 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
+      const nextHref =
+        response.user.role === "TEACHER"
+          ? await getTeacherLoginHref(response.token, registeredNotice)
+          : getHomeHref(response.user.role);
+
+      setPostLoginHref(nextHref);
       login(response.token, response.user);
-      router.replace(getHomeHref(response.user.role));
+      router.replace(nextHref);
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "교사 로그인에 실패했습니다.");
+      setError(getLoginErrorMessage(submitError, "TEACHER"));
     } finally {
       setLoading(false);
     }
@@ -141,17 +199,18 @@ export default function LoginPage() {
         }),
       });
 
+      const nextHref = getHomeHref(response.user.role);
+      setPostLoginHref(nextHref);
       login(response.token, response.user);
-      router.replace(getHomeHref(response.user.role));
+      router.replace(nextHref);
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "학생 로그인에 실패했습니다.");
+      setError(getLoginErrorMessage(submitError, "STUDENT"));
     } finally {
       setLoading(false);
     }
   }
 
   const activeCopy = mode ? modeCopy[mode] : null;
-  const activeRole = mode ?? "STUDENT";
   const teacherInputClass =
     "mt-2 h-11 w-full rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 transition duration-300 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20";
   const studentInputClass =
@@ -273,50 +332,7 @@ export default function LoginPage() {
             })}
           </div>
 
-          <div
-            className={`kr-keep mt-5 rounded-xl border px-4 py-3 text-sm leading-6 ${
-              activeRole === "STUDENT"
-                ? "border-student-accent/25 bg-student-soft/60 text-student-deep"
-                : "border-teacher-accent/25 bg-teacher-soft/70 text-teacher-deep"
-            }`}
-          >
-            {mode === "STUDENT"
-              ? "학급코드, 내 번호, 로그인 비밀번호를 안내 카드에서 확인해 입력하세요."
-              : mode === "TEACHER"
-                ? "이메일과 비밀번호로 학급, 주제, 제출 글과 피드백을 관리합니다."
-                : "선생님 또는 학생을 선택하면 필요한 입력칸이 열립니다."}
-          </div>
-
-        {!mode ? (
-          <div className="mt-6 grid gap-4">
-            <button
-              className="rounded-xl border border-teacher-soft bg-teacher-soft/60 p-5 text-left text-ink-900 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-teacher-accent hover:bg-teacher-soft"
-              type="button"
-              onClick={() => selectMode("TEACHER")}
-            >
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teacher-accent">
-                교사 화면
-              </p>
-              <h2 className="kr-keep mt-3 text-xl font-bold">교사용 로그인</h2>
-              <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
-                이메일과 비밀번호로 수업 주제, 학급, 피드백을 관리합니다.
-              </p>
-            </button>
-            <button
-              className="rounded-xl border border-student-soft bg-student-soft/65 p-5 text-left text-ink-900 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-student-accent hover:bg-student-soft"
-              type="button"
-              onClick={() => selectMode("STUDENT")}
-            >
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-student-accent">
-                학생 화면
-              </p>
-              <h2 className="kr-keep mt-3 text-xl font-bold">학생용 로그인</h2>
-              <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
-                안내 카드의 학급코드, 번호, 비밀번호로 내 글쓰기 책장을 엽니다.
-              </p>
-            </button>
-          </div>
-        ) : mode === "TEACHER" ? (
+        {mode === "TEACHER" ? (
           <form className="mt-6 grid gap-5 rounded-xl border border-teacher-accent/20 bg-paper-soft/70 p-5 shadow-sm" onSubmit={handleTeacherLogin}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teacher-accent">
@@ -345,7 +361,9 @@ export default function LoginPage() {
                 type="password"
               />
             </label>
-            {error ? <p className="text-sm font-semibold text-status-error">{error}</p> : null}
+            {error ? (
+              <p className="kr-keep text-sm font-semibold leading-6 text-status-error">{error}</p>
+            ) : null}
             <button
               className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-teacher-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(40,60,90,.15),0_2px_6px_rgba(60,80,120,.18)] hover:bg-teacher-accent/90 disabled:cursor-not-allowed disabled:bg-ink-200"
               disabled={loading}
@@ -363,7 +381,7 @@ export default function LoginPage() {
               </Link>
             </p>
           </form>
-        ) : (
+        ) : mode === "STUDENT" ? (
           <form className="mt-6 grid gap-5 rounded-xl border border-student-accent/20 bg-paper-soft/70 p-5 shadow-sm" onSubmit={handleStudentLogin}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-student-accent">
@@ -403,7 +421,9 @@ export default function LoginPage() {
                 type="password"
               />
             </label>
-            {error ? <p className="text-sm font-semibold text-status-error">{error}</p> : null}
+            {error ? (
+              <p className="kr-keep text-sm font-semibold leading-6 text-status-error">{error}</p>
+            ) : null}
             <button
               className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90 disabled:cursor-not-allowed disabled:bg-ink-200"
               disabled={loading}
@@ -415,7 +435,7 @@ export default function LoginPage() {
               학생 계정은 선생님이 학급 관리에서 발급해요.
             </p>
           </form>
-        )}
+        ) : null}
         </div>
       </div>
     </section>

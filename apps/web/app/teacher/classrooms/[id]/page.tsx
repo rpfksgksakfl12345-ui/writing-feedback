@@ -499,12 +499,11 @@ export default function TeacherClassroomDetailPage() {
 
             {!isLoading && students.length > 0 ? (
               <div className="print-roster-table-wrap mt-5 overflow-x-auto rounded-xl border border-ink-100 bg-paper-base/35">
-                <table className="w-full min-w-[780px] table-fixed border-collapse text-left text-sm">
+                <table className="w-full min-w-[640px] table-fixed border-collapse text-left text-sm">
                   <thead className="bg-paper-base text-xs font-semibold uppercase tracking-[0.12em] text-ink-500">
                     <tr>
                       <th className="w-[90px] px-4 py-3">번호</th>
                       <th className="w-[160px] px-4 py-3">학생 이름</th>
-                      <th className="px-4 py-3">학급</th>
                       <th className="w-[150px] px-4 py-3">학급코드</th>
                       <th className="w-[170px] px-4 py-3">로그인 비밀번호</th>
                       <th className="w-[140px] px-4 py-3">발급일</th>
@@ -517,9 +516,6 @@ export default function TeacherClassroomDetailPage() {
                           {student.studentNumber}번
                         </td>
                         <td className="px-4 py-4 font-semibold">{getStudentLabel(student)}</td>
-                        <td className="whitespace-nowrap px-4 py-4 text-ink-700">
-                          {student.grade ?? classroom?.grade ?? "-"}학년 · {classroom?.name ?? "-"}
-                        </td>
                         <td className="whitespace-nowrap px-4 py-4 font-mono font-bold tracking-[0.12em] text-teacher-accent">
                           {classroom?.classCode ?? "-"}
                         </td>

@@ -265,6 +265,8 @@ export default function TeacherTopicsPage() {
     : null;
   const hasClassrooms = classrooms.length > 0;
   const isTopicWorkDisabled = isLoadingClassrooms || !hasClassrooms || !classroomId;
+  const noClassroomHelp =
+    "학급을 만든 뒤, 그 학급에 보여줄 글쓰기 주제를 만들 수 있어요.";
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
@@ -360,6 +362,12 @@ export default function TeacherTopicsPage() {
               </PrimaryButton>
             </div>
 
+            {!isLoadingClassrooms && !hasClassrooms ? (
+              <div className="kr-keep mt-4 rounded-xl border border-teacher-accent/20 bg-teacher-soft/55 px-4 py-3 text-sm leading-6 text-teacher-deep">
+                아직 연결할 학급이 없어 AI 추천을 받을 수 없습니다. 먼저 학급을 만들어 주세요.
+              </div>
+            ) : null}
+
             {aiError ? (
               <div className="mt-4">
                 <NoticeBanner tone="error" title="AI 추천 실패" description={aiError} />
@@ -417,7 +425,7 @@ export default function TeacherTopicsPage() {
                 <span className="kr-keep block">
                   {hasClassrooms
                     ? "아직 추천 결과가 없습니다. 학급과 학년을 확인한 뒤 AI 추천을 생성해 보세요."
-                    : "먼저 학급을 만든 뒤 AI 추천을 받을 수 있습니다."}
+                    : noClassroomHelp}
                 </span>
               </div>
             )}
@@ -477,10 +485,13 @@ export default function TeacherTopicsPage() {
                   ))}
                 </select>
                 {classrooms.length === 0 ? (
-                  <span className="mt-2 block text-xs leading-5 text-ink-500">
+                  <span className="kr-keep mt-2 block text-xs leading-5 text-ink-500">
                     먼저 학급을 만든 뒤 주제를 등록할 수 있습니다.{" "}
-                    <Link className="font-semibold text-teacher-accent hover:underline" href="/teacher/classrooms">
-                      학급 만들기
+                    <Link
+                      className="whitespace-nowrap font-semibold text-teacher-accent hover:underline"
+                      href="/teacher/classrooms"
+                    >
+                      학급 만들러 가기
                     </Link>
                   </span>
                 ) : (
@@ -526,19 +537,19 @@ export default function TeacherTopicsPage() {
             {!isLoadingTopics && topics.length === 0 ? (
               <div className="rounded-xl border border-dashed border-ink-200 bg-paper-base/60 px-6 py-12 text-center">
                 <p className="kr-keep text-lg font-semibold text-ink-900">
-                  {hasClassrooms ? "이 학급에 등록된 주제가 없습니다." : "먼저 학급을 만들어주세요."}
+                  {hasClassrooms ? "이 학급에 등록된 주제가 없습니다." : "먼저 학급을 만들어주세요"}
                 </p>
                 <p className="kr-keep mt-2 text-sm text-ink-700">
                   {hasClassrooms
                     ? "첫 주제를 만들면 선택한 학급의 학생 책장에서 바로 볼 수 있습니다."
-                    : "학급을 만든 뒤 학생에게 보낼 주제를 등록할 수 있습니다."}
+                    : noClassroomHelp}
                 </p>
                 {!hasClassrooms ? (
                   <Link
                     className="mt-5 inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-teacher-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface hover:bg-teacher-accent/90"
                     href="/teacher/classrooms"
                   >
-                    학급 만들기
+                    학급 만들러 가기
                   </Link>
                 ) : null}
               </div>

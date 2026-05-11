@@ -19,6 +19,14 @@ type SubmissionItem = {
   topic: { title: string; grade: number };
 };
 
+type ClassroomSummary = {
+  id: number;
+};
+
+type TopicSummary = {
+  id: number;
+};
+
 function getStatusMeta(status: SubmissionItem["status"]) {
   if (status === "REVIEWED") {
     return {
@@ -54,6 +62,8 @@ function TeacherSubmissionsContent() {
   const searchParams = useSearchParams();
   const { token, user, isReady } = useAuth();
   const [submissions, setSubmissions] = useState<SubmissionItem[]>([]);
+  const [classrooms, setClassrooms] = useState<ClassroomSummary[]>([]);
+  const [topics, setTopics] = useState<TopicSummary[]>([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const saved = searchParams.get("saved") === "1";
@@ -67,10 +77,16 @@ function TeacherSubmissionsContent() {
     setIsLoading(true);
     setError("");
 
-    apiFetch<SubmissionItem[]>("/api/submissions", { token })
-      .then((data) => {
+    Promise.all([
+      apiFetch<SubmissionItem[]>("/api/submissions", { token }),
+      apiFetch<ClassroomSummary[]>("/api/classrooms", { token }),
+      apiFetch<TopicSummary[]>("/api/topics", { token }),
+    ])
+      .then(([nextSubmissions, nextClassrooms, nextTopics]) => {
         if (!ignore) {
-          setSubmissions(data);
+          setSubmissions(nextSubmissions);
+          setClassrooms(nextClassrooms);
+          setTopics(nextTopics);
         }
       })
       .catch((loadError) => {
@@ -100,6 +116,31 @@ function TeacherSubmissionsContent() {
   const pendingCount = submissions.filter((submission) => submission.status === "PENDING").length;
   const reviewedCount = submissions.filter((submission) => submission.status === "REVIEWED").length;
   const photoCount = submissions.filter((submission) => submission.inputType === "PHOTO").length;
+  const hasClassrooms = classrooms.length > 0;
+  const hasTopics = topics.length > 0;
+  const emptyState = !hasClassrooms
+    ? {
+        title: "먼저 학급을 만들어주세요",
+        description:
+          "학급을 만들면 학생 계정을 발급하고, 학생들이 글을 제출할 주제를 보낼 수 있어요.",
+        href: "/teacher/classrooms",
+        action: "학급 만들러 가기",
+      }
+    : !hasTopics
+      ? {
+          title: "아직 글쓰기 주제가 없어요",
+          description:
+            "학급은 준비됐습니다. 첫 주제를 만들면 학생들이 책장에서 글쓰기를 시작할 수 있어요.",
+          href: "/teacher/topics",
+          action: "주제 만들러 가기",
+        }
+      : {
+          title: "아직 검토할 글이 없어요",
+          description:
+            "학생들이 글을 제출하면 이곳에서 읽고 피드백을 남길 수 있어요.",
+          href: null,
+          action: null,
+        };
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
@@ -114,7 +155,7 @@ function TeacherSubmissionsContent() {
           </div>
 
           <Link
-            className="inline-flex min-h-11 w-fit items-center justify-center rounded-md border border-ink-100 bg-paper-surface px-[18px] py-[13px] text-[15px] font-semibold text-ink-900 hover:bg-paper-base"
+            className="inline-flex min-h-11 w-fit items-center justify-center whitespace-nowrap rounded-md border border-ink-100 bg-paper-surface px-[18px] py-[13px] text-[15px] font-semibold text-ink-900 hover:bg-paper-base"
             href="/teacher/topics"
           >
             주제 관리로 이동
@@ -165,11 +206,19 @@ function TeacherSubmissionsContent() {
         ) : null}
 
         {!isLoading && submissions.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-14 text-center">
-            <p className="text-lg font-semibold text-ink-900">아직 제출물이 없습니다.</p>
-            <p className="mt-2 text-sm text-ink-700">
-              학생이 글을 제출하면 이 화면에서 검토하고 피드백을 작성할 수 있습니다.
+          <div className="kr-keep rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-14 text-center">
+            <p className="text-lg font-semibold text-ink-900">{emptyState.title}</p>
+            <p className="mx-auto mt-2 max-w-[560px] text-sm leading-6 text-ink-700">
+              {emptyState.description}
             </p>
+            {emptyState.href && emptyState.action ? (
+              <Link
+                className="mt-5 inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-teacher-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface hover:bg-teacher-accent/90"
+                href={emptyState.href}
+              >
+                {emptyState.action}
+              </Link>
+            ) : null}
           </div>
         ) : null}
 

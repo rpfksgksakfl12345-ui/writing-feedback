@@ -15,6 +15,21 @@ type Classroom = {
   createdAt: string;
 };
 
+const onboardingSteps = [
+  {
+    title: "학급 만들기",
+    description: "우리 반 이름과 학년을 정해 첫 공간을 만듭니다.",
+  },
+  {
+    title: "학생 계정 발급",
+    description: "학급 상세에서 학생 번호와 로그인 비밀번호를 발급합니다.",
+  },
+  {
+    title: "글쓰기 주제 만들기",
+    description: "학생 책장에 보낼 첫 글쓰기 주제를 준비합니다.",
+  },
+];
+
 function formatClassroomDate(createdAt: string) {
   const date = new Date(createdAt);
 
@@ -93,6 +108,7 @@ export default function TeacherClassroomsPage() {
   }
 
   const gradeOptions = [1, 2, 3, 4, 5, 6];
+  const hasClassrooms = classrooms.length > 0;
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
@@ -101,8 +117,8 @@ export default function TeacherClassroomsPage() {
           <div>
             <p className="text-sm font-semibold text-teacher-accent">교사 학급</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">학급 관리</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-700">
-              학급을 만들고 학생 접속에 사용할 학급코드를 확인합니다.
+            <p className="kr-keep mt-3 max-w-2xl text-sm leading-6 text-ink-700">
+              먼저 우리 반 학급을 만들고, 학생 로그인 계정을 발급한 뒤 글쓰기 주제를 보냅니다.
             </p>
           </div>
 
@@ -126,7 +142,31 @@ export default function TeacherClassroomsPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
             새 학급
           </p>
-          <h2 className="mt-1 text-xl font-bold text-ink-900">학급 만들기</h2>
+          <h2 className="kr-keep mt-1 text-xl font-bold text-ink-900">
+            {hasClassrooms ? "학급 만들기" : "첫 학급 만들기"}
+          </h2>
+          <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
+            학급을 만들면 학생 로그인 계정을 발급하고 글쓰기 주제를 보낼 수 있어요.
+          </p>
+
+          {!isLoading && !hasClassrooms ? (
+            <ol className="kr-keep mt-5 grid gap-3 rounded-xl border border-teacher-accent/20 bg-paper-surface/80 p-4">
+              {onboardingSteps.map((step, index) => (
+                <li key={step.title} className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teacher-accent text-xs font-bold text-paper-surface">
+                    {index + 1}
+                  </span>
+                  <span>
+                    <span className="block text-sm font-bold text-ink-900">{step.title}</span>
+                    <span className="mt-0.5 block text-xs leading-5 text-ink-600">
+                      {step.description}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          ) : null}
+
           <form className="mt-5 space-y-4" onSubmit={handleCreateClassroom}>
             <label className="block text-sm font-semibold text-ink-700">
               학급명
@@ -185,10 +225,13 @@ export default function TeacherClassroomsPage() {
           ) : null}
 
           {!isLoading && classrooms.length === 0 ? (
-            <div className="mt-5 rounded-xl border border-dashed border-ink-200 bg-paper-base/60 px-6 py-12 text-center">
-              <p className="text-lg font-semibold text-ink-900">아직 학급이 없습니다.</p>
-              <p className="mt-2 text-sm text-ink-700">
-                첫 학급을 만들면 학생 접속 코드가 자동으로 발급됩니다.
+            <div className="kr-keep mt-5 rounded-xl border border-dashed border-teacher-accent/35 bg-teacher-soft/45 px-6 py-12 text-center">
+              <p className="text-lg font-semibold text-ink-900">
+                먼저 우리 반 학급을 만들어주세요.
+              </p>
+              <p className="mx-auto mt-2 max-w-[520px] text-sm leading-6 text-ink-700">
+                학급을 만들면 학생 로그인 계정을 발급하고 글쓰기 주제를 보낼 수 있어요.
+                왼쪽의 첫 학급 만들기 카드에서 바로 시작하세요.
               </p>
             </div>
           ) : null}

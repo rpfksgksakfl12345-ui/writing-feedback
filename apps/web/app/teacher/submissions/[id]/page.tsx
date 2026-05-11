@@ -31,6 +31,21 @@ type FeedbackDraftResult = {
   overall: string;
 };
 
+function cleanFeedbackDraftSentence(value: string) {
+  return value
+    .replace(/^\s*[-*•\d.)]+/, "")
+    .replace(/^\s*(총평|잘한 점|보완할 점|보완하면 좋은 점)\s*[:：-]?\s*/u, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function formatFeedbackDraft(draft: FeedbackDraftResult) {
+  return [...draft.strengths, ...draft.improvements, draft.overall]
+    .map(cleanFeedbackDraftSentence)
+    .filter(Boolean)
+    .join(" ");
+}
+
 function getOcrStatusLabel(ocrStatus: SubmissionDetail["ocrStatus"]) {
   switch (ocrStatus) {
     case "PROCESSING":
@@ -185,16 +200,7 @@ export default function SubmissionDetailPage() {
         token,
       });
 
-      const nextFeedback = [
-        "잘한 점",
-        ...draft.strengths.map((item) => `- ${item}`),
-        "",
-        "보완하면 좋은 점",
-        ...draft.improvements.map((item) => `- ${item}`),
-        "",
-        "총평",
-        draft.overall,
-      ].join("\n");
+      const nextFeedback = formatFeedbackDraft(draft);
 
       setFinalFeedback(nextFeedback);
       setDraftMessage("AI 초안이 피드백 입력칸에 들어갔습니다. 저장 전 내용을 확인해 주세요.");

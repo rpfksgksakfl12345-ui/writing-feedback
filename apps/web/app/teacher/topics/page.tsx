@@ -90,6 +90,9 @@ export default function TeacherTopicsPage() {
   const [error, setError] = useState("");
   const [aiError, setAiError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isRefining, setIsRefining] = useState(false);
+  const [refinementInstruction, setRefinementInstruction] = useState("");
+  const [refinementError, setRefinementError] = useState("");
   const [isLoadingTopics, setIsLoadingTopics] = useState(true);
   const [isLoadingClassrooms, setIsLoadingClassrooms] = useState(true);
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
@@ -205,7 +208,7 @@ export default function TeacherTopicsPage() {
   }
 
   async function handleGenerateTopics() {
-    if (!token || isGenerating) {
+    if (!token || isGenerating || isRefining) {
       return;
     }
 
@@ -215,6 +218,7 @@ export default function TeacherTopicsPage() {
     }
 
     setAiError("");
+    setRefinementError("");
     setMessage("");
     setIsGenerating(true);
 
@@ -237,6 +241,55 @@ export default function TeacherTopicsPage() {
       );
     } finally {
       setIsGenerating(false);
+    }
+  }
+
+  async function handleRefineTopics() {
+    if (!token || isGenerating || isRefining) {
+      return;
+    }
+
+    if (!classroomId) {
+      setRefinementError("다시 추천받기 전에 학급을 먼저 만들어 주세요.");
+      return;
+    }
+
+    if (suggestedTopics.length === 0) {
+      setRefinementError("먼저 AI 추천을 받은 뒤, 아쉬운 점을 적어 주세요.");
+      return;
+    }
+
+    const teacherFeedback = refinementInstruction.trim();
+
+    if (!teacherFeedback) {
+      setRefinementError("AI에게 반영할 의견을 한 문장 이상 적어 주세요.");
+      return;
+    }
+
+    setAiError("");
+    setRefinementError("");
+    setMessage("");
+    setIsRefining(true);
+
+    try {
+      const response = await apiFetch<TopicSuggestionResult>("/api/topics/generate", {
+        method: "POST",
+        token,
+        body: JSON.stringify({
+          grade: Number(grade),
+          teacherFeedback,
+          previousSuggestions: suggestedTopics,
+        }),
+      });
+
+      setSuggestedTopics(normalizeTopicSuggestions(response.topics));
+      setSelectedSuggestionTitle("");
+      setRefinementInstruction("");
+      setRefinementInstruction("");
+    } catch {
+      setRefinementError("AI가 주제를 다시 추천하지 못했어요. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setIsRefining(false);
     }
   }
 
@@ -341,7 +394,7 @@ export default function TeacherTopicsPage() {
                             : "border-ink-100 bg-paper-surface text-ink-700 hover:border-teacher-accent/40 hover:bg-teacher-soft/70"
                         }`}
                         type="button"
-                        disabled={isTopicWorkDisabled}
+                        disabled={isTopicWorkDisabled || isGenerating || isRefining}
                         onClick={() => setGrade(String(value))}
                       >
                         {value}학년
@@ -353,7 +406,7 @@ export default function TeacherTopicsPage() {
 
               <PrimaryButton
                 className="w-full lg:w-fit"
-                disabled={isGenerating || isTopicWorkDisabled}
+                disabled={isGenerating || isRefining || isTopicWorkDisabled}
                 onClick={handleGenerateTopics}
                 tone="teacher"
                 type="button"
@@ -418,6 +471,48 @@ export default function TeacherTopicsPage() {
                       </button>
                     );
                   })}
+                </div>
+
+                <div className="rounded-xl border border-teacher-accent/20 bg-paper-surface/85 p-4 shadow-sm">
+                  <p className="kr-keep text-sm font-bold text-ink-900">
+                    AI와 주제 상의하기
+                  </p>
+                  <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
+                    추천받은 주제가 조금 아쉽다면 원하는 방향을 말해 주세요. AI가 그 의견을 반영해서 다시 추천해 줄게요.
+                  </p>
+                  <textarea
+                    className="mt-3 min-h-[96px] rounded-md border-ink-100 bg-paper-surface text-sm leading-6 text-ink-900 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20"
+                    disabled={isGenerating || isRefining || isTopicWorkDisabled}
+                    onChange={(event) => {
+                      setRefinementInstruction(event.target.value);
+
+                      if (event.target.value.trim()) {
+                        setRefinementError("");
+                      }
+                    }}
+                    placeholder="예: 5학년 아이들이 자기 경험을 바탕으로 쓸 수 있게 더 쉽게 바꿔줘."
+                    value={refinementInstruction}
+                  />
+                  {refinementError ? (
+                    <p className="kr-keep mt-2 text-sm font-semibold leading-6 text-status-error">
+                      {refinementError}
+                    </p>
+                  ) : null}
+                  <div className="mt-3 flex justify-end">
+                    <PrimaryButton
+                      disabled={
+                        isGenerating ||
+                        isRefining ||
+                        isTopicWorkDisabled ||
+                        !refinementInstruction.trim()
+                      }
+                      onClick={handleRefineTopics}
+                      tone="teacher"
+                      type="button"
+                    >
+                      {isRefining ? "의견 반영 중..." : "이 의견 반영해서 다시 추천받기"}
+                    </PrimaryButton>
+                  </div>
                 </div>
               </div>
             ) : (

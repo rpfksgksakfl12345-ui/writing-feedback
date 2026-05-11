@@ -31,10 +31,20 @@ type FeedbackDraftResult = {
   overall: string;
 };
 
+const feedbackDraftLabelPattern =
+  /^(총평|전체 의견|전체 피드백|잘한 점|좋았던 점|강점|보완할 점|보완하면 좋은 점|개선점|개선할 점|아쉬운 점|다음에 해볼 점|다음 목표)\s*[:：-]?\s*/u;
+
 function cleanFeedbackDraftSentence(value: string) {
   return value
-    .replace(/^\s*[-*•\d.)]+/, "")
-    .replace(/^\s*(총평|잘한 점|보완할 점|보완하면 좋은 점)\s*[:：-]?\s*/u, "")
+    .split(/\r?\n/)
+    .map((line) =>
+      line
+        .replace(/^\s*(?:[-*•]|\d+[.)])\s*/, "")
+        .replace(feedbackDraftLabelPattern, "")
+        .trim(),
+    )
+    .filter(Boolean)
+    .join(" ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -536,7 +546,7 @@ export default function SubmissionDetailPage() {
 
           <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
             <textarea
-              className="min-h-[360px] rounded-md border-feedback-pen/20 bg-paper-surface bg-[linear-gradient(transparent_31px,rgba(58,111,176,.12)_32px)] bg-[length:100%_32px] text-sm leading-7 text-feedback-pen placeholder:text-ink-500 focus:border-feedback-pen focus:ring-feedback-pen/20"
+              className="min-h-[360px] rounded-lg border-feedback-pen/20 bg-paper-surface/95 px-4 py-4 text-sm leading-7 text-feedback-pen shadow-[inset_0_1px_rgba(255,255,255,.75),0_1px_2px_rgba(60,40,20,.04)] placeholder:text-ink-500 focus:border-feedback-pen focus:ring-feedback-pen/20"
               rows={12}
               value={finalFeedback}
               onChange={(event) => setFinalFeedback(event.target.value)}

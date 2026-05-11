@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "prisma db seed",
     "student-passwords:hash-existing": "tsx scripts/hash-student-login-passwords.ts",
     "teacher:reset-password": "tsx scripts/reset-teacher-password.ts"

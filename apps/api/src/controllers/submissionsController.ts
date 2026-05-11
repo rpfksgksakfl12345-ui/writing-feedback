@@ -4,6 +4,7 @@ import { InputType, OcrStatus, SubmissionStatus } from "@prisma/client";
 import { prisma } from "../services/prisma";
 import { runSubmissionOcr } from "../services/photoOcr";
 import { AuthRequest } from "../types";
+import { resolveUploadFilePath } from "../config/uploads";
 
 function getMimeTypeFromImagePath(imagePath: string) {
   switch (path.extname(imagePath).toLowerCase()) {
@@ -45,7 +46,7 @@ async function resumePendingPhotoOcr(submission: {
     return false;
   }
 
-  const imagePath = path.resolve(process.cwd(), "uploads", path.basename(submission.imageUrl));
+  const imagePath = resolveUploadFilePath(path.basename(submission.imageUrl));
   const claimedSubmission = await prisma.submission.updateMany({
     where: {
       id: submission.id,

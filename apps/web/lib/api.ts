@@ -1,4 +1,19 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+function getApiBaseUrl() {
+  const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+  const requireConfiguredApiBaseUrl =
+    process.env.NODE_ENV === "production" &&
+    (process.env.VERCEL === "1" ||
+      process.env.CI === "true" ||
+      process.env.NEXT_PUBLIC_REQUIRE_API_BASE_URL === "true");
+
+  if (!configuredApiBaseUrl && requireConfiguredApiBaseUrl) {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL is required for production web builds.");
+  }
+
+  return configuredApiBaseUrl || "http://localhost:4000";
+}
+
+export const API_BASE_URL = getApiBaseUrl();
 
 type RequestOptions = RequestInit & {
   token?: string | null;

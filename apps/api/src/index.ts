@@ -8,16 +8,20 @@ import classroomsRoutes from "./routes/classrooms";
 import studentsRoutes from "./routes/students";
 import submissionsRoutes from "./routes/submissions";
 import topicsRoutes from "./routes/topics";
+import { configureTrustProxy, getAllowedOrigins, validateProductionEnv } from "./config/env";
+import { ensureUploadsDirSync, resolveUploadFilePath } from "./config/uploads";
 import { authMiddleware } from "./middlewares/auth";
 import { prisma } from "./services/prisma";
 import { AuthRequest } from "./types";
 
+validateProductionEnv();
+ensureUploadsDirSync();
+
 const app = express();
 const port = Number(process.env.PORT || 4000);
-const allowedOrigins = (process.env.CORS_ORIGIN || process.env.WEB_ORIGIN || "http://localhost:3000")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+const allowedOrigins = getAllowedOrigins();
+
+configureTrustProxy(app);
 
 app.use(
   cors({
@@ -46,12 +50,7 @@ app.get("/uploads/:filename", authMiddleware, async (req: AuthRequest, res) => {
   }
 
   const uploadPath = `/uploads/${filename}`;
-  const uploadsDir = path.resolve(process.cwd(), "uploads");
-  const filePath = path.resolve(uploadsDir, filename);
-
-  if (!filePath.startsWith(`${uploadsDir}${path.sep}`)) {
-    return res.status(400).json({ message: "Invalid file path" });
-  }
+  const filePath = resolveUploadFilePath(filename);
 
   try {
     const submission = await prisma.submission.findFirst({

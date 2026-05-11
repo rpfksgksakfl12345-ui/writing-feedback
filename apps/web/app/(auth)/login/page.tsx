@@ -332,7 +332,74 @@ export default function LoginPage() {
             })}
           </div>
 
-        {mode === "TEACHER" ? (
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {(
+              [
+                {
+                  id: "STUDENT",
+                  eyebrow: "학생 로그인",
+                  title: "학생으로 들어가기",
+                  description: "선생님이 알려준 학급코드, 번호, 로그인 비밀번호로 글을 써요.",
+                  accent: "student",
+                },
+                {
+                  id: "TEACHER",
+                  eyebrow: "선생님 로그인",
+                  title: "선생님으로 들어가기",
+                  description: "주제를 만들고, 학생 글을 확인하고, 따뜻한 피드백을 남겨요.",
+                  accent: "teacher",
+                },
+              ] satisfies Array<{
+                id: LoginMode;
+                eyebrow: string;
+                title: string;
+                description: string;
+                accent: "teacher" | "student";
+              }>
+            ).map((card) => {
+              const isActive = mode === card.id;
+              const accentTextClass =
+                card.accent === "teacher" ? "text-teacher-accent" : "text-student-accent";
+              const activeCardClass =
+                card.accent === "teacher"
+                  ? "border-teacher-accent bg-teacher-soft/75 ring-2 ring-teacher-accent/20"
+                  : "border-student-accent bg-student-soft/75 ring-2 ring-student-accent/20";
+              const inactiveCardClass =
+                "border-ink-100 bg-paper-surface hover:border-ink-200 hover:bg-paper-base/70";
+
+              return (
+                <button
+                  key={card.id}
+                  className={`kr-keep rounded-xl border p-4 text-left shadow-sm transition hover:-translate-y-0.5 ${
+                    isActive ? activeCardClass : inactiveCardClass
+                  }`}
+                  type="button"
+                  onClick={() => selectMode(card.id)}
+                >
+                  <span className={`text-xs font-semibold uppercase tracking-[0.16em] ${accentTextClass}`}>
+                    {card.eyebrow}
+                  </span>
+                  <span className="mt-3 block text-base font-bold leading-6 text-ink-900">
+                    {card.title}
+                  </span>
+                  <span className="mt-2 block text-sm leading-6 text-ink-700">
+                    {card.description}
+                  </span>
+                  <span
+                    className={`mt-4 inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${
+                      isActive
+                        ? `${accentTextClass} bg-paper-surface/80`
+                        : "bg-paper-base text-ink-500"
+                    }`}
+                  >
+                    {isActive ? "선택됨" : "선택하기"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {mode === "TEACHER" ? (
           <form className="mt-6 grid gap-5 rounded-xl border border-teacher-accent/20 bg-paper-soft/70 p-5 shadow-sm" onSubmit={handleTeacherLogin}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teacher-accent">

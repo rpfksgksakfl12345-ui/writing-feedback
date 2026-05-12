@@ -16,6 +16,7 @@ type SubmissionDetail = {
   ocrExtractedText: string | null;
   editedExtractedText: string | null;
   extractedText: string | null;
+  aiFeedback: string | null;
   finalFeedback: string | null;
   status: "PENDING" | "REVIEWED";
   ocrStatus: "NONE" | "PROCESSING" | "DONE" | "FAILED";
@@ -161,7 +162,7 @@ export default function SubmissionDetailPage() {
       const data = await apiFetch<SubmissionDetail>(`/api/submissions/${params.id}`, { token });
       setSubmission(data);
       setEditableExtractedText(getEditableExtractedText(data));
-      setFinalFeedback(data.finalFeedback || "");
+      setFinalFeedback(data.finalFeedback || data.aiFeedback || "");
       setError("");
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "제출물을 불러오지 못했습니다.");
@@ -366,6 +367,7 @@ export default function SubmissionDetailPage() {
         : "사진 제출은 OCR이 완료된 뒤 AI 초안을 생성할 수 있습니다.";
   const statusMeta = getSubmissionStatusMeta(submission.status);
   const submittedAt = formatSubmissionDate(submission.createdAt);
+  const hasPreparedAiDraft = Boolean(submission.aiFeedback?.trim() && !submission.finalFeedback?.trim());
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
@@ -587,6 +589,16 @@ export default function SubmissionDetailPage() {
           {draftError ? (
             <div className="mt-4">
               <NoticeBanner tone="error" title="AI 초안 생성 실패" description={draftError} />
+            </div>
+          ) : null}
+
+          {hasPreparedAiDraft ? (
+            <div className="mt-4">
+              <NoticeBanner
+                tone="success"
+                title="AI 초안 준비됨"
+                description="주제별 일괄 생성으로 만든 초안이 입력칸에 들어가 있습니다. 확인한 뒤 최종 피드백으로 저장하세요."
+              />
             </div>
           ) : null}
 

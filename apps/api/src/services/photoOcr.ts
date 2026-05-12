@@ -160,6 +160,7 @@ export async function runSubmissionOcr(params: {
     });
 
     console.log(`[ocr] completed submissionId=${params.submissionId}`);
+    return { ok: true as const, extractedText };
   } catch (error) {
     const ocrError = getSafeOcrError(error);
 
@@ -183,5 +184,6 @@ export async function runSubmissionOcr(params: {
     }
 
     console.error(`[ocr] failed submissionId=${params.submissionId} message=${ocrError}`);
+    return { ok: false as const, error: ocrError };
   }
 }

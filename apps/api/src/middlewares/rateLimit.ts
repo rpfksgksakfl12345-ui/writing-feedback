@@ -138,6 +138,17 @@ export const feedbackDraftRateLimiter = createRateLimiter({
   },
 });
 
+export const bulkFeedbackDraftRateLimiter = createRateLimiter({
+  name: "bulk-feedback-draft-ai",
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: "AI 피드백 일괄 생성 시도가 많아요. 잠시 후 다시 시도해 주세요.",
+  keyGenerator: (req) => {
+    const authUser = (req as Request & { user?: { userId?: number } }).user;
+    return authUser?.userId ? `teacher:${authUser.userId}` : getClientIp(req);
+  },
+});
+
 export const uploadRateLimiter = createRateLimiter({
   name: "student-upload",
   windowMs: 10 * 60 * 1000,
@@ -146,5 +157,16 @@ export const uploadRateLimiter = createRateLimiter({
   keyGenerator: (req) => {
     const authUser = (req as Request & { user?: { userId?: number } }).user;
     return authUser?.userId ? `student:${authUser.userId}` : getClientIp(req);
+  },
+});
+
+export const teacherBulkUploadRateLimiter = createRateLimiter({
+  name: "teacher-bulk-upload",
+  windowMs: 10 * 60 * 1000,
+  max: 8,
+  message: "교사 일괄 업로드 시도가 많아요. 잠시 후 다시 시도해 주세요.",
+  keyGenerator: (req) => {
+    const authUser = (req as Request & { user?: { userId?: number } }).user;
+    return authUser?.userId ? `teacher:${authUser.userId}` : getClientIp(req);
   },
 });

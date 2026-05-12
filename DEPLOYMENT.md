@@ -143,6 +143,8 @@ Upload guardrails:
 - Accepted MIME types: `image/jpeg`, `image/png`, `image/webp`
 - Max image size: 10 MB
 - Stored filenames are generated with a timestamp, random suffix, and sanitized extension
+- Teacher bulk upload uses the same file type, size, safe filename, `UPLOADS_DIR`,
+  and protected `/uploads/:filename` access rules as student photo upload.
 
 Longer term, move uploads to object storage such as Railway Storage Buckets or an
 S3-compatible bucket. Object storage gives better backups, CDN options, and
@@ -158,7 +160,9 @@ The API has in-memory rate limits for:
 - Teacher password change
 - AI topic generation
 - AI feedback draft generation
+- Bulk AI feedback draft generation
 - Student upload
+- Teacher bulk upload
 
 The student login limiter is keyed by classroom code and student number when
 available, not by IP only, so one school network should not block the whole
@@ -225,6 +229,14 @@ AI/OCR cost control already in code:
 - Topic generation and feedback draft endpoints require teacher auth.
 - Upload requires student auth and has a file size limit.
 - AI endpoints now have lightweight per-teacher rate limits.
+- Teacher bulk upload requires teacher auth, is button-triggered, and runs OCR
+  once per selected student photo. It can increase Document AI cost in proportion
+  to the number of photos.
+- Topic bulk feedback requires teacher auth, is button-triggered, skips
+  submissions that already have an AI draft or final feedback, and processes
+  submissions in small chunks. It can increase Vertex AI cost in proportion to
+  the amount of student writing, but avoids the teacher making many separate
+  draft-generation clicks.
 
 ## 11. First Deploy Order
 
@@ -257,10 +269,14 @@ Run this immediately after deploy:
 - Student classroom login works.
 - Student typed writing submission works.
 - Student photo upload works.
+- Teacher bulk photo upload works for a selected topic and skips students who
+  already submitted.
 - Teacher can view protected uploaded image.
 - AI topic generation works.
 - AI topic refinement works.
 - AI feedback draft works.
+- Topic bulk AI feedback draft generation works and does not overwrite existing
+  AI drafts or final feedback.
 - Railway logs show no repeated errors.
 - Google Cloud budget/quota dashboards look normal.
 

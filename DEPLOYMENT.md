@@ -64,9 +64,22 @@ Set these on the Railway API service. Use real values in Railway, not the exampl
 | `GOOGLE_CLOUD_DOCUMENTAI_PROJECT` | Yes | Document AI project. |
 | `GOOGLE_CLOUD_DOCUMENTAI_LOCATION` | Yes | Document AI location. |
 | `GOOGLE_CLOUD_DOCUMENTAI_PROCESSOR_ID` | Yes | Document AI processor ID. |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Required unless another ADC source is available | Path to a Google credential JSON file available at runtime. The code uses Google Application Default Credentials for Vertex AI and Document AI. Do not commit this file. |
+| `BULK_FEEDBACK_CHUNK_SIZE` | Optional | Defaults to 5 and is capped at 8. Smaller values reduce per-request blast radius; larger values reduce AI call count. |
 
 The API fails fast in `NODE_ENV=production` or Railway runtime if required
 values are missing, if `JWT_SECRET` is weak, or if Vertex mode is not enabled.
+
+Google authentication note:
+
+- The API uses Google Application Default Credentials through Google client
+  libraries.
+- On Railway, provide credentials through a runtime-only mechanism, such as a
+  service account credential file outside git with `GOOGLE_APPLICATION_CREDENTIALS`
+  pointing to that file path, or another ADC-compatible setup.
+- The service account needs access to Vertex AI and the configured Document AI
+  processor.
+- Never store the credential JSON in the repository or expose it to the web app.
 
 ## 3. Web Environment Variables
 
@@ -85,24 +98,36 @@ redeploy the web app.
 1. Create a Railway project.
 2. Add a PostgreSQL service.
 3. Add an API service connected to the repository.
-4. Add a Railway Volume to the API service.
-5. Mount the volume at `/data`.
-6. Set `UPLOADS_DIR=/data/uploads`.
-7. Set the API environment variables from section 2.
-8. Deploy the API.
-9. Run production migrations:
+4. Keep the service root at the repository root for this shared npm workspace,
+   then set:
+
+```text
+Build command: npm run build --workspace @writing-feedback/api
+Start command: npm run start --workspace @writing-feedback/api
+```
+
+If Railway auto-imports the monorepo and creates an API service automatically,
+confirm the build/start commands still run from the shared workspace context and
+can access `packages/shared-types`.
+
+5. Add a Railway Volume to the API service.
+6. Mount the volume at `/data`.
+7. Set `UPLOADS_DIR=/data/uploads`.
+8. Set the API environment variables from section 2.
+9. Deploy the API.
+10. Run production migrations:
 
 ```bash
 npm run prisma:deploy --workspace @writing-feedback/api
 ```
 
-10. Set Railway healthcheck path to:
+11. Set Railway healthcheck path to:
 
 ```text
 /health
 ```
 
-11. Confirm logs show the API listening without env validation errors.
+12. Confirm logs show the API listening without env validation errors.
 
 Railway service filesystems are ephemeral unless a Volume is mounted. Without a
 Volume, uploaded student images can disappear after redeploys or restarts.
@@ -110,17 +135,69 @@ Volume, uploaded student images can disappear after redeploys or restarts.
 ## 5. Vercel Web Setup
 
 1. Create a Vercel project from the same repository.
-2. Set the web root/build command to use the web workspace.
-3. Set `NEXT_PUBLIC_API_BASE_URL` to the Railway API URL.
-4. Set `NEXT_PUBLIC_REQUIRE_API_BASE_URL=true`.
-5. Deploy a preview first.
-6. Smoke test the preview against the Railway API.
-7. Promote to production after the checklist passes.
+2. Set Root Directory to:
+
+```text
+apps/web
+```
+
+3. Confirm Framework Preset is Next.js.
+4. Use the default output directory (`.next`).
+5. If the build command is not detected correctly, set:
+
+```bash
+npm run build
+```
+
+6. Set `NEXT_PUBLIC_API_BASE_URL` to the Railway API URL.
+7. Set `NEXT_PUBLIC_REQUIRE_API_BASE_URL=true`.
+8. Deploy a preview first.
+9. Smoke test the preview against the Railway API.
+10. Promote to production after the checklist passes.
+
+`NEXT_PUBLIC_API_BASE_URL` is baked into the web build. If the API URL changes,
+redeploy the web app.
 
 When sharing Vercel preview URLs externally, consider Vercel preview protection
 or keep the URL private until production env and CORS are correct.
 
-## 6. Uploads
+## 6. Deployment Console Checklist
+
+Railway API service values:
+
+| Setting | Value |
+| --- | --- |
+| Repository | `rpfksgksakfl12345-ui/writing-feedback` |
+| Service root | repository root `/` |
+| Build command | `npm run build --workspace @writing-feedback/api` |
+| Start command | `npm run start --workspace @writing-feedback/api` |
+| Healthcheck path | `/health` |
+| Volume mount path | `/data` |
+| Upload env | `UPLOADS_DIR=/data/uploads` |
+| Production migration | `npm run prisma:deploy --workspace @writing-feedback/api` |
+
+Vercel web project values:
+
+| Setting | Value |
+| --- | --- |
+| Repository | `rpfksgksakfl12345-ui/writing-feedback` |
+| Root Directory | `apps/web` |
+| Framework Preset | Next.js |
+| Build command | `npm run build` |
+| Output Directory | `.next` default |
+| API env | `NEXT_PUBLIC_API_BASE_URL=<Railway API public URL>` |
+| Build guard env | `NEXT_PUBLIC_REQUIRE_API_BASE_URL=true` |
+
+Deploy order:
+
+1. Deploy Railway API with a temporary or final allowed web origin.
+2. Confirm Railway `/health`.
+3. Deploy Vercel web with `NEXT_PUBLIC_API_BASE_URL` set to the Railway API URL.
+4. Update Railway `CORS_ORIGIN` to the actual Vercel URL.
+5. Redeploy Railway API after CORS changes.
+6. Redeploy Vercel if `NEXT_PUBLIC_API_BASE_URL` changes.
+
+## 7. Uploads
 
 Current first-launch approach:
 
@@ -150,7 +227,7 @@ Longer term, move uploads to object storage such as Railway Storage Buckets or a
 S3-compatible bucket. Object storage gives better backups, CDN options, and
 safer scaling than local service volumes.
 
-## 7. Rate Limits
+## 8. Rate Limits
 
 The API has in-memory rate limits for:
 
@@ -171,7 +248,7 @@ for the first single-instance launch, but they reset on API restart and are not
 shared across multiple API instances. Use Redis or another shared store before
 running multiple API replicas.
 
-## 8. Security Checklist
+## 9. Security Checklist
 
 Before launch:
 
@@ -191,7 +268,7 @@ Known follow-up security work:
 - Revisit 4-character or low-entropy student passwords if usage grows.
 - Consider forced password change after admin reset.
 
-## 9. Database And Backups
+## 10. Database And Backups
 
 Production migrations should use:
 
@@ -208,7 +285,7 @@ Before the first real user launch:
 - Back up before applying future migrations.
 - Treat migration rollback as a planned operation, not a casual deploy revert.
 
-## 10. Logs, Health, And Cost Controls
+## 11. Logs, Health, And Cost Controls
 
 Railway:
 
@@ -238,7 +315,7 @@ AI/OCR cost control already in code:
   the amount of student writing, but avoids the teacher making many separate
   draft-generation clicks.
 
-## 11. First Deploy Order
+## 12. First Deploy Order
 
 1. Push the latest committed code to GitHub.
 2. Create Railway PostgreSQL.
@@ -255,7 +332,7 @@ AI/OCR cost control already in code:
 13. Redeploy API after CORS changes.
 14. Redeploy web if `NEXT_PUBLIC_API_BASE_URL` changes.
 
-## 12. Smoke Test Checklist
+## 13. Smoke Test Checklist
 
 Run this immediately after deploy:
 
@@ -266,6 +343,7 @@ Run this immediately after deploy:
 - A classroom can be created.
 - A student account can be issued.
 - The student password is visible only right after issue/reissue.
+- Bulk student creation works for a small test batch.
 - Student classroom login works.
 - Student typed writing submission works.
 - Student photo upload works.
@@ -277,10 +355,15 @@ Run this immediately after deploy:
 - AI feedback draft works.
 - Topic bulk AI feedback draft generation works and does not overwrite existing
   AI drafts or final feedback.
+- A joking, careless, or very short writing sample receives firm but warm
+  feedback without forced praise.
+- Teacher final feedback can be saved.
+- Student can see the saved final feedback.
 - Railway logs show no repeated errors.
 - Google Cloud budget/quota dashboards look normal.
+- Railway usage limits look normal.
 
-## 13. Rollback Notes
+## 14. Rollback Notes
 
 For web/API code problems, redeploy the previous known-good commit from Vercel
 or Railway.

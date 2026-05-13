@@ -58,6 +58,10 @@ export function validateProductionEnv() {
   requireEnv("GOOGLE_CLOUD_DOCUMENTAI_PROCESSOR_ID", missing);
   requireEnv("UPLOADS_DIR", missing);
 
+  if (!readEnv("GOOGLE_APPLICATION_CREDENTIALS") && !readEnv("GOOGLE_APPLICATION_CREDENTIALS_BASE64")) {
+    missing.push("GOOGLE_APPLICATION_CREDENTIALS or GOOGLE_APPLICATION_CREDENTIALS_BASE64");
+  }
+
   if (!readEnv("CORS_ORIGIN") && !readEnv("WEB_ORIGIN")) {
     missing.push("CORS_ORIGIN or WEB_ORIGIN");
   }

@@ -64,7 +64,8 @@ Set these on the Railway API service. Use real values in Railway, not the exampl
 | `GOOGLE_CLOUD_DOCUMENTAI_PROJECT` | Yes | Document AI project. |
 | `GOOGLE_CLOUD_DOCUMENTAI_LOCATION` | Yes | Document AI location. |
 | `GOOGLE_CLOUD_DOCUMENTAI_PROCESSOR_ID` | Yes | Document AI processor ID. |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Required unless another ADC source is available | Path to a Google credential JSON file available at runtime. The code uses Google Application Default Credentials for Vertex AI and Document AI. Do not commit this file. |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Alternative | Path to a Google credential JSON file available at runtime. Useful locally or on hosts where you can mount a file. |
+| `GOOGLE_APPLICATION_CREDENTIALS_BASE64` | Recommended on Railway | Base64-encoded service account JSON. The API restores it to a temp file at startup and sets `GOOGLE_APPLICATION_CREDENTIALS`. Do not commit or log this value. |
 | `BULK_FEEDBACK_CHUNK_SIZE` | Optional | Defaults to 5 and is capped at 8. Smaller values reduce per-request blast radius; larger values reduce AI call count. |
 
 The API fails fast in `NODE_ENV=production` or Railway runtime if required
@@ -74,12 +75,29 @@ Google authentication note:
 
 - The API uses Google Application Default Credentials through Google client
   libraries.
-- On Railway, provide credentials through a runtime-only mechanism, such as a
-  service account credential file outside git with `GOOGLE_APPLICATION_CREDENTIALS`
-  pointing to that file path, or another ADC-compatible setup.
+- On Railway, prefer `GOOGLE_APPLICATION_CREDENTIALS_BASE64`. At startup, the
+  API base64-decodes the value, validates that it is JSON, writes it to the
+  runtime temp directory, and sets `GOOGLE_APPLICATION_CREDENTIALS` to that
+  generated path.
+- If both `GOOGLE_APPLICATION_CREDENTIALS` and
+  `GOOGLE_APPLICATION_CREDENTIALS_BASE64` are set, the explicit file path wins
+  and the base64 value is ignored.
+- `GOOGLE_APPLICATION_CREDENTIALS` remains supported for local development or
+  hosting environments where a credential JSON file can be mounted safely.
 - The service account needs access to Vertex AI and the configured Document AI
   processor.
 - Never store the credential JSON in the repository or expose it to the web app.
+- Never paste the raw JSON into code, GitHub, chat, logs, or browser-visible
+  environment variables.
+
+PowerShell command to base64-encode a downloaded service account JSON file:
+
+```powershell
+[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((Get-Content "C:\path\to\service-account.json" -Raw)))
+```
+
+Copy only the command output into Railway Variables as
+`GOOGLE_APPLICATION_CREDENTIALS_BASE64`.
 
 ## 3. Web Environment Variables
 
@@ -174,6 +192,7 @@ Railway API service values:
 | Healthcheck path | `/health` |
 | Volume mount path | `/data` |
 | Upload env | `UPLOADS_DIR=/data/uploads` |
+| Google credential env | `GOOGLE_APPLICATION_CREDENTIALS_BASE64=<base64 service account JSON>` |
 | Production migration | `npm run prisma:deploy --workspace @writing-feedback/api` |
 
 Vercel web project values:

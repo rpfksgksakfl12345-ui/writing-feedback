@@ -1,4 +1,5 @@
 import "dotenv/config";
+import "./config/googleCredentials";
 import fs from "fs/promises";
 import path from "path";
 import cors from "cors";

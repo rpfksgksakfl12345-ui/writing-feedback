@@ -115,9 +115,9 @@ async function getTeacherLoginHref(token: string, registeredNotice: boolean) {
 export default function LoginPage() {
   const router = useRouter();
   const { login, user, isReady } = useAuth();
-  const [mode, setMode] = useState<LoginMode | null>(null);
-  const [email, setEmail] = useState("teacher@test.com");
-  const [password, setPassword] = useState("password123");
+  const [mode, setMode] = useState<LoginMode>("STUDENT");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [classCode, setClassCode] = useState(
     shouldPrefillDevStudentLogin ? devStudentLoginDefaults.classCode : "",
   );
@@ -305,8 +305,8 @@ export default function LoginPage() {
           <div className="mt-6 grid rounded-xl bg-paper-base p-1 sm:grid-cols-2">
             {(
               [
-                { id: "TEACHER", label: "선생님", accent: "teacher" },
                 { id: "STUDENT", label: "학생", accent: "student" },
+                { id: "TEACHER", label: "선생님", accent: "teacher" },
               ] satisfies Array<{ id: LoginMode; label: string; accent: "teacher" | "student" }>
             ).map((tab) => {
               const isActive = mode === tab.id;

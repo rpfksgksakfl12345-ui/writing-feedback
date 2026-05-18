@@ -32,8 +32,9 @@ app.use(
         return;
       }
 
-      callback(new Error("Not allowed by CORS"));
+      callback(null, false);
     },
+    optionsSuccessStatus: 204,
   }),
 );
 app.use(express.json());

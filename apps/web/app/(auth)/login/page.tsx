@@ -25,7 +25,12 @@ type LoginResponse = {
   user: SessionUser;
 };
 
-type LoginMode = "TEACHER" | "STUDENT";
+type LoginMode = "STUDENT" | "TEACHER";
+
+const loginRoleTabs = [
+  { id: "STUDENT", label: "학생", accent: "student" },
+  { id: "TEACHER", label: "선생님", accent: "teacher" },
+] satisfies Array<{ id: LoginMode; label: string; accent: "teacher" | "student" }>;
 
 const modeCopy: Record<
   LoginMode,
@@ -302,13 +307,8 @@ export default function LoginPage() {
             </div>
           ) : null}
 
-          <div className="mt-6 grid rounded-xl bg-paper-base p-1 sm:grid-cols-2">
-            {(
-              [
-                { id: "STUDENT", label: "학생", accent: "student" },
-                { id: "TEACHER", label: "선생님", accent: "teacher" },
-              ] satisfies Array<{ id: LoginMode; label: string; accent: "teacher" | "student" }>
-            ).map((tab) => {
+          <div className="mt-6 grid grid-cols-2 rounded-xl bg-paper-base p-1">
+            {loginRoleTabs.map((tab) => {
               const isActive = mode === tab.id;
               const activeClass =
                 tab.accent === "teacher"

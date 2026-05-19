@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { KeyboardEvent, useState } from "react";
 import { apiFetch } from "../lib/api";
 import { PrimaryButton, SecondaryButton } from "./ui-v2";
 
@@ -43,9 +43,7 @@ export function NeisSchoolPicker({
   const [error, setError] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
-  async function handleSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function searchSchools() {
     const nextKeyword = keyword.trim();
     setMessage("");
     setError("");
@@ -82,6 +80,19 @@ export function NeisSchoolPicker({
     }
   }
 
+  function handleSearchClick() {
+    void searchSchools();
+  }
+
+  function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Enter") {
+      return;
+    }
+
+    event.preventDefault();
+    void searchSchools();
+  }
+
   return (
     <div className="rounded-xl border border-teacher-accent/20 bg-paper-surface/80 p-4 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -110,12 +121,13 @@ export function NeisSchoolPicker({
         </p>
       )}
 
-      <form className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]" onSubmit={handleSearch}>
+      <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
         <label className="block text-sm font-semibold text-ink-700">
           학교명으로 검색
           <input
             className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20"
             disabled={disabled || isSearching}
+            onKeyDown={handleSearchKeyDown}
             onChange={(event) => setKeyword(event.target.value)}
             placeholder="예: 서울초등학교"
             value={keyword}
@@ -124,12 +136,13 @@ export function NeisSchoolPicker({
         <PrimaryButton
           className="self-end"
           disabled={disabled || isSearching || !keyword.trim()}
+          onClick={handleSearchClick}
           tone="teacher"
-          type="submit"
+          type="button"
         >
           {isSearching ? "검색 중..." : "검색"}
         </PrimaryButton>
-      </form>
+      </div>
 
       {message ? <p className="mt-3 text-xs font-semibold text-teacher-deep">{message}</p> : null}
       {error ? <p className="mt-3 text-xs font-semibold text-status-error">{error}</p> : null}

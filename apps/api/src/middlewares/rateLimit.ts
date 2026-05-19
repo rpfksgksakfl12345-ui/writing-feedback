@@ -127,6 +127,17 @@ export const topicAiRateLimiter = createRateLimiter({
   },
 });
 
+export const neisLookupRateLimiter = createRateLimiter({
+  name: "neis-lookup",
+  windowMs: 10 * 60 * 1000,
+  max: 40,
+  message: "NEIS 공공데이터 조회 시도가 많습니다. 잠시 후 다시 시도해 주세요.",
+  keyGenerator: (req) => {
+    const authUser = (req as Request & { user?: { userId?: number } }).user;
+    return authUser?.userId ? `teacher:${authUser.userId}` : getClientIp(req);
+  },
+});
+
 export const feedbackDraftRateLimiter = createRateLimiter({
   name: "feedback-draft-ai",
   windowMs: 60 * 60 * 1000,

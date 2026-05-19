@@ -1,9 +1,16 @@
 ﻿import { Response } from "express";
 import { generateTopicSuggestions, type TopicSuggestionInput } from "../services/topicSuggestion";
+import {
+  fetchNeisSchedules,
+  getNeisSchoolFromClassroom,
+  NeisConfigurationError,
+} from "../services/neis";
+import { prisma } from "../services/prisma";
 import { AuthRequest } from "../types";
 
 export async function generateTopics(req: AuthRequest, res: Response) {
   const grade = Number(req.body?.grade);
+  const requestedClassroomId = req.body?.classroomId ? Number(req.body.classroomId) : null;
   const teacherFeedback =
     typeof req.body?.teacherFeedback === "string" ? req.body.teacherFeedback.trim() : "";
   const previousSuggestions = Array.isArray(req.body?.previousSuggestions)
@@ -18,17 +25,94 @@ export async function generateTopics(req: AuthRequest, res: Response) {
     return res.status(400).json({ message: "1학년부터 6학년까지의 학년을 선택해 주세요." });
   }
 
+  if (
+    requestedClassroomId !== null &&
+    (!Number.isInteger(requestedClassroomId) || requestedClassroomId < 1)
+  ) {
+    return res.status(400).json({ message: "Invalid classroom ID" });
+  }
+
   try {
+    let schoolContext:
+      | {
+          schoolName: string;
+          officeName?: string;
+          scheduleSummaryForAi: string;
+        }
+      | undefined;
+    let publicData:
+      | {
+          schoolContextUsed: boolean;
+          schoolName?: string;
+          scheduleCount?: number;
+          warning?: string;
+          reason?: string;
+        }
+      | undefined;
+
+    if (requestedClassroomId && req.user?.userId) {
+      const classroom = await prisma.classroom.findFirst({
+        where: {
+          id: requestedClassroomId,
+          teacherId: req.user.userId,
+        },
+      });
+
+      if (!classroom) {
+        return res.status(404).json({ message: "Classroom not found" });
+      }
+
+      const school = getNeisSchoolFromClassroom(classroom);
+
+      if (school) {
+        try {
+          const scheduleContext = await fetchNeisSchedules(school, { grade });
+          schoolContext = {
+            schoolName: school.schoolName,
+            officeName: school.officeName,
+            scheduleSummaryForAi: scheduleContext.summaryForAi,
+          };
+          publicData = {
+            schoolContextUsed: true,
+            schoolName: school.schoolName,
+            scheduleCount: scheduleContext.schedules.length,
+          };
+        } catch (schoolContextError) {
+          const warning =
+            schoolContextError instanceof NeisConfigurationError
+              ? "NEIS_API_KEY is not configured"
+              : "NEIS schedule lookup failed";
+
+          console.warn(
+            `[topics.generate] NEIS context skipped teacherId=${req.user.userId} classroomId=${requestedClassroomId} reason=${warning}`,
+          );
+          publicData = {
+            schoolContextUsed: false,
+            schoolName: school.schoolName,
+            warning,
+          };
+        }
+      } else {
+        publicData = {
+          schoolContextUsed: false,
+          reason: "NO_CONNECTED_SCHOOL",
+        };
+      }
+    }
+
     console.info(
-      `[topics.generate] teacherId=${req.user?.userId ?? "unknown"} grade=${grade} refinement=${Boolean(
+      `[topics.generate] teacherId=${req.user?.userId ?? "unknown"} grade=${grade} classroomId=${
+        requestedClassroomId ?? "none"
+      } publicData=${Boolean(schoolContext)} refinement=${Boolean(
         teacherFeedback,
       )}`,
     );
     const topics = await generateTopicSuggestions(grade, {
       teacherFeedback,
       previousSuggestions,
+      schoolContext,
     });
-    return res.json({ topics });
+    return res.json({ topics, publicData });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error(

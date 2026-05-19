@@ -44,17 +44,24 @@ model User {
 }
 
 model Classroom {
-  id          Int              @id @default(autoincrement())
-  name        String
-  grade       Int
-  classCode   String           @unique
-  teacher     User             @relation(fields: [teacherId], references: [id])
-  teacherId   Int
-  students    StudentProfile[]
-  topics      Topic[]
-  submissions Submission[]
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id                  Int              @id @default(autoincrement())
+  name                String
+  grade               Int
+  classCode           String           @unique
+  neisOfficeCode      String?
+  neisOfficeName      String?
+  neisSchoolCode      String?
+  neisSchoolName      String?
+  neisSchoolLevel     String?
+  neisSchoolAddress   String?
+  neisSchoolHomepage  String?
+  teacher             User             @relation(fields: [teacherId], references: [id])
+  teacherId           Int
+  students            StudentProfile[]
+  topics              Topic[]
+  submissions         Submission[]
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 }
 
 model StudentProfile {

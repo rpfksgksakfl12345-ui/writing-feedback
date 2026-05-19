@@ -21,6 +21,13 @@ type Classroom = {
   name: string;
   grade: number;
   classCode: string;
+  neisOfficeCode: string | null;
+  neisOfficeName: string | null;
+  neisSchoolCode: string | null;
+  neisSchoolName: string | null;
+  neisSchoolLevel: string | null;
+  neisSchoolAddress: string | null;
+  neisSchoolHomepage: string | null;
 };
 
 type TopicSuggestion = {
@@ -30,6 +37,25 @@ type TopicSuggestion = {
 
 type TopicSuggestionResult = {
   topics: Array<string | Partial<TopicSuggestion>>;
+  publicData?: {
+    schoolContextUsed: boolean;
+    schoolName?: string;
+    scheduleCount?: number;
+    warning?: string;
+    reason?: string;
+  };
+};
+
+type NeisSchedulePreview = {
+  date: string;
+  dateLabel: string;
+  eventName: string;
+  eventContent: string | null;
+  gradeNumbers: number[];
+};
+
+type ClassroomScheduleResult = {
+  schedules: NeisSchedulePreview[];
 };
 
 function formatTopicDate(createdAt: string) {
@@ -95,9 +121,13 @@ export default function TeacherTopicsPage() {
   const [refinementError, setRefinementError] = useState("");
   const [isLoadingTopics, setIsLoadingTopics] = useState(true);
   const [isLoadingClassrooms, setIsLoadingClassrooms] = useState(true);
+  const [isLoadingSchedules, setIsLoadingSchedules] = useState(false);
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+  const [schedulePreview, setSchedulePreview] = useState<NeisSchedulePreview[]>([]);
+  const [schedulePreviewError, setSchedulePreviewError] = useState("");
   const [suggestedTopics, setSuggestedTopics] = useState<TopicSuggestion[]>([]);
   const [selectedSuggestionTitle, setSelectedSuggestionTitle] = useState("");
+  const [publicDataNotice, setPublicDataNotice] = useState("");
 
   async function loadClassrooms() {
     if (!token) {
@@ -162,6 +192,55 @@ export default function TeacherTopicsPage() {
     void loadTopicsForClassroom();
   }, [token, classroomId]);
 
+  useEffect(() => {
+    const selected = classrooms.find((classroom) => String(classroom.id) === classroomId) ?? null;
+
+    if (!token || !selected?.neisOfficeCode || !selected.neisSchoolCode) {
+      setSchedulePreview([]);
+      setSchedulePreviewError("");
+      setIsLoadingSchedules(false);
+      return;
+    }
+
+    let isCancelled = false;
+    const selectedClassroomId = selected.id;
+
+    async function loadSchedulePreview() {
+      setIsLoadingSchedules(true);
+      setSchedulePreviewError("");
+
+      try {
+        const response = await apiFetch<ClassroomScheduleResult>(
+          `/api/classrooms/${selectedClassroomId}/neis-schedules`,
+          { token },
+        );
+
+        if (!isCancelled) {
+          setSchedulePreview(response.schedules.slice(0, 3));
+        }
+      } catch (scheduleError) {
+        if (!isCancelled) {
+          setSchedulePreview([]);
+          setSchedulePreviewError(
+            scheduleError instanceof Error
+              ? scheduleError.message
+              : "학사일정 미리보기를 불러오지 못했습니다.",
+          );
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingSchedules(false);
+        }
+      }
+    }
+
+    void loadSchedulePreview();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [classroomId, classrooms, token]);
+
   async function handleCreateTopic(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
@@ -220,20 +299,29 @@ export default function TeacherTopicsPage() {
     setAiError("");
     setRefinementError("");
     setMessage("");
+    setPublicDataNotice("");
     setIsGenerating(true);
 
     try {
       const response = await apiFetch<TopicSuggestionResult>("/api/topics/generate", {
         method: "POST",
         token,
-        body: JSON.stringify({ grade: Number(grade) }),
+        body: JSON.stringify({ grade: Number(grade), classroomId: Number(classroomId) }),
       });
 
       setSuggestedTopics(normalizeTopicSuggestions(response.topics));
       setSelectedSuggestionTitle("");
+      setPublicDataNotice(
+        response.publicData?.schoolContextUsed
+          ? `${response.publicData.schoolName ?? "연결 학교"} 학사일정을 AI 추천에 반영했어요.`
+          : response.publicData?.warning
+            ? `학교 공공데이터는 반영하지 못했지만 일반 추천은 생성했어요. (${response.publicData.warning})`
+            : "",
+      );
     } catch (generateError) {
       setSuggestedTopics([]);
       setSelectedSuggestionTitle("");
+      setPublicDataNotice("");
       setAiError(
         generateError instanceof Error
           ? generateError.message
@@ -269,6 +357,7 @@ export default function TeacherTopicsPage() {
     setAiError("");
     setRefinementError("");
     setMessage("");
+    setPublicDataNotice("");
     setIsRefining(true);
 
     try {
@@ -277,6 +366,7 @@ export default function TeacherTopicsPage() {
         token,
         body: JSON.stringify({
           grade: Number(grade),
+          classroomId: Number(classroomId),
           teacherFeedback,
           previousSuggestions: suggestedTopics,
         }),
@@ -284,9 +374,17 @@ export default function TeacherTopicsPage() {
 
       setSuggestedTopics(normalizeTopicSuggestions(response.topics));
       setSelectedSuggestionTitle("");
+      setPublicDataNotice(
+        response.publicData?.schoolContextUsed
+          ? `${response.publicData.schoolName ?? "연결 학교"} 학사일정을 다시 반영했어요.`
+          : response.publicData?.warning
+            ? `학교 공공데이터는 반영하지 못했지만 다시 추천했어요. (${response.publicData.warning})`
+            : "",
+      );
       setRefinementInstruction("");
       setRefinementInstruction("");
     } catch {
+      setPublicDataNotice("");
       setRefinementError("AI가 주제를 다시 추천하지 못했어요. 잠시 후 다시 시도해 주세요.");
     } finally {
       setIsRefining(false);
@@ -378,6 +476,50 @@ export default function TeacherTopicsPage() {
               </Badge>
             </div>
 
+            <div className="kr-keep mt-4 rounded-xl border border-teacher-accent/20 bg-paper-surface/80 px-4 py-3 text-sm leading-6 text-ink-700">
+              {selectedClassroom?.neisSchoolName ? (
+                <>
+                  <p className="font-bold text-ink-900">
+                    연결 학교: {selectedClassroom.neisSchoolName}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-ink-600">
+                    AI 추천에 NEIS 학사일정이 자동 반영됩니다.
+                  </p>
+                  {isLoadingSchedules ? (
+                    <p className="mt-2 text-xs font-semibold text-teacher-deep">
+                      가까운 학사일정을 확인하는 중입니다...
+                    </p>
+                  ) : null}
+                  {!isLoadingSchedules && schedulePreview.length > 0 ? (
+                    <ul className="mt-2 grid gap-1 text-xs leading-5 text-ink-600">
+                      {schedulePreview.map((schedule) => (
+                        <li key={`${schedule.date}-${schedule.eventName}`}>
+                          {schedule.dateLabel} · {schedule.eventName}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {!isLoadingSchedules && schedulePreview.length === 0 && !schedulePreviewError ? (
+                    <p className="mt-2 text-xs leading-5 text-ink-500">
+                      가까운 학사일정이 없으면 학교명과 계절 맥락만 참고합니다.
+                    </p>
+                  ) : null}
+                  {schedulePreviewError ? (
+                    <p className="mt-2 text-xs font-semibold text-status-error">
+                      {schedulePreviewError}
+                    </p>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <p className="font-bold text-ink-900">공공데이터 학교 미연결</p>
+                  <p className="mt-1 text-xs leading-5 text-ink-600">
+                    학급 관리에서 학교를 연결하면 공공데이터 기반 추천을 사용할 수 있어요.
+                  </p>
+                </>
+              )}
+            </div>
+
             <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
               <div>
                 <p className="text-sm font-semibold text-ink-700">추천 받을 학년</p>
@@ -424,6 +566,11 @@ export default function TeacherTopicsPage() {
             {aiError ? (
               <div className="mt-4">
                 <NoticeBanner tone="error" title="AI 추천 실패" description={aiError} />
+              </div>
+            ) : null}
+            {publicDataNotice ? (
+              <div className="mt-4">
+                <NoticeBanner tone="success" title="공공데이터 반영" description={publicDataNotice} />
               </div>
             ) : null}
 
@@ -567,6 +714,7 @@ export default function TeacherTopicsPage() {
                     );
 
                     setClassroomId(nextClassroomId);
+                    setPublicDataNotice("");
 
                     if (nextClassroom) {
                       setGrade(String(nextClassroom.grade));

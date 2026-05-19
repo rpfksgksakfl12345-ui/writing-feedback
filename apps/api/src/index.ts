@@ -9,6 +9,7 @@ import classroomsRoutes from "./routes/classrooms";
 import studentsRoutes from "./routes/students";
 import submissionsRoutes from "./routes/submissions";
 import topicsRoutes from "./routes/topics";
+import publicDataRoutes from "./routes/publicData";
 import { configureTrustProxy, getAllowedOrigins, validateProductionEnv } from "./config/env";
 import { ensureUploadsDirSync, resolveUploadFilePath } from "./config/uploads";
 import { authMiddleware } from "./middlewares/auth";
@@ -108,6 +109,7 @@ app.use("/api/classrooms", classroomsRoutes);
 app.use("/api/topics", topicsRoutes);
 app.use("/api/submissions", submissionsRoutes);
 app.use("/api/students", studentsRoutes);
+app.use("/api/public-data", publicDataRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ message: "Not found" });

@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { NoticeBanner } from "../../../components/notice-banner";
 import { useAuth } from "../../../components/auth-provider";
+import { NeisSchoolPicker, type NeisSchool } from "../../../components/neis-school-picker";
 import { Badge, PrimaryButton } from "../../../components/ui-v2";
 import { apiFetch } from "../../../lib/api";
 
@@ -13,6 +14,13 @@ type Classroom = {
   grade: number;
   classCode: string;
   createdAt: string;
+  neisOfficeCode: string | null;
+  neisOfficeName: string | null;
+  neisSchoolCode: string | null;
+  neisSchoolName: string | null;
+  neisSchoolLevel: string | null;
+  neisSchoolAddress: string | null;
+  neisSchoolHomepage: string | null;
 };
 
 const onboardingSteps = [
@@ -48,6 +56,7 @@ export default function TeacherClassroomsPage() {
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [name, setName] = useState("");
   const [grade, setGrade] = useState("3");
+  const [selectedSchool, setSelectedSchool] = useState<NeisSchool | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -85,11 +94,12 @@ export default function TeacherClassroomsPage() {
       const classroom = await apiFetch<Classroom>("/api/classrooms", {
         method: "POST",
         token,
-        body: JSON.stringify({ name, grade: Number(grade) }),
+        body: JSON.stringify({ name, grade: Number(grade), neisSchool: selectedSchool }),
       });
 
       setName("");
       setGrade("3");
+      setSelectedSchool(null);
       setMessage(`${classroom.name} 학급이 생성되었습니다. 학급코드: ${classroom.classCode}`);
       await loadClassrooms();
     } catch (createError) {
@@ -193,6 +203,14 @@ export default function TeacherClassroomsPage() {
               </select>
             </label>
 
+            <NeisSchoolPicker
+              disabled={isSaving}
+              onClear={() => setSelectedSchool(null)}
+              onSelect={setSelectedSchool}
+              selectedSchool={selectedSchool}
+              token={token}
+            />
+
             {message ? <NoticeBanner tone="success" title="학급 생성 완료" description={message} /> : null}
             {error ? <NoticeBanner tone="error" title="학급 처리 실패" description={error} /> : null}
 
@@ -256,6 +274,11 @@ export default function TeacherClassroomsPage() {
                       <h3 className="mt-3 text-lg font-bold leading-tight text-ink-900">
                         {classroom.name}
                       </h3>
+                      <p className="mt-2 text-xs leading-5 text-ink-600">
+                        {classroom.neisSchoolName
+                          ? `연결 학교: ${classroom.neisSchoolName}`
+                          : "학교 미연결 · 학급 상세에서 연결 가능"}
+                      </p>
                     </div>
                     <div className="rounded-lg border border-teacher-accent/20 bg-teacher-soft/70 px-4 py-3 text-right">
                       <p className="text-xs text-ink-500">학급코드</p>

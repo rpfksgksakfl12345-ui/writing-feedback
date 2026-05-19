@@ -18,6 +18,13 @@ export interface Classroom {
   name: string;
   grade: number;
   classCode: string;
+  neisOfficeCode: string | null;
+  neisOfficeName: string | null;
+  neisSchoolCode: string | null;
+  neisSchoolName: string | null;
+  neisSchoolLevel: string | null;
+  neisSchoolAddress: string | null;
+  neisSchoolHomepage: string | null;
   teacherId: number;
   createdAt: string;
   updatedAt: string;

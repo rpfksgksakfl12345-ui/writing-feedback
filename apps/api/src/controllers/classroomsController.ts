@@ -3,6 +3,13 @@ import { Response } from "express";
 import { Role } from "@prisma/client";
 import { prisma } from "../services/prisma";
 import { hashPassword } from "../services/auth";
+import {
+  fetchNeisSchedules,
+  getNeisSchoolFromClassroom,
+  NeisApiError,
+  NeisConfigurationError,
+  type NeisSchool,
+} from "../services/neis";
 import { AuthRequest } from "../types";
 
 function createClassCode() {
@@ -60,6 +67,62 @@ async function findOwnedClassroom(classroomId: number, teacherId: number) {
       teacherId,
     },
   });
+}
+
+class ClassroomSchoolInputError extends Error {}
+
+function readInputString(record: Record<string, unknown>, key: keyof NeisSchool) {
+  const value = record[key];
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function getClearedSchoolData() {
+  return {
+    neisOfficeCode: null,
+    neisOfficeName: null,
+    neisSchoolCode: null,
+    neisSchoolName: null,
+    neisSchoolLevel: null,
+    neisSchoolAddress: null,
+    neisSchoolHomepage: null,
+  };
+}
+
+function getSchoolDataFromRequest(
+  value: unknown,
+  options: { allowClear: boolean },
+) {
+  if (value === undefined) {
+    return null;
+  }
+
+  if (value === null) {
+    return options.allowClear ? getClearedSchoolData() : null;
+  }
+
+  if (typeof value !== "object" || Array.isArray(value)) {
+    throw new ClassroomSchoolInputError("Invalid school payload");
+  }
+
+  const record = value as Record<string, unknown>;
+  const officeCode = readInputString(record, "officeCode");
+  const officeName = readInputString(record, "officeName");
+  const schoolCode = readInputString(record, "schoolCode");
+  const schoolName = readInputString(record, "schoolName");
+
+  if (!officeCode || !schoolCode || !schoolName) {
+    throw new ClassroomSchoolInputError("officeCode, schoolCode, and schoolName are required");
+  }
+
+  return {
+    neisOfficeCode: officeCode,
+    neisOfficeName: officeName || null,
+    neisSchoolCode: schoolCode,
+    neisSchoolName: schoolName,
+    neisSchoolLevel: readInputString(record, "schoolLevel") || null,
+    neisSchoolAddress: readInputString(record, "address") || null,
+    neisSchoolHomepage: readInputString(record, "homepage") || null,
+  };
 }
 
 export async function getClassrooms(req: AuthRequest, res: Response) {
@@ -276,17 +339,106 @@ export async function createClassroom(req: AuthRequest, res: Response) {
       return res.status(400).json({ message: "name and grade are required" });
     }
 
+    let schoolData: ReturnType<typeof getSchoolDataFromRequest> = null;
+
+    try {
+      schoolData = getSchoolDataFromRequest(req.body?.neisSchool, { allowClear: false });
+    } catch {
+      return res.status(400).json({ message: "선택한 학교 정보를 다시 확인해 주세요." });
+    }
+
     const classroom = await prisma.classroom.create({
       data: {
         name,
         grade,
         classCode: await createUniqueClassCode(),
         teacherId: req.user.userId,
+        ...(schoolData ?? {}),
       },
     });
 
     return res.status(201).json(classroom);
   } catch (error) {
     return res.status(500).json({ message: "Failed to create classroom", error });
+  }
+}
+
+export async function updateClassroomNeisSchool(req: AuthRequest, res: Response) {
+  try {
+    if (!req.user?.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const classroomId = Number(req.params.classroomId);
+
+    if (!Number.isInteger(classroomId) || classroomId < 1) {
+      return res.status(400).json({ message: "Invalid classroom ID" });
+    }
+
+    const classroom = await findOwnedClassroom(classroomId, req.user.userId);
+
+    if (!classroom) {
+      return res.status(404).json({ message: "Classroom not found" });
+    }
+
+    let schoolData: ReturnType<typeof getSchoolDataFromRequest>;
+
+    try {
+      schoolData = getSchoolDataFromRequest(req.body?.neisSchool, { allowClear: true });
+    } catch {
+      return res.status(400).json({ message: "선택한 학교 정보를 다시 확인해 주세요." });
+    }
+
+    if (!schoolData) {
+      return res.status(400).json({ message: "neisSchool is required" });
+    }
+
+    const updatedClassroom = await prisma.classroom.update({
+      where: { id: classroom.id },
+      data: schoolData,
+    });
+
+    return res.json(updatedClassroom);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to update classroom school", error });
+  }
+}
+
+export async function getClassroomNeisSchedules(req: AuthRequest, res: Response) {
+  try {
+    if (!req.user?.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const classroomId = Number(req.params.classroomId);
+
+    if (!Number.isInteger(classroomId) || classroomId < 1) {
+      return res.status(400).json({ message: "Invalid classroom ID" });
+    }
+
+    const classroom = await findOwnedClassroom(classroomId, req.user.userId);
+
+    if (!classroom) {
+      return res.status(404).json({ message: "Classroom not found" });
+    }
+
+    const school = getNeisSchoolFromClassroom(classroom);
+
+    if (!school) {
+      return res.status(400).json({ message: "이 학급에 연결된 학교가 없습니다." });
+    }
+
+    const scheduleContext = await fetchNeisSchedules(school, { grade: classroom.grade });
+    return res.json(scheduleContext);
+  } catch (error) {
+    if (error instanceof NeisConfigurationError) {
+      return res.status(503).json({ message: "NEIS_API_KEY is not configured" });
+    }
+
+    if (error instanceof NeisApiError) {
+      return res.status(502).json({ message: "NEIS 학사일정을 불러오지 못했습니다." });
+    }
+
+    return res.status(500).json({ message: "Failed to load NEIS schedules", error });
   }
 }

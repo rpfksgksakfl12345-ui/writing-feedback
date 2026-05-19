@@ -66,6 +66,7 @@ Set these on the Railway API service. Use real values in Railway, not the exampl
 | `GOOGLE_CLOUD_DOCUMENTAI_PROCESSOR_ID` | Yes | Document AI processor ID. |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Alternative | Path to a Google credential JSON file available at runtime. Useful locally or on hosts where you can mount a file. |
 | `GOOGLE_APPLICATION_CREDENTIALS_BASE64` | Recommended on Railway | Base64-encoded service account JSON. The API restores it to a temp file at startup and sets `GOOGLE_APPLICATION_CREDENTIALS`. Do not commit or log this value. |
+| `NEIS_API_KEY` | Required for NEIS public data features | NEIS Open API key used only by the Railway API for school search and academic schedule lookup. Do not set this in Vercel. The API can start without it, but NEIS lookup endpoints return a clear JSON error. |
 | `BULK_FEEDBACK_CHUNK_SIZE` | Optional | Defaults to 5 and is capped at 8. Smaller values reduce per-request blast radius; larger values reduce AI call count. |
 
 The API fails fast in `NODE_ENV=production` or Railway runtime if required
@@ -193,6 +194,7 @@ Railway API service values:
 | Volume mount path | `/data` |
 | Upload env | `UPLOADS_DIR=/data/uploads` |
 | Google credential env | `GOOGLE_APPLICATION_CREDENTIALS_BASE64=<base64 service account JSON>` |
+| NEIS public data env | `NEIS_API_KEY=<NEIS Open API key>` |
 | Production migration | `npm run prisma:deploy --workspace @writing-feedback/api` |
 
 Vercel web project values:
@@ -273,6 +275,8 @@ Before launch:
 
 - Use a strong `JWT_SECRET`.
 - Set exact `CORS_ORIGIN`.
+- Set `NEIS_API_KEY` on Railway if public-data school search and
+  schedule-based topic suggestions will be used.
 - Set `TEACHER_SIGNUP_CODE`.
 - Set `TRUST_PROXY_HOPS=1` on Railway.
 - Confirm `/uploads/:filename` requires a Bearer token.
@@ -309,7 +313,7 @@ Before the first real user launch:
 Railway:
 
 - Use Railway logs for API startup failures, env validation errors, OCR errors,
-  and AI request failures.
+  NEIS lookup errors, and AI request failures.
 - Set healthcheck path to `/health`.
 
 Google Cloud:
@@ -322,6 +326,8 @@ Google Cloud:
 AI/OCR cost control already in code:
 
 - AI and OCR calls are server-side only.
+- NEIS Open API calls are server-side only. The web app never receives
+  `NEIS_API_KEY`.
 - Topic generation and feedback draft endpoints require teacher auth.
 - Upload requires student auth and has a file size limit.
 - AI endpoints now have lightweight per-teacher rate limits.
@@ -360,6 +366,8 @@ Run this immediately after deploy:
 - Teacher login works.
 - Teacher password change works.
 - A classroom can be created.
+- A school can be searched and connected from classroom creation or classroom
+  detail.
 - A student account can be issued.
 - The student password is visible only right after issue/reissue.
 - Bulk student creation works for a small test batch.
@@ -370,6 +378,8 @@ Run this immediately after deploy:
   already submitted.
 - Teacher can view protected uploaded image.
 - AI topic generation works.
+- AI topic generation shows connected school context when the selected
+  classroom has NEIS school data.
 - AI topic refinement works.
 - AI feedback draft works.
 - Topic bulk AI feedback draft generation works and does not overwrite existing

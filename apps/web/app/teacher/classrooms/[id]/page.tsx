@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { NoticeBanner } from "../../../../components/notice-banner";
 import { useAuth } from "../../../../components/auth-provider";
+import { NeisSchoolPicker, type NeisSchool } from "../../../../components/neis-school-picker";
 import { Badge, PrimaryButton, SecondaryButton } from "../../../../components/ui-v2";
 import { apiFetch } from "../../../../lib/api";
 
@@ -14,6 +15,13 @@ type Classroom = {
   grade: number;
   classCode: string;
   createdAt: string;
+  neisOfficeCode: string | null;
+  neisOfficeName: string | null;
+  neisSchoolCode: string | null;
+  neisSchoolName: string | null;
+  neisSchoolLevel: string | null;
+  neisSchoolAddress: string | null;
+  neisSchoolHomepage: string | null;
 };
 
 type ClassroomStudent = {
@@ -68,6 +76,22 @@ function getIssuedLoginPassword(
   return issuedLoginPasswords[student.id] ?? "";
 }
 
+function getNeisSchoolFromClassroom(classroom: Classroom | null): NeisSchool | null {
+  if (!classroom?.neisOfficeCode || !classroom.neisSchoolCode || !classroom.neisSchoolName) {
+    return null;
+  }
+
+  return {
+    officeCode: classroom.neisOfficeCode,
+    officeName: classroom.neisOfficeName ?? "",
+    schoolCode: classroom.neisSchoolCode,
+    schoolName: classroom.neisSchoolName,
+    schoolLevel: classroom.neisSchoolLevel,
+    address: classroom.neisSchoolAddress,
+    homepage: classroom.neisSchoolHomepage,
+  };
+}
+
 export default function TeacherClassroomDetailPage() {
   const params = useParams<{ id: string }>();
   const classroomId = Number(params.id);
@@ -79,11 +103,14 @@ export default function TeacherClassroomDetailPage() {
   const [classroomLoginPassword, setClassroomLoginPassword] = useState("");
   const [bulkRows, setBulkRows] = useState<BulkStudentRow[]>([createEmptyBulkRow()]);
   const [message, setMessage] = useState("");
+  const [schoolMessage, setSchoolMessage] = useState("");
   const [bulkMessage, setBulkMessage] = useState("");
   const [error, setError] = useState("");
+  const [schoolError, setSchoolError] = useState("");
   const [bulkError, setBulkError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUpdatingSchool, setIsUpdatingSchool] = useState(false);
   const [isBulkSaving, setIsBulkSaving] = useState(false);
   const [issuedLoginPasswords, setIssuedLoginPasswords] = useState<Record<number, string>>({});
   const [reissuingStudentId, setReissuingStudentId] = useState<number | null>(null);
@@ -329,6 +356,39 @@ export default function TeacherClassroomDetailPage() {
     }
   }
 
+  async function handleUpdateSchool(school: NeisSchool | null) {
+    setSchoolMessage("");
+    setSchoolError("");
+    setIsUpdatingSchool(true);
+
+    try {
+      const updatedClassroom = await apiFetch<Classroom>(`/api/classrooms/${classroomId}`, {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ neisSchool: school }),
+      });
+
+      setClassrooms((currentClassrooms) =>
+        currentClassrooms.map((currentClassroom) =>
+          currentClassroom.id === updatedClassroom.id ? updatedClassroom : currentClassroom,
+        ),
+      );
+      setSchoolMessage(
+        school
+          ? `${school.schoolName} 학교를 이 학급에 연결했어요.`
+          : "이 학급의 학교 연결을 해제했어요.",
+      );
+    } catch (updateError) {
+      setSchoolError(
+        updateError instanceof Error
+          ? updateError.message
+          : "학교 연결을 변경하지 못했습니다.",
+      );
+    } finally {
+      setIsUpdatingSchool(false);
+    }
+  }
+
   function handlePrintRoster() {
     document.body.setAttribute("data-print-mode", "roster");
     window.print();
@@ -410,6 +470,26 @@ export default function TeacherClassroomDetailPage() {
       </section>
 
       <section className="grid gap-6 px-8 pb-10 pt-7">
+        <section className="rounded-xl border border-teacher-accent/20 bg-paper-surface p-5 shadow-sm">
+          <NeisSchoolPicker
+            disabled={isUpdatingSchool || !classroom}
+            onClear={() => handleUpdateSchool(null)}
+            onSelect={(school) => handleUpdateSchool(school)}
+            selectedSchool={getNeisSchoolFromClassroom(classroom)}
+            token={token}
+          />
+          {schoolMessage ? (
+            <div className="mt-4">
+              <NoticeBanner tone="success" title="학교 연결 저장" description={schoolMessage} />
+            </div>
+          ) : null}
+          {schoolError ? (
+            <div className="mt-4">
+              <NoticeBanner tone="error" title="학교 연결 실패" description={schoolError} />
+            </div>
+          ) : null}
+        </section>
+
         <div className="grid gap-6 xl:grid-cols-2">
           <section className="h-fit rounded-xl border border-teacher-accent/20 bg-paper-surface p-5 shadow-sm">
             <div className="mb-4 h-1.5 rounded-full bg-teacher-accent/70" />

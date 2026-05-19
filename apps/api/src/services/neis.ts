@@ -47,8 +47,18 @@ export class NeisConfigurationError extends Error {
 }
 
 export class NeisApiError extends Error {
-  constructor(message: string) {
+  code?: string;
+  serviceName?: string;
+  statusCode?: number;
+
+  constructor(
+    message: string,
+    options: { code?: string; serviceName?: string; statusCode?: number } = {},
+  ) {
     super(message);
+    this.code = options.code;
+    this.serviceName = options.serviceName;
+    this.statusCode = options.statusCode;
   }
 }
 
@@ -75,23 +85,36 @@ function normalizeEventContent(value: string) {
   return value.replace(/\r\n/g, "\n").replace(/\s+/g, " ").trim();
 }
 
+function getNeisResult(record: Record<string, unknown>) {
+  const result = asRecord(record.RESULT);
+
+  if (!result) {
+    return null;
+  }
+
+  const code = readString(result, "CODE");
+  const message = readString(result, "MESSAGE") || "NEIS request failed";
+
+  return { code, message };
+}
+
 function getNeisRows(payload: unknown, serviceName: string) {
   const root = asRecord(payload);
 
   if (!root) {
-    throw new NeisApiError("Invalid NEIS response");
+    throw new NeisApiError("Invalid NEIS response", { serviceName });
   }
 
-  const directResult = asRecord(root.RESULT);
+  const directResult = getNeisResult(root);
   if (directResult) {
-    const code = readString(directResult, "CODE");
-    const message = readString(directResult, "MESSAGE") || "NEIS request failed";
-
-    if (code === "INFO-200") {
+    if (directResult.code === "INFO-200") {
       return [];
     }
 
-    throw new NeisApiError(message);
+    throw new NeisApiError(directResult.message, {
+      code: directResult.code,
+      serviceName,
+    });
   }
 
   const servicePayload = root[serviceName];
@@ -102,6 +125,28 @@ function getNeisRows(payload: unknown, serviceName: string) {
 
   for (const part of servicePayload) {
     const record = asRecord(part);
+    const head = record?.head;
+
+    if (Array.isArray(head)) {
+      for (const headPart of head) {
+        const headRecord = asRecord(headPart);
+        const headResult = headRecord ? getNeisResult(headRecord) : null;
+
+        if (!headResult || headResult.code === "INFO-000") {
+          continue;
+        }
+
+        if (headResult.code === "INFO-200") {
+          return [];
+        }
+
+        throw new NeisApiError(headResult.message, {
+          code: headResult.code,
+          serviceName,
+        });
+      }
+    }
+
     const rows = record?.row;
 
     if (Array.isArray(rows)) {
@@ -132,14 +177,23 @@ async function requestNeis(serviceName: string, params: NeisRequestParams) {
     }
   }
 
-  const response = await fetch(url);
+  let response: Response;
+
+  try {
+    response = await fetch(url);
+  } catch {
+    throw new NeisApiError("NEIS network request failed", { serviceName });
+  }
 
   if (!response.ok) {
-    throw new NeisApiError(`NEIS request failed with status ${response.status}`);
+    throw new NeisApiError(`NEIS request failed with status ${response.status}`, {
+      serviceName,
+      statusCode: response.status,
+    });
   }
 
   const payload = await response.json().catch(() => {
-    throw new NeisApiError("Invalid NEIS JSON response");
+    throw new NeisApiError("Invalid NEIS JSON response", { serviceName });
   });
 
   return getNeisRows(payload, serviceName);

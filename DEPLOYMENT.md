@@ -71,6 +71,10 @@ Set these on the Railway API service. Use real values in Railway, not the exampl
 | `GOOGLE_APPLICATION_CREDENTIALS_BASE64` | Recommended on Railway | Base64-encoded service account JSON. The API restores it to a temp file at startup and sets `GOOGLE_APPLICATION_CREDENTIALS`. Do not commit or log this value. |
 | `NEIS_API_KEY` | Required for NEIS public data features | NEIS Open API key used only by the Railway API for school search and academic schedule lookup. Do not set this in Vercel. The API can start without it, but NEIS lookup endpoints return a clear JSON error. |
 | `PUBLIC_DATA_TIMEOUT_MS` | Optional | NEIS public-data request timeout. Defaults to `8000`. Topic suggestions continue without NEIS context when this times out. |
+| `PUBLIC_DATA_API_KEY` | Optional | Shared fallback key for public-data APIs that use the public data portal service key format. Keep it on Railway API only, never Vercel. Source-specific keys below take precedence. |
+| `KASI_SPECIAL_DAY_API_KEY` | Optional | Korea Astronomy and Space Science Institute special-day/solar-term API key. If missing, only this context is skipped. |
+| `KMA_FORECAST_API_KEY` | Optional | Korea Meteorological Administration short-term forecast API key. If missing, only weather context is skipped. |
+| `AIRKOREA_API_KEY` | Optional | AirKorea air-quality API key. If missing, only air-quality context is skipped. |
 | `BULK_FEEDBACK_CHUNK_SIZE` | Optional | Defaults to 5 and is capped at 8. Smaller values reduce per-request blast radius; larger values reduce AI call count. |
 
 The API fails fast in `NODE_ENV=production` or Railway runtime if required
@@ -200,6 +204,7 @@ Railway API service values:
 | Google credential env | `GOOGLE_APPLICATION_CREDENTIALS_BASE64=<base64 service account JSON>` |
 | Topic suggestion model env | `GEMINI_TOPIC_MODEL=gemini-3.5-flash` to test Gemini 3.5 Flash, or omit it to use the default safe model |
 | NEIS public data env | `NEIS_API_KEY=<NEIS Open API key>` |
+| Optional public data env | `KASI_SPECIAL_DAY_API_KEY`, `KMA_FORECAST_API_KEY`, `AIRKOREA_API_KEY`, or fallback `PUBLIC_DATA_API_KEY` on the Railway API service only |
 | Production migration | `npm run prisma:deploy --workspace @writing-feedback/api` |
 
 Vercel web project values:
@@ -333,6 +338,13 @@ AI/OCR cost control already in code:
 - AI and OCR calls are server-side only.
 - NEIS Open API calls are server-side only. The web app never receives
   `NEIS_API_KEY`.
+- Special-day, weather, and air-quality public-data calls are server-side only.
+  The web app never receives `KASI_SPECIAL_DAY_API_KEY`,
+  `KMA_FORECAST_API_KEY`, `AIRKOREA_API_KEY`, or `PUBLIC_DATA_API_KEY`.
+- Public-data topic context is cached in memory per API instance. Current MVP
+  TTLs are roughly 3 days for special days, 2 hours for weather, and 45 minutes
+  for air quality. This is enough for a single Railway API instance; use Redis
+  or another shared cache before scaling to multiple replicas.
 - Topic generation and feedback draft endpoints require teacher auth.
 - Upload requires student auth and has a file size limit.
 - AI endpoints now have lightweight per-teacher rate limits.

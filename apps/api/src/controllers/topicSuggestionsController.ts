@@ -1,32 +1,8 @@
-﻿import { Response } from "express";
-import { generateTopicSuggestions, type TopicSuggestionInput } from "../services/topicSuggestion";
-import {
-  fetchNeisSchedules,
-  getNeisSchoolFromClassroom,
-  NeisApiError,
-  NeisConfigurationError,
-} from "../services/neis";
+import { Response } from "express";
+import { buildTopicPublicDataContext } from "../services/publicDataContext";
 import { prisma } from "../services/prisma";
+import { generateTopicSuggestions, type TopicSuggestionInput } from "../services/topicSuggestion";
 import { AuthRequest } from "../types";
-
-function getNeisSkipLogDetails(error: unknown) {
-  if (error instanceof NeisConfigurationError) {
-    return "source=NEIS timeout=false code=missing_key";
-  }
-
-  if (error instanceof NeisApiError) {
-    return [
-      `source=${error.serviceName ?? "NEIS"}`,
-      `timeout=${Boolean(error.timedOut)}`,
-      `code=${error.code ?? "none"}`,
-      error.statusCode ? `status=${error.statusCode}` : "",
-    ]
-      .filter(Boolean)
-      .join(" ");
-  }
-
-  return "source=NEIS timeout=false code=unexpected";
-}
 
 export async function generateTopics(req: AuthRequest, res: Response) {
   const grade = Number(req.body?.grade);
@@ -53,25 +29,10 @@ export async function generateTopics(req: AuthRequest, res: Response) {
   }
 
   try {
-    let schoolContext:
-      | {
-          schoolName: string;
-          officeName?: string;
-          scheduleSummaryForAi: string;
-        }
-      | undefined;
-    let publicData:
-      | {
-          schoolContextUsed: boolean;
-          schoolName?: string;
-          scheduleCount?: number;
-          warning?: string;
-          reason?: string;
-        }
-      | undefined;
+    let classroom: Awaited<ReturnType<typeof prisma.classroom.findFirst>> | null | undefined;
 
     if (requestedClassroomId && req.user?.userId) {
-      const classroom = await prisma.classroom.findFirst({
+      classroom = await prisma.classroom.findFirst({
         where: {
           id: requestedClassroomId,
           teacherId: req.user.userId,
@@ -81,60 +42,29 @@ export async function generateTopics(req: AuthRequest, res: Response) {
       if (!classroom) {
         return res.status(404).json({ message: "Classroom not found" });
       }
-
-      const school = getNeisSchoolFromClassroom(classroom);
-
-      if (school) {
-        try {
-          const scheduleContext = await fetchNeisSchedules(school, { grade });
-          schoolContext = {
-            schoolName: school.schoolName,
-            officeName: school.officeName,
-            scheduleSummaryForAi: scheduleContext.summaryForAi,
-          };
-          publicData = {
-            schoolContextUsed: true,
-            schoolName: school.schoolName,
-            scheduleCount: scheduleContext.schedules.length,
-          };
-        } catch (schoolContextError) {
-          const warning =
-            schoolContextError instanceof NeisConfigurationError
-              ? "NEIS_API_KEY is not configured"
-              : "NEIS schedule lookup failed";
-
-          console.warn(
-            `[topics.generate] NEIS context skipped teacherId=${req.user.userId} classroomId=${requestedClassroomId} reason=${warning} ${getNeisSkipLogDetails(
-              schoolContextError,
-            )}`,
-          );
-          publicData = {
-            schoolContextUsed: false,
-            schoolName: school.schoolName,
-            warning,
-          };
-        }
-      } else {
-        publicData = {
-          schoolContextUsed: false,
-          reason: "NO_CONNECTED_SCHOOL",
-        };
-      }
     }
+
+    const publicDataContext = await buildTopicPublicDataContext({
+      classroom,
+      grade,
+      teacherId: req.user?.userId,
+    });
 
     console.info(
       `[topics.generate] teacherId=${req.user?.userId ?? "unknown"} grade=${grade} classroomId=${
         requestedClassroomId ?? "none"
-      } publicData=${Boolean(schoolContext)} refinement=${Boolean(
+      } publicData=${publicDataContext.response.contextUsed} refinement=${Boolean(
         teacherFeedback,
       )}`,
     );
+
     const topics = await generateTopicSuggestions(grade, {
       teacherFeedback,
       previousSuggestions,
-      schoolContext,
+      schoolContext: publicDataContext.schoolContext,
     });
-    return res.json({ topics, publicData });
+
+    return res.json({ topics, publicData: publicDataContext.response });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error(

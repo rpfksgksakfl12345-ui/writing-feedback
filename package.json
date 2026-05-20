@@ -16,7 +16,8 @@
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f postgres",
     "db:migrate": "npm run prisma:migrate --workspace @writing-feedback/api",
-    "db:seed": "npm run prisma:seed --workspace @writing-feedback/api"
+    "db:seed": "npm run prisma:seed --workspace @writing-feedback/api",
+    "load:test": "node scripts/load-test.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

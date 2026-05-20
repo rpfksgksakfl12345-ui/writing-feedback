@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-const MODEL_NAME = "gemini-3.1-flash-lite-preview";
+const DEFAULT_TOPIC_MODEL_NAME = "gemini-3.1-flash-lite-preview";
 const TOPIC_COUNT = 10;
 const KOREA_TIME_ZONE = "Asia/Seoul";
 const GENERIC_TITLE_TERMS = new Set([
@@ -44,6 +44,11 @@ type TopicSuggestionOptions = {
 };
 
 let client: GoogleGenAI | null = null;
+let loggedTopicModel = false;
+
+function getTopicModelName() {
+  return process.env.GEMINI_TOPIC_MODEL?.trim() || DEFAULT_TOPIC_MODEL_NAME;
+}
 
 function getClient() {
   if (client) {
@@ -520,14 +525,20 @@ function buildPrompt(grade: number, retryHint?: string, options: TopicSuggestion
 
 export async function generateTopicSuggestions(grade: number, options: TopicSuggestionOptions = {}) {
   const ai = getClient();
+  const modelName = getTopicModelName();
   const retryHints = [
     undefined,
     `The previous response was unusable. Return ${TOPIC_COUNT} distinct, concrete topics with studentGuide values. Avoid one-event lists, repeated title patterns, near-duplicate meanings, and abstract themes.`,
   ];
 
+  if (!loggedTopicModel) {
+    console.info(`[topicSuggestion] using model=${modelName}`);
+    loggedTopicModel = true;
+  }
+
   for (const retryHint of retryHints) {
     const response = await ai.models.generateContent({
-      model: MODEL_NAME,
+      model: modelName,
       contents: buildPrompt(grade, retryHint, options),
       config: {
         temperature: 0.4,

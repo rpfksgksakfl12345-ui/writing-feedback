@@ -61,6 +61,7 @@ Set these on the Railway API service. Use real values in Railway, not the exampl
 | `GOOGLE_CLOUD_PROJECT` | Yes | Vertex AI project. |
 | `GOOGLE_CLOUD_LOCATION` | Yes | Vertex AI location. |
 | `GOOGLE_GENAI_USE_VERTEXAI` | Yes | Must be `true`. |
+| `GEMINI_TOPIC_MODEL` | Optional | Topic-suggestion Gemini model. Defaults to the current safe model `gemini-3.1-flash-lite-preview`. To test Gemini 3.5 Flash for topic suggestions only, set `GEMINI_TOPIC_MODEL=gemini-3.5-flash` on the Railway API service and redeploy. |
 | `GOOGLE_CLOUD_DOCUMENTAI_PROJECT` | Yes | Document AI project. |
 | `GOOGLE_CLOUD_DOCUMENTAI_LOCATION` | Yes | Document AI location. |
 | `GOOGLE_CLOUD_DOCUMENTAI_PROCESSOR_ID` | Yes | Document AI processor ID. |
@@ -194,6 +195,7 @@ Railway API service values:
 | Volume mount path | `/data` |
 | Upload env | `UPLOADS_DIR=/data/uploads` |
 | Google credential env | `GOOGLE_APPLICATION_CREDENTIALS_BASE64=<base64 service account JSON>` |
+| Topic suggestion model env | `GEMINI_TOPIC_MODEL=gemini-3.5-flash` to test Gemini 3.5 Flash, or omit it to use the default safe model |
 | NEIS public data env | `NEIS_API_KEY=<NEIS Open API key>` |
 | Production migration | `npm run prisma:deploy --workspace @writing-feedback/api` |
 

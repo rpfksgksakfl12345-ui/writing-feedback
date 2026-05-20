@@ -44,6 +44,43 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+function isGuideHeading(value: string) {
+  return /^(생각해 볼 질문|첫 문장 힌트)\s*:/u.test(value.trim());
+}
+
+function TopicGuide({ text }: { text: string }) {
+  const lines = text
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .filter((line) => line.trim());
+
+  if (lines.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 max-w-3xl rounded-lg border border-paper-surface/20 bg-paper-surface/10 px-4 py-3 text-sm leading-6 text-paper-surface shadow-sm">
+      {lines.map((line, index) => {
+        const trimmed = line.trim();
+        const isHeading = isGuideHeading(trimmed);
+
+        return (
+          <p
+            className={cx(
+              index > 0 && "mt-1.5",
+              isHeading ? "font-semibold opacity-100" : "opacity-90",
+            )}
+            key={`${trimmed}-${index}`}
+          >
+            {trimmed}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 function formatTopicDate(createdAt?: string) {
   if (!createdAt) {
     return "오늘";
@@ -492,12 +529,20 @@ function StudentUploadContent() {
                 {selectedTopic?.title ?? "글쓰기 주제를 고르는 중입니다"}
               </h1>
             </div>
-            <p className="mt-3 max-w-3xl text-sm leading-6 opacity-90">
+            <p
+              className={cx(
+                "mt-3 max-w-3xl text-sm leading-6 opacity-90",
+                selectedTopic?.description && !selectedSubmission && "hidden",
+              )}
+            >
               {selectedSubmission
                 ? "이미 제출한 주제입니다. 내가 쓴 공책과 선생님 피드백을 한 화면에서 확인합니다."
                 : selectedTopic?.description ||
                   "책장에서 고른 주제로 바로 글을 쓰거나, 공책에 쓴 글을 사진으로 제출할 수 있습니다."}
             </p>
+            {!selectedSubmission && selectedTopic?.description ? (
+              <TopicGuide text={selectedTopic.description} />
+            ) : null}
           </div>
 
           <div className="flex flex-col items-start gap-2 xl:items-end">

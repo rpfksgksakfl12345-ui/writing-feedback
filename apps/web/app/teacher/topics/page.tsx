@@ -98,6 +98,53 @@ function normalizeTopicSuggestions(values: Array<string | Partial<TopicSuggestio
     .filter((suggestion): suggestion is TopicSuggestion => Boolean(suggestion));
 }
 
+function isGuideHeading(value: string) {
+  return /^(생각해 볼 질문|첫 문장 힌트)\s*:/u.test(value.trim());
+}
+
+function GuideScaffoldText({
+  text,
+  compact = false,
+}: {
+  text: string | null | undefined;
+  compact?: boolean;
+}) {
+  const lines =
+    text
+      ?.replace(/\r\n/g, "\n")
+      .split("\n")
+      .map((line) => line.trimEnd()) ?? [];
+  const visibleLines = lines.filter((line) => line.trim());
+
+  if (visibleLines.length === 0) {
+    return null;
+  }
+
+  return (
+    <div
+      className={`kr-keep whitespace-pre-line text-sm leading-6 ${
+        compact ? "mt-2 max-h-40 overflow-hidden text-ink-500" : "text-ink-700"
+      }`}
+    >
+      {visibleLines.map((line, index) => {
+        const trimmed = line.trim();
+        const isHeading = isGuideHeading(trimmed);
+
+        return (
+          <p
+            className={`${index > 0 ? "mt-1.5" : ""} ${
+              isHeading ? "font-semibold text-ink-800" : ""
+            }`}
+            key={`${trimmed}-${index}`}
+          >
+            {trimmed}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 const recommendationTiltClasses = [
   "-rotate-[0.8deg]",
   "rotate-[0.5deg]",
@@ -606,9 +653,7 @@ export default function TeacherTopicsPage() {
                               {suggestion.title}
                             </span>
                             {suggestion.studentGuide ? (
-                              <span className="kr-keep mt-1 block text-xs leading-5 text-ink-500">
-                                {suggestion.studentGuide}
-                              </span>
+                              <GuideScaffoldText compact text={suggestion.studentGuide} />
                             ) : null}
                           </span>
                         </div>
@@ -693,11 +738,11 @@ export default function TeacherTopicsPage() {
               <label className="block text-sm font-semibold text-ink-700">
                 학생에게 보여 줄 안내
                 <textarea
-                  className="mt-2 min-h-[132px] rounded-md border-ink-100 bg-paper-surface text-sm leading-7 text-ink-900 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20"
+                  className="mt-2 min-h-[220px] rounded-md border-ink-100 bg-paper-surface text-sm leading-7 text-ink-900 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20"
                   placeholder="학생에게 보여 줄 간단한 안내를 적어 주세요."
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
-                  rows={4}
+                  rows={8}
                 />
               </label>
 
@@ -817,9 +862,11 @@ export default function TeacherTopicsPage() {
                         </h3>
                       </div>
                     </div>
-                    <p className="kr-keep mt-3 text-sm leading-6 text-ink-700">
-                      {topic.description || "설명 없음"}
-                    </p>
+                    {topic.description ? (
+                      <GuideScaffoldText compact text={topic.description} />
+                    ) : (
+                      <p className="kr-keep mt-3 text-sm leading-6 text-ink-700">설명 없음</p>
+                    )}
                   </article>
                 ))
               : null}

@@ -407,7 +407,8 @@ function getGradeGuidance(grade: number) {
       "Use very concrete topics students can answer from one memory, one object, one person, one place, or one feeling.",
       "Focus on experience, observation, feelings, gratitude, favorite things, promises, and short description.",
       "Prefer daily routines, visible details, simple choices, thankful moments, favorite things, and small classroom experiences.",
-      "A good studentGuide should help them start with sentences like '나는...', '오늘...', '내가 본 것은...'.",
+      "A good studentGuide should use 2 or 3 very easy guiding questions and a short starter sentence students can copy or adapt.",
+      "Good starter sentence patterns include '나는...', '오늘...', '내가 본 것은...', '내 마음은...'.",
       "Use very easy Korean in studentGuide. Avoid hard words, long clauses, explanation-heavy tasks, debate-style prompts, social issues, and heavy reflection.",
     ];
   }
@@ -417,7 +418,7 @@ function getGradeGuidance(grade: number) {
       "Use concrete school-life and everyday-life topics with room for one or two reasons.",
       "Focus on experience plus thought: reasons, simple comparison, memory, small opinion, lesson learned, and practical explanation.",
       "Let students connect an event, season, friendship, class rule, or classroom observation with why they felt or thought that way.",
-      "A good studentGuide should invite students to write what happened, why they felt that way, and one thought they want to add.",
+      "A good studentGuide should use 3 or 4 guiding questions that help students write what happened, why they felt that way, and one thought they want to add.",
       "Avoid topics that feel adult, technical, socially complex, or too broad for a short classroom writing activity.",
     ];
   }
@@ -426,8 +427,41 @@ function getGradeGuidance(grade: number) {
     "Allow simple perspective-taking, reasons, evidence, problem solving, community awareness, environmental reflection, and self-reflection.",
     "Keep every topic grounded in elementary students' own school life, friendship, reading, hobbies, community, nature, and everyday observations.",
     "Let students start from their own experience and then widen the thought to a class, school, community, environment, or growth perspective.",
-    "A good studentGuide should ask for a clear opinion or reflection plus one concrete example from life or school.",
+    "A good studentGuide should use 4 or 5 guiding questions that ask for a clear opinion or reflection plus one concrete example from life or school.",
     "Avoid abstract philosophy, political controversy, adult-level social analysis, gloomy moralizing, or topics that require private family details.",
+  ];
+}
+
+function getScaffoldGuidance(grade: number) {
+  if (grade <= 2) {
+    return [
+      "studentGuide scaffolding for grade 1-2:",
+      "- Write in Korean with very short and easy sentences.",
+      "- Include a one-sentence topic explanation that says what students can write about.",
+      "- Include 2 or 3 open guiding questions. Focus on experience, observation, feeling, favorite things, gratitude, or one visible detail.",
+      "- Include one short first-sentence hint that is easy to copy or change.",
+      "- Keep the whole studentGuide supportive, light, and not overwhelming.",
+    ];
+  }
+
+  if (grade <= 4) {
+    return [
+      "studentGuide scaffolding for grade 3-4:",
+      "- Write in Korean with clear classroom language.",
+      "- Include a topic explanation that connects experience and thought.",
+      "- Include 3 or 4 open guiding questions. You may ask why the student felt that way, what was similar or different, or what detail they remember.",
+      "- Include one first-sentence hint that helps students begin from a concrete moment.",
+      "- Help students naturally move from what happened to what they thought.",
+    ];
+  }
+
+  return [
+    "studentGuide scaffolding for grade 5-6:",
+    "- Write in Korean with clear but not adult-like language.",
+    "- Include a topic explanation that invites experience, evidence, reflection, community, or a small solution.",
+    "- Include 4 or 5 open guiding questions. You may ask for a reason, example, evidence, reflection, or a small action the class or school could try.",
+    "- Include one first-sentence hint that gives a concrete starting point.",
+    "- Do not turn the guide into an abstract essay assignment or heavy debate prompt.",
   ];
 }
 
@@ -485,20 +519,21 @@ function buildPrompt(grade: number, retryHint?: string, options: TopicSuggestion
 
   return [
     "You are helping an elementary school teacher in Korea prepare classroom writing topics.",
-    `Suggest exactly ${TOPIC_COUNT} Korean writing topic titles for grade ${grade} students, with one short student-facing guide sentence for each title.`,
+    `Suggest exactly ${TOPIC_COUNT} Korean writing topic titles for grade ${grade} students, with one student-facing scaffold guide for each title.`,
     `Current Korea classroom context: month ${seasonContext.month}, ${seasonContext.season}, ${seasonContext.schoolPeriod}.`,
     `Seasonal and school-life hints you may use when natural: ${seasonContext.eventHints.join(", ")}.`,
     schoolContext,
     ...getRecommendationBasketGuidance(hasPublicDataContext),
     "Grade guidance:",
     ...gradeGuidance.map((line) => `- ${line}`),
+    ...getScaffoldGuidance(grade),
     ...getPatternDiversityGuidance(),
     ...getPublicDataFitGuidance(),
     "Quality rules:",
     "- Every topic must feel realistic for an elementary Korean classroom writing activity.",
     "- Prefer specific, practical, easy-to-start prompts rather than broad themes.",
     "- Each topic must be meaningfully different from the others.",
-    "- Keep topics suitable for short writing around 300 characters or less.",
+    "- Keep topic titles suitable for short writing around 300 characters or less.",
     "- Favor experiences, observations, feelings, school life, friendship, reading, hobbies, seasons, community, nature, and familiar events.",
     "- If NEIS schedule context is available, convert useful events into writing opportunities; do not simply use the event name as the title.",
     "- Do not let public data dominate the whole result. Even with strong NEIS context, keep roughly half or more of the 10 suggestions as varied grade-level and seasonal writing topics.",
@@ -509,8 +544,14 @@ function buildPrompt(grade: number, retryHint?: string, options: TopicSuggestion
     "- Avoid asking for private family circumstances, money, health, religion, conflict, or other sensitive personal details.",
     "- Avoid vague titles such as '나의 생각', '학교생활', '환경 문제' unless made concrete and easy to begin.",
     "- Write each title in Korean as a short, clear prompt a teacher could choose immediately.",
-    "- For each studentGuide, write one warm Korean sentence or two that tells students exactly what to write first, then what thought or detail to add.",
-    "- Do not include teacher-only explanations, metadata, markdown, numbering, or fields other than title and studentGuide.",
+    "- For each studentGuide, write a student-facing scaffold, not just one short sentence.",
+    "- The studentGuide must include: a topic explanation, '생각해 볼 질문:' with open guiding questions, and '첫 문장 힌트:' with one starter sentence.",
+    "- Use this natural structure inside studentGuide: first a short explanation sentence, then a blank line, then '생각해 볼 질문:' with numbered questions, then a blank line, then '첫 문장 힌트:' with one quoted starter sentence.",
+    "- Guiding questions must open thinking, not demand one correct answer.",
+    "- Do not use the exact same question set or first-sentence pattern for every topic. Adapt the guide to the title, grade, and topic type.",
+    "- Avoid assuming family structure, home resources, travel, health status, religion, political opinion, or private circumstances.",
+    "- Prefer open wording such as '기억에 남은 소중한 순간' instead of family-assuming wording such as '가족과 함께한 날'.",
+    "- Do not include teacher-only explanations, metadata, markdown headings, bullets, or fields other than title and studentGuide.",
     isRefinement
       ? [
           "Refinement mode:",
@@ -528,7 +569,8 @@ function buildPrompt(grade: number, retryHint?: string, options: TopicSuggestion
           .filter(Boolean)
           .join("\n")
       : "",
-    '- Return JSON only in this exact format: {"topics":[{"title":"...","studentGuide":"..."},{"title":"...","studentGuide":"..."}]}',
+    'Example studentGuide shape, adapt naturally and do not copy mechanically: "이 주제는 학교에서 본 장면을 떠올리며 내 경험과 생각을 써 보는 글이에요.\\n\\n생각해 볼 질문:\\n1. 어떤 장면이 가장 먼저 떠오르나요?\\n2. 그때 무엇을 보거나 들었나요?\\n3. 그 장면을 보며 어떤 마음이 들었나요?\\n\\n첫 문장 힌트:\\n\\"내가 떠올린 순간은...\\""',
+    '- Return JSON only in this exact format: {"topics":[{"title":"...","studentGuide":"..."}]}',
     retryHint ? `Retry instruction: ${retryHint}` : "",
   ]
     .filter(Boolean)
@@ -540,7 +582,7 @@ export async function generateTopicSuggestions(grade: number, options: TopicSugg
   const modelName = getTopicModelName();
   const retryHints = [
     undefined,
-    `The previous response was unusable. Return ${TOPIC_COUNT} distinct, concrete topics with studentGuide values. Avoid one-event lists, repeated title patterns, near-duplicate meanings, and abstract themes.`,
+    `The previous response was unusable. Return ${TOPIC_COUNT} distinct, concrete topics. Every studentGuide must include a topic explanation, '생각해 볼 질문:' with grade-appropriate guiding questions, and '첫 문장 힌트:' with one starter sentence. Avoid one-event lists, repeated title patterns, near-duplicate meanings, and abstract themes.`,
   ];
 
   if (!loggedTopicModel) {

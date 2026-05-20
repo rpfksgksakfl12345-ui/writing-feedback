@@ -1,6 +1,9 @@
 ﻿import { GoogleGenAI } from "@google/genai";
 
+import { readTimeoutMs, withTimeout } from "../utils/timeout";
+
 const MODEL_NAME = "gemini-3.1-flash-lite-preview";
+const DEFAULT_AI_REQUEST_TIMEOUT_MS = 45_000;
 const DEFAULT_BULK_FEEDBACK_CHUNK_SIZE = 5;
 const MAX_BULK_FEEDBACK_CHUNK_SIZE = 8;
 
@@ -45,6 +48,10 @@ function getClient() {
   });
 
   return client;
+}
+
+function getAiRequestTimeoutMs() {
+  return readTimeoutMs("AI_REQUEST_TIMEOUT_MS", DEFAULT_AI_REQUEST_TIMEOUT_MS);
 }
 
 function normalizeDraftFields(parsed: Partial<FeedbackDraftResponse>) {
@@ -237,36 +244,40 @@ export async function generateFeedbackDraft(params: {
     '- Return JSON only in this exact format: {"strengths":["..."],"improvements":["..."],"overall":"..."}',
   ].join("\n");
 
-  const response = await ai.models.generateContent({
-    model: MODEL_NAME,
-    contents: prompt,
-    config: {
-      temperature: 0.4,
-      responseMimeType: "application/json",
-      responseJsonSchema: {
-        type: "object",
-        additionalProperties: false,
-        required: ["strengths", "improvements", "overall"],
-        properties: {
-          strengths: {
-            type: "array",
-            minItems: 1,
-            maxItems: 2,
-            items: { type: "string" },
-          },
-          improvements: {
-            type: "array",
-            minItems: 1,
-            maxItems: 2,
-            items: { type: "string" },
-          },
-          overall: {
-            type: "string",
+  const response = await withTimeout(
+    ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: prompt,
+      config: {
+        temperature: 0.4,
+        responseMimeType: "application/json",
+        responseJsonSchema: {
+          type: "object",
+          additionalProperties: false,
+          required: ["strengths", "improvements", "overall"],
+          properties: {
+            strengths: {
+              type: "array",
+              minItems: 1,
+              maxItems: 2,
+              items: { type: "string" },
+            },
+            improvements: {
+              type: "array",
+              minItems: 1,
+              maxItems: 2,
+              items: { type: "string" },
+            },
+            overall: {
+              type: "string",
+            },
           },
         },
       },
-    },
-  });
+    }),
+    "Gemini feedback draft",
+    getAiRequestTimeoutMs(),
+  );
 
   return parseDraft(response.text ?? "");
 }
@@ -349,51 +360,55 @@ export async function generateBulkFeedbackDrafts(params: {
     '- Return JSON only in this exact format: {"results":[{"submissionId":123,"strengths":["..."],"improvements":["..."],"overall":"..."}]}',
   ].join("\n");
 
-  const response = await ai.models.generateContent({
-    model: MODEL_NAME,
-    contents: prompt,
-    config: {
-      temperature: 0.35,
-      responseMimeType: "application/json",
-      responseJsonSchema: {
-        type: "object",
-        additionalProperties: false,
-        required: ["results"],
-        properties: {
-          results: {
-            type: "array",
-            minItems: params.submissions.length,
-            maxItems: params.submissions.length,
-            items: {
-              type: "object",
-              additionalProperties: false,
-              required: ["submissionId", "strengths", "improvements", "overall"],
-              properties: {
-                submissionId: {
-                  type: "integer",
-                },
-                strengths: {
-                  type: "array",
-                  minItems: 1,
-                  maxItems: 2,
-                  items: { type: "string" },
-                },
-                improvements: {
-                  type: "array",
-                  minItems: 1,
-                  maxItems: 2,
-                  items: { type: "string" },
-                },
-                overall: {
-                  type: "string",
+  const response = await withTimeout(
+    ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: prompt,
+      config: {
+        temperature: 0.35,
+        responseMimeType: "application/json",
+        responseJsonSchema: {
+          type: "object",
+          additionalProperties: false,
+          required: ["results"],
+          properties: {
+            results: {
+              type: "array",
+              minItems: params.submissions.length,
+              maxItems: params.submissions.length,
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["submissionId", "strengths", "improvements", "overall"],
+                properties: {
+                  submissionId: {
+                    type: "integer",
+                  },
+                  strengths: {
+                    type: "array",
+                    minItems: 1,
+                    maxItems: 2,
+                    items: { type: "string" },
+                  },
+                  improvements: {
+                    type: "array",
+                    minItems: 1,
+                    maxItems: 2,
+                    items: { type: "string" },
+                  },
+                  overall: {
+                    type: "string",
+                  },
                 },
               },
             },
           },
         },
       },
-    },
-  });
+    }),
+    "Gemini bulk feedback draft",
+    getAiRequestTimeoutMs(),
+  );
 
   return parseBulkDrafts(response.text ?? "");
 }

@@ -9,6 +9,7 @@ import { AuthRequest } from "../types";
 function getNeisErrorLogDetails(error: NeisApiError) {
   return [
     `service=${error.serviceName ?? "unknown"}`,
+    `timeout=${Boolean(error.timedOut)}`,
     error.code ? `code=${error.code}` : "",
     error.statusCode ? `status=${error.statusCode}` : "",
     `message=${error.message}`,

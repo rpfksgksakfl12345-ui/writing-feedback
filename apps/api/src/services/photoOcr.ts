@@ -2,9 +2,16 @@ import fs from "fs/promises";
 import { GoogleAuth } from "google-auth-library";
 import { OcrStatus } from "@prisma/client";
 import { prisma } from "./prisma";
+import {
+  isExternalRequestTimeoutError,
+  readTimeoutMs,
+  withAbortTimeout,
+  withTimeout,
+} from "../utils/timeout";
 
 const DOCUMENT_AI_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 const DOCUMENT_AI_BASE_URL = "https://documentai.googleapis.com/v1";
+const DEFAULT_OCR_REQUEST_TIMEOUT_MS = 60_000;
 
 type DocumentAiConfig = {
   project: string;
@@ -15,6 +22,14 @@ type DocumentAiConfig = {
 const auth = new GoogleAuth({
   scopes: [DOCUMENT_AI_SCOPE],
 });
+
+function getOcrRequestTimeoutMs() {
+  return readTimeoutMs("OCR_REQUEST_TIMEOUT_MS", DEFAULT_OCR_REQUEST_TIMEOUT_MS);
+}
+
+function getRemainingTimeoutMs(deadlineMs: number) {
+  return Math.max(1, deadlineMs - Date.now());
+}
 
 function normalizeExtractedText(rawText: string) {
   return rawText
@@ -93,9 +108,14 @@ async function parseProcessResponse(response: Response) {
 }
 
 async function extractTextFromImage(params: { imagePath: string; mimeType: string }) {
+  const timeoutDeadlineMs = Date.now() + getOcrRequestTimeoutMs();
   const config = getDocumentAiConfig();
   const imageBuffer = await fs.readFile(params.imagePath);
-  const accessToken = await getAccessToken();
+  const accessToken = await withTimeout(
+    getAccessToken(),
+    "Document AI auth",
+    getRemainingTimeoutMs(timeoutDeadlineMs),
+  );
   const processorName = [
     "projects",
     config.project,
@@ -105,22 +125,29 @@ async function extractTextFromImage(params: { imagePath: string; mimeType: strin
     config.processorId,
   ].join("/");
 
-  const response = await fetch(`${DOCUMENT_AI_BASE_URL}/${processorName}:process`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      rawDocument: {
-        content: imageBuffer.toString("base64"),
-        mimeType: params.mimeType,
-      },
-      skipHumanReview: true,
-    }),
-  });
+  return withAbortTimeout(
+    "Document AI OCR",
+    getRemainingTimeoutMs(timeoutDeadlineMs),
+    async (signal) => {
+      const response = await fetch(`${DOCUMENT_AI_BASE_URL}/${processorName}:process`, {
+        method: "POST",
+        signal,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rawDocument: {
+            content: imageBuffer.toString("base64"),
+            mimeType: params.mimeType,
+          },
+          skipHumanReview: true,
+        }),
+      });
 
-  return parseProcessResponse(response);
+      return parseProcessResponse(response);
+    },
+  );
 }
 
 export async function runSubmissionOcr(params: {
@@ -183,7 +210,11 @@ export async function runSubmissionOcr(params: {
       );
     }
 
-    console.error(`[ocr] failed submissionId=${params.submissionId} message=${ocrError}`);
+    console.error(
+      `[ocr] failed submissionId=${params.submissionId} timeout=${isExternalRequestTimeoutError(
+        error,
+      )} message=${ocrError}`,
+    );
     return { ok: false as const, error: ocrError };
   }
 }

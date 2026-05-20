@@ -62,12 +62,15 @@ Set these on the Railway API service. Use real values in Railway, not the exampl
 | `GOOGLE_CLOUD_LOCATION` | Yes | Vertex AI location. |
 | `GOOGLE_GENAI_USE_VERTEXAI` | Yes | Must be `true`. |
 | `GEMINI_TOPIC_MODEL` | Optional | Topic-suggestion Gemini model. Defaults to the current safe model `gemini-3.1-flash-lite-preview`. To test Gemini 3.5 Flash for topic suggestions only, set `GEMINI_TOPIC_MODEL=gemini-3.5-flash` on the Railway API service and redeploy. |
+| `AI_REQUEST_TIMEOUT_MS` | Optional | Gemini topic suggestion and feedback request wait timeout. Defaults to `45000`. SDK calls are not directly aborted, but the API stops waiting and returns the existing failure response. |
 | `GOOGLE_CLOUD_DOCUMENTAI_PROJECT` | Yes | Document AI project. |
 | `GOOGLE_CLOUD_DOCUMENTAI_LOCATION` | Yes | Document AI location. |
 | `GOOGLE_CLOUD_DOCUMENTAI_PROCESSOR_ID` | Yes | Document AI processor ID. |
+| `OCR_REQUEST_TIMEOUT_MS` | Optional | Document AI OCR timeout budget. Defaults to `60000`. OCR failures are saved on the submission instead of crashing the API. |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Alternative | Path to a Google credential JSON file available at runtime. Useful locally or on hosts where you can mount a file. |
 | `GOOGLE_APPLICATION_CREDENTIALS_BASE64` | Recommended on Railway | Base64-encoded service account JSON. The API restores it to a temp file at startup and sets `GOOGLE_APPLICATION_CREDENTIALS`. Do not commit or log this value. |
 | `NEIS_API_KEY` | Required for NEIS public data features | NEIS Open API key used only by the Railway API for school search and academic schedule lookup. Do not set this in Vercel. The API can start without it, but NEIS lookup endpoints return a clear JSON error. |
+| `PUBLIC_DATA_TIMEOUT_MS` | Optional | NEIS public-data request timeout. Defaults to `8000`. Topic suggestions continue without NEIS context when this times out. |
 | `BULK_FEEDBACK_CHUNK_SIZE` | Optional | Defaults to 5 and is capped at 8. Smaller values reduce per-request blast radius; larger values reduce AI call count. |
 
 The API fails fast in `NODE_ENV=production` or Railway runtime if required
@@ -333,6 +336,10 @@ AI/OCR cost control already in code:
 - Topic generation and feedback draft endpoints require teacher auth.
 - Upload requires student auth and has a file size limit.
 - AI endpoints now have lightweight per-teacher rate limits.
+- External calls have default timeout safeguards: NEIS public data 8 seconds,
+  Gemini AI requests 45 seconds, and Document AI OCR 60 seconds. These can be
+  tuned with optional timeout environment variables if classroom testing shows
+  the defaults are too short or too long.
 - Teacher bulk upload requires teacher auth, is button-triggered, and runs OCR
   once per selected student photo. It can increase Document AI cost in proportion
   to the number of photos.

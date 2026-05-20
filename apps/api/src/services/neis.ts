@@ -1,4 +1,11 @@
+import {
+  isExternalRequestTimeoutError,
+  readTimeoutMs,
+  withAbortTimeout,
+} from "../utils/timeout";
+
 const NEIS_BASE_URL = "https://open.neis.go.kr/hub";
+const DEFAULT_PUBLIC_DATA_TIMEOUT_MS = 8000;
 const KOREA_TIME_ZONE = "Asia/Seoul";
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_SCHEDULE_LOOKBACK_DAYS = 28;
@@ -124,20 +131,34 @@ export class NeisApiError extends Error {
   code?: string;
   serviceName?: string;
   statusCode?: number;
+  timedOut?: boolean;
+  timeoutMs?: number;
 
   constructor(
     message: string,
-    options: { code?: string; serviceName?: string; statusCode?: number } = {},
+    options: {
+      code?: string;
+      serviceName?: string;
+      statusCode?: number;
+      timedOut?: boolean;
+      timeoutMs?: number;
+    } = {},
   ) {
     super(message);
     this.code = options.code;
     this.serviceName = options.serviceName;
     this.statusCode = options.statusCode;
+    this.timedOut = options.timedOut;
+    this.timeoutMs = options.timeoutMs;
   }
 }
 
 function readEnv(name: string) {
   return process.env[name]?.trim() || "";
+}
+
+function getPublicDataTimeoutMs() {
+  return readTimeoutMs("PUBLIC_DATA_TIMEOUT_MS", DEFAULT_PUBLIC_DATA_TIMEOUT_MS);
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -251,26 +272,42 @@ async function requestNeis(serviceName: string, params: NeisRequestParams) {
     }
   }
 
-  let response: Response;
-
   try {
-    response = await fetch(url);
-  } catch {
+    const payload = await withAbortTimeout(
+      `NEIS ${serviceName}`,
+      getPublicDataTimeoutMs(),
+      async (signal) => {
+        const response = await fetch(url, { signal });
+
+        if (!response.ok) {
+          throw new NeisApiError(`NEIS request failed with status ${response.status}`, {
+            serviceName,
+            statusCode: response.status,
+          });
+        }
+
+        return response.json().catch(() => {
+          throw new NeisApiError("Invalid NEIS JSON response", { serviceName });
+        });
+      },
+    );
+
+    return getNeisRows(payload, serviceName);
+  } catch (error) {
+    if (isExternalRequestTimeoutError(error)) {
+      throw new NeisApiError("NEIS request timed out", {
+        serviceName,
+        timedOut: true,
+        timeoutMs: error.timeoutMs,
+      });
+    }
+
+    if (error instanceof NeisApiError) {
+      throw error;
+    }
+
     throw new NeisApiError("NEIS network request failed", { serviceName });
   }
-
-  if (!response.ok) {
-    throw new NeisApiError(`NEIS request failed with status ${response.status}`, {
-      serviceName,
-      statusCode: response.status,
-    });
-  }
-
-  const payload = await response.json().catch(() => {
-    throw new NeisApiError("Invalid NEIS JSON response", { serviceName });
-  });
-
-  return getNeisRows(payload, serviceName);
 }
 
 function normalizeSchool(row: Record<string, unknown>): NeisSchool | null {

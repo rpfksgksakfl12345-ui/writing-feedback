@@ -3,10 +3,30 @@ import { generateTopicSuggestions, type TopicSuggestionInput } from "../services
 import {
   fetchNeisSchedules,
   getNeisSchoolFromClassroom,
+  NeisApiError,
   NeisConfigurationError,
 } from "../services/neis";
 import { prisma } from "../services/prisma";
 import { AuthRequest } from "../types";
+
+function getNeisSkipLogDetails(error: unknown) {
+  if (error instanceof NeisConfigurationError) {
+    return "source=NEIS timeout=false code=missing_key";
+  }
+
+  if (error instanceof NeisApiError) {
+    return [
+      `source=${error.serviceName ?? "NEIS"}`,
+      `timeout=${Boolean(error.timedOut)}`,
+      `code=${error.code ?? "none"}`,
+      error.statusCode ? `status=${error.statusCode}` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  return "source=NEIS timeout=false code=unexpected";
+}
 
 export async function generateTopics(req: AuthRequest, res: Response) {
   const grade = Number(req.body?.grade);
@@ -84,7 +104,9 @@ export async function generateTopics(req: AuthRequest, res: Response) {
               : "NEIS schedule lookup failed";
 
           console.warn(
-            `[topics.generate] NEIS context skipped teacherId=${req.user.userId} classroomId=${requestedClassroomId} reason=${warning}`,
+            `[topics.generate] NEIS context skipped teacherId=${req.user.userId} classroomId=${requestedClassroomId} reason=${warning} ${getNeisSkipLogDetails(
+              schoolContextError,
+            )}`,
           );
           publicData = {
             schoolContextUsed: false,

@@ -1,6 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
+import { readTimeoutMs, withTimeout } from "../utils/timeout";
 
 const DEFAULT_TOPIC_MODEL_NAME = "gemini-3.1-flash-lite-preview";
+const DEFAULT_AI_REQUEST_TIMEOUT_MS = 45_000;
 const TOPIC_COUNT = 10;
 const KOREA_TIME_ZONE = "Asia/Seoul";
 const GENERIC_TITLE_TERMS = new Set([
@@ -48,6 +50,10 @@ let loggedTopicModel = false;
 
 function getTopicModelName() {
   return process.env.GEMINI_TOPIC_MODEL?.trim() || DEFAULT_TOPIC_MODEL_NAME;
+}
+
+function getAiRequestTimeoutMs() {
+  return readTimeoutMs("AI_REQUEST_TIMEOUT_MS", DEFAULT_AI_REQUEST_TIMEOUT_MS);
 }
 
 function getClient() {
@@ -537,39 +543,43 @@ export async function generateTopicSuggestions(grade: number, options: TopicSugg
   }
 
   for (const retryHint of retryHints) {
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: buildPrompt(grade, retryHint, options),
-      config: {
-        temperature: 0.4,
-        responseMimeType: "application/json",
-        responseJsonSchema: {
-          type: "object",
-          additionalProperties: false,
-          required: ["topics"],
-          properties: {
-            topics: {
-              type: "array",
-              minItems: TOPIC_COUNT,
-              maxItems: TOPIC_COUNT,
-              items: {
-                type: "object",
-                additionalProperties: false,
-                required: ["title", "studentGuide"],
-                properties: {
-                  title: {
-                    type: "string",
-                  },
-                  studentGuide: {
-                    type: "string",
+    const response = await withTimeout(
+      ai.models.generateContent({
+        model: modelName,
+        contents: buildPrompt(grade, retryHint, options),
+        config: {
+          temperature: 0.4,
+          responseMimeType: "application/json",
+          responseJsonSchema: {
+            type: "object",
+            additionalProperties: false,
+            required: ["topics"],
+            properties: {
+              topics: {
+                type: "array",
+                minItems: TOPIC_COUNT,
+                maxItems: TOPIC_COUNT,
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["title", "studentGuide"],
+                  properties: {
+                    title: {
+                      type: "string",
+                    },
+                    studentGuide: {
+                      type: "string",
+                    },
                   },
                 },
               },
             },
           },
         },
-      },
-    });
+      }),
+      "Gemini topic suggestion",
+      getAiRequestTimeoutMs(),
+    );
 
     try {
       return parseTopics(response.text ?? "");

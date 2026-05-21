@@ -6,7 +6,7 @@ import {
   teacherBulkUploadMaxFiles,
 } from "../controllers/topicBulkController";
 import { createTopic, deleteTopic, getTopic, getTopics } from "../controllers/topicsController";
-import { generateTopics } from "../controllers/topicSuggestionsController";
+import { generateTopicGuide, generateTopics } from "../controllers/topicSuggestionsController";
 import { authMiddleware, requireRoleMiddleware } from "../middlewares/auth";
 import { handleImageUpload, teacherBulkStudentImageUpload } from "../middlewares/imageUpload";
 import {
@@ -24,6 +24,12 @@ router.use(authMiddleware);
 router.get("/", getTopics);
 router.post("/", requireRoleMiddleware(Role.TEACHER), createTopic);
 router.post("/generate", requireRoleMiddleware(Role.TEACHER), topicAiRateLimiter, generateTopics);
+router.post(
+  "/generate-guide",
+  requireRoleMiddleware(Role.TEACHER),
+  topicAiRateLimiter,
+  generateTopicGuide,
+);
 router.post(
   "/:topicId/submissions/bulk-upload",
   requireRoleMiddleware(Role.TEACHER),

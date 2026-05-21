@@ -177,20 +177,22 @@ function logSourceStatus(params: {
   console.info(message);
 }
 
-function combineSummaries(values: string[]) {
+function combineSummaries(values: string[], maxLength = 2400) {
   const summaries = values.map((value) => value.trim()).filter(Boolean);
 
   if (summaries.length === 0) {
     return "";
   }
 
-  return summaries.join("\n\n").slice(0, 2400);
+  return summaries.join("\n\n").slice(0, maxLength);
 }
 
 export async function buildTopicPublicDataContext(params: {
   classroom?: ClassroomForPublicData | null;
   grade: number;
   teacherId?: number;
+  includeOptionalSources?: boolean;
+  maxSummaryLength?: number;
 }): Promise<TopicPublicDataContext> {
   const taskResults: PublicDataTaskResult[] = [];
   const tasks: Promise<PublicDataTaskResult>[] = [];
@@ -203,6 +205,7 @@ export async function buildTopicPublicDataContext(params: {
   const classroomId = params.classroom?.id ?? null;
   const school = params.classroom ? getNeisSchoolFromClassroom(params.classroom) : null;
   const region = params.classroom ? inferRegionalContext(params.classroom) : null;
+  const includeOptionalSources = params.includeOptionalSources ?? true;
 
   if (school) {
     schoolName = school.schoolName;
@@ -270,7 +273,7 @@ export async function buildTopicPublicDataContext(params: {
     })(),
   );
 
-  if (region) {
+  if (region && includeOptionalSources) {
     for (const [source, fetcher] of [
       ["weather", getWeatherContext],
       ["air-quality", getAirQualityContext],
@@ -297,6 +300,16 @@ export async function buildTopicPublicDataContext(params: {
           }
         })(),
       );
+    }
+  } else if (region) {
+    for (const source of ["weather", "air-quality"] as const) {
+      const status: PublicDataSourceStatus = {
+        source,
+        used: false,
+        reason: "SKIPPED_LIGHT_CONTEXT",
+      };
+      logSourceStatus({ teacherId: params.teacherId, classroomId, status });
+      taskResults.push({ statuses: [status] });
     }
   } else if (params.classroom) {
     for (const source of ["weather", "air-quality"] as const) {
@@ -328,7 +341,7 @@ export async function buildTopicPublicDataContext(params: {
     reason = reason ?? result.reason;
   }
 
-  const summaryForAi = combineSummaries(summaries);
+  const summaryForAi = combineSummaries(summaries, params.maxSummaryLength);
   const firstFailedStatus = statuses.find((status) => status.warning);
 
   return {

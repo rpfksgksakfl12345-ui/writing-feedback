@@ -44,13 +44,25 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+function normalizeGuideText(value: string | null | undefined) {
+  return (value ?? "")
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .trim();
+}
+
 function isGuideHeading(value: string) {
   return /^(생각해 볼 질문|첫 문장 힌트)\s*:/u.test(value.trim());
 }
 
+function isGuideQuestionLine(value: string) {
+  return /^\d+[.)]\s+/.test(value.trim());
+}
+
 function TopicGuide({ text }: { text: string }) {
-  const lines = text
-    .replace(/\r\n/g, "\n")
+  const lines = normalizeGuideText(text)
     .split("\n")
     .map((line) => line.trimEnd())
     .filter((line) => line.trim());
@@ -60,16 +72,18 @@ function TopicGuide({ text }: { text: string }) {
   }
 
   return (
-    <div className="mt-4 max-w-3xl rounded-lg border border-paper-surface/20 bg-paper-surface/10 px-4 py-3 text-sm leading-6 text-paper-surface shadow-sm">
+    <div className="kr-keep mt-3 max-w-3xl rounded-lg border border-paper-surface/20 bg-paper-surface/10 px-4 py-3 text-[13px] leading-6 text-paper-surface shadow-sm">
       {lines.map((line, index) => {
         const trimmed = line.trim();
         const isHeading = isGuideHeading(trimmed);
+        const isQuestion = isGuideQuestionLine(trimmed);
 
         return (
           <p
             className={cx(
-              index > 0 && "mt-1.5",
+              index > 0 && (isHeading ? "mt-2" : "mt-1"),
               isHeading ? "font-semibold opacity-100" : "opacity-90",
+              isQuestion && "pl-4 -indent-4",
             )}
             key={`${trimmed}-${index}`}
           >

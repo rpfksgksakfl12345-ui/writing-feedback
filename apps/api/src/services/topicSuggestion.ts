@@ -94,11 +94,15 @@ function normalizeStudentGuide(value: string | null | undefined) {
   }
 
   return value
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
     .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, " ")
     .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .join(" ")
+    .map((line) => line.replace(/[ \t]+/g, " ").trim())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
@@ -195,7 +199,9 @@ function formatPreviousSuggestions(values: TopicSuggestionInput[] | undefined) {
 
   return suggestions
     .map((suggestion, index) => {
-      const guide = suggestion.studentGuide ? ` / student guide: ${suggestion.studentGuide}` : "";
+      const guide = suggestion.studentGuide
+        ? ` / guide preview: ${normalizeInstruction(suggestion.studentGuide).slice(0, 120)}`
+        : "";
       return `${index + 1}. ${suggestion.title}${guide}`;
     })
     .join("\n");
@@ -545,8 +551,11 @@ function buildPrompt(grade: number, retryHint?: string, options: TopicSuggestion
     "- Avoid vague titles such as '나의 생각', '학교생활', '환경 문제' unless made concrete and easy to begin.",
     "- Write each title in Korean as a short, clear prompt a teacher could choose immediately.",
     "- For each studentGuide, write a student-facing scaffold, not just one short sentence.",
-    "- The studentGuide must include: a topic explanation, '생각해 볼 질문:' with open guiding questions, and '첫 문장 힌트:' with one starter sentence.",
-    "- Use this natural structure inside studentGuide: first a short explanation sentence, then a blank line, then '생각해 볼 질문:' with numbered questions, then a blank line, then '첫 문장 힌트:' with one quoted starter sentence.",
+    "- Keep each studentGuide concise: one short explanation sentence, concise numbered questions, and one short first-sentence hint.",
+    "- Grade 1-2 studentGuide must use 2 or 3 guiding questions; grade 3-4 must use 3 or 4; grade 5-6 must use 4 or 5.",
+    "- Each guiding question must be one concise sentence.",
+    "- The studentGuide must include line breaks and this exact Korean structure: a topic explanation, blank line, '생각해 볼 질문:', numbered questions, blank line, '첫 문장 힌트:', and one quoted starter sentence.",
+    "- Preserve the labels exactly as '생각해 볼 질문:' and '첫 문장 힌트:'.",
     "- Guiding questions must open thinking, not demand one correct answer.",
     "- Do not use the exact same question set or first-sentence pattern for every topic. Adapt the guide to the title, grade, and topic type.",
     "- Avoid assuming family structure, home resources, travel, health status, religion, political opinion, or private circumstances.",

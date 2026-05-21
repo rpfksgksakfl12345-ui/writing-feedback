@@ -57,6 +57,15 @@ export type TopicPublicDataContext = {
   };
 };
 
+type PublicDataTaskResult = {
+  statuses: PublicDataSourceStatus[];
+  summaries?: string[];
+  schoolContextUsed?: boolean;
+  scheduleCount?: number;
+  warning?: string;
+  reason?: string;
+};
+
 function getNeisLogDetails(error: unknown) {
   if (error instanceof NeisConfigurationError) {
     return {
@@ -175,7 +184,7 @@ function combineSummaries(values: string[]) {
     return "";
   }
 
-  return summaries.join("\n\n").slice(0, 3200);
+  return summaries.join("\n\n").slice(0, 2400);
 }
 
 export async function buildTopicPublicDataContext(params: {
@@ -183,8 +192,8 @@ export async function buildTopicPublicDataContext(params: {
   grade: number;
   teacherId?: number;
 }): Promise<TopicPublicDataContext> {
-  const statuses: PublicDataSourceStatus[] = [];
-  const summaries: string[] = [];
+  const taskResults: PublicDataTaskResult[] = [];
+  const tasks: Promise<PublicDataTaskResult>[] = [];
   let schoolName: string | undefined;
   let scheduleCount: number | undefined;
   let schoolContextUsed = false;
@@ -193,34 +202,40 @@ export async function buildTopicPublicDataContext(params: {
 
   const classroomId = params.classroom?.id ?? null;
   const school = params.classroom ? getNeisSchoolFromClassroom(params.classroom) : null;
+  const region = params.classroom ? inferRegionalContext(params.classroom) : null;
 
   if (school) {
     schoolName = school.schoolName;
 
-    try {
-      const scheduleContext = await fetchNeisSchedules(school, { grade: params.grade });
-      const status: PublicDataSourceStatus = {
-        source: "neis",
-        used: true,
-        cacheHit: false,
-        itemCount: scheduleContext.schedules.length,
-        summaryLength: scheduleContext.summaryForAi.length,
-      };
-      statuses.push(status);
-      summaries.push(scheduleContext.summaryForAi);
-      schoolContextUsed = true;
-      scheduleCount = scheduleContext.schedules.length;
-      logSourceStatus({ teacherId: params.teacherId, classroomId, status });
-    } catch (error) {
-      const { detail, status } = getNeisLogDetails(error);
-      statuses.push(status);
-      warning = status.warning;
-      console.warn(
-        `[topics.publicData] teacherId=${params.teacherId ?? "unknown"} classroomId=${
-          classroomId ?? "none"
-        } ${detail}`,
-      );
-    }
+    tasks.push(
+      (async () => {
+        try {
+          const scheduleContext = await fetchNeisSchedules(school, { grade: params.grade });
+          const status: PublicDataSourceStatus = {
+            source: "neis",
+            used: true,
+            cacheHit: false,
+            itemCount: scheduleContext.schedules.length,
+            summaryLength: scheduleContext.summaryForAi.length,
+          };
+          logSourceStatus({ teacherId: params.teacherId, classroomId, status });
+          return {
+            statuses: [status],
+            summaries: [scheduleContext.summaryForAi],
+            schoolContextUsed: true,
+            scheduleCount: scheduleContext.schedules.length,
+          };
+        } catch (error) {
+          const { detail, status } = getNeisLogDetails(error);
+          console.warn(
+            `[topics.publicData] teacherId=${params.teacherId ?? "unknown"} classroomId=${
+              classroomId ?? "none"
+            } ${detail}`,
+          );
+          return { statuses: [status], warning: status.warning };
+        }
+      })(),
+    );
   } else if (params.classroom) {
     reason = "NO_CONNECTED_SCHOOL";
     const status: PublicDataSourceStatus = {
@@ -228,56 +243,60 @@ export async function buildTopicPublicDataContext(params: {
       used: false,
       reason,
     };
-    statuses.push(status);
     logSourceStatus({ teacherId: params.teacherId, classroomId, status });
+    taskResults.push({ statuses: [status], reason });
   }
 
-  try {
-    const { value, cacheHit } = await getSpecialDaysContext();
-    const status: PublicDataSourceStatus = {
-      source: "special-days",
-      used: Boolean(value.summaryForAi),
-      cacheHit,
-      itemCount: value.itemCount,
-      summaryLength: value.summaryForAi.length,
-      reason: value.summaryForAi ? undefined : "NO_RELEVANT_DATA",
-    };
-    statuses.push(status);
-    summaries.push(value.summaryForAi);
-    logSourceStatus({ teacherId: params.teacherId, classroomId, status });
-  } catch (error) {
-    const status = getPublicDataStatus("special-days", error);
-    statuses.push(status);
-    logSourceStatus({ teacherId: params.teacherId, classroomId, status });
-    console.info(`[topics.publicData] ${getPublicDataErrorLogDetails(error)}`);
-  }
-
-  const region = params.classroom ? inferRegionalContext(params.classroom) : null;
-
-  if (region) {
-    for (const [source, fetcher] of [
-      ["weather", getWeatherContext],
-      ["air-quality", getAirQualityContext],
-    ] as const) {
+  tasks.push(
+    (async () => {
       try {
-        const { value, cacheHit } = await fetcher(region);
+        const { value, cacheHit } = await getSpecialDaysContext();
         const status: PublicDataSourceStatus = {
-          source,
+          source: "special-days",
           used: Boolean(value.summaryForAi),
           cacheHit,
           itemCount: value.itemCount,
           summaryLength: value.summaryForAi.length,
           reason: value.summaryForAi ? undefined : "NO_RELEVANT_DATA",
         };
-        statuses.push(status);
-        summaries.push(value.summaryForAi);
         logSourceStatus({ teacherId: params.teacherId, classroomId, status });
+        return { statuses: [status], summaries: [value.summaryForAi] };
       } catch (error) {
-        const status = getPublicDataStatus(source, error);
-        statuses.push(status);
+        const status = getPublicDataStatus("special-days", error);
         logSourceStatus({ teacherId: params.teacherId, classroomId, status });
         console.info(`[topics.publicData] ${getPublicDataErrorLogDetails(error)}`);
+        return { statuses: [status] };
       }
+    })(),
+  );
+
+  if (region) {
+    for (const [source, fetcher] of [
+      ["weather", getWeatherContext],
+      ["air-quality", getAirQualityContext],
+    ] as const) {
+      tasks.push(
+        (async () => {
+          try {
+            const { value, cacheHit } = await fetcher(region);
+            const status: PublicDataSourceStatus = {
+              source,
+              used: Boolean(value.summaryForAi),
+              cacheHit,
+              itemCount: value.itemCount,
+              summaryLength: value.summaryForAi.length,
+              reason: value.summaryForAi ? undefined : "NO_RELEVANT_DATA",
+            };
+            logSourceStatus({ teacherId: params.teacherId, classroomId, status });
+            return { statuses: [status], summaries: [value.summaryForAi] };
+          } catch (error) {
+            const status = getPublicDataStatus(source, error);
+            logSourceStatus({ teacherId: params.teacherId, classroomId, status });
+            console.info(`[topics.publicData] ${getPublicDataErrorLogDetails(error)}`);
+            return { statuses: [status] };
+          }
+        })(),
+      );
     }
   } else if (params.classroom) {
     for (const source of ["weather", "air-quality"] as const) {
@@ -286,9 +305,27 @@ export async function buildTopicPublicDataContext(params: {
         used: false,
         reason: "NO_REGION",
       };
-      statuses.push(status);
       logSourceStatus({ teacherId: params.teacherId, classroomId, status });
+      taskResults.push({ statuses: [status] });
     }
+  }
+
+  taskResults.push(...(await Promise.all(tasks)));
+
+  const statuses = taskResults.flatMap((result) => result.statuses);
+  const summaries = taskResults.flatMap((result) => result.summaries ?? []);
+
+  for (const result of taskResults) {
+    if (result.schoolContextUsed) {
+      schoolContextUsed = true;
+    }
+
+    if (result.scheduleCount !== undefined) {
+      scheduleCount = result.scheduleCount;
+    }
+
+    warning = warning ?? result.warning;
+    reason = reason ?? result.reason;
   }
 
   const summaryForAi = combineSummaries(summaries);

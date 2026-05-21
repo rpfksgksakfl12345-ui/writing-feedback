@@ -58,6 +58,15 @@ type ClassroomScheduleResult = {
   schedules: NeisSchedulePreview[];
 };
 
+function normalizeGuideText(value: string | null | undefined) {
+  return (value ?? "")
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .trim();
+}
+
 function formatTopicDate(createdAt: string) {
   const date = new Date(createdAt);
 
@@ -83,7 +92,7 @@ function normalizeTopicSuggestion(value: string | Partial<TopicSuggestion>): Top
 
   const title = typeof value.title === "string" ? value.title.trim() : "";
   const studentGuide =
-    typeof value.studentGuide === "string" ? value.studentGuide.trim() : "";
+    typeof value.studentGuide === "string" ? normalizeGuideText(value.studentGuide) : "";
 
   if (!title) {
     return null;
@@ -102,6 +111,10 @@ function isGuideHeading(value: string) {
   return /^(생각해 볼 질문|첫 문장 힌트)\s*:/u.test(value.trim());
 }
 
+function isGuideQuestionLine(value: string) {
+  return /^\d+[.)]\s+/.test(value.trim());
+}
+
 function GuideScaffoldText({
   text,
   compact = false,
@@ -110,8 +123,7 @@ function GuideScaffoldText({
   compact?: boolean;
 }) {
   const lines =
-    text
-      ?.replace(/\r\n/g, "\n")
+    normalizeGuideText(text)
       .split("\n")
       .map((line) => line.trimEnd()) ?? [];
   const visibleLines = lines.filter((line) => line.trim());
@@ -129,12 +141,13 @@ function GuideScaffoldText({
       {visibleLines.map((line, index) => {
         const trimmed = line.trim();
         const isHeading = isGuideHeading(trimmed);
+        const isQuestion = isGuideQuestionLine(trimmed);
 
         return (
           <p
             className={`${index > 0 ? "mt-1.5" : ""} ${
               isHeading ? "font-semibold text-ink-800" : ""
-            }`}
+            } ${isQuestion ? "pl-4 -indent-4" : ""}`}
             key={`${trimmed}-${index}`}
           >
             {trimmed}
@@ -648,13 +661,13 @@ export default function TeacherTopicsPage() {
                           <span className="mt-0.5 text-xs font-semibold text-teacher-accent">
                             {String(index + 1).padStart(2, "0")}
                           </span>
-                          <span>
+                          <span className="min-w-0 flex-1">
                             <span className="kr-keep block text-sm font-semibold leading-6">
                               {suggestion.title}
                             </span>
-                            {suggestion.studentGuide ? (
-                              <GuideScaffoldText compact text={suggestion.studentGuide} />
-                            ) : null}
+                            <span className="kr-keep mt-1 block text-xs leading-5 text-ink-500">
+                              자세한 질문과 첫 문장 힌트는 선택 후 입력폼에서 확인합니다.
+                            </span>
                           </span>
                         </div>
                         <span className="mt-3 block text-xs font-semibold text-teacher-accent">
@@ -738,7 +751,7 @@ export default function TeacherTopicsPage() {
               <label className="block text-sm font-semibold text-ink-700">
                 학생에게 보여 줄 안내
                 <textarea
-                  className="mt-2 min-h-[220px] rounded-md border-ink-100 bg-paper-surface text-sm leading-7 text-ink-900 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20"
+                  className="mt-2 min-h-[220px] resize-y whitespace-pre-wrap rounded-md border-ink-100 bg-paper-surface text-sm leading-7 text-ink-900 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20"
                   placeholder="학생에게 보여 줄 간단한 안내를 적어 주세요."
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}

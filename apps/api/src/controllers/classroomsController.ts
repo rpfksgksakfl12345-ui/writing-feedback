@@ -326,6 +326,69 @@ export async function reissueClassroomStudentPassword(req: AuthRequest, res: Res
   }
 }
 
+export async function deleteClassroomStudent(req: AuthRequest, res: Response) {
+  try {
+    if (!req.user?.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const classroomId = Number(req.params.classroomId);
+    const studentProfileId = Number(req.params.studentProfileId);
+
+    if (!Number.isInteger(classroomId) || classroomId < 1) {
+      return res.status(400).json({ message: "Invalid classroom ID" });
+    }
+
+    if (!Number.isInteger(studentProfileId) || studentProfileId < 1) {
+      return res.status(400).json({ message: "Invalid student ID" });
+    }
+
+    const studentProfile = await prisma.studentProfile.findFirst({
+      where: {
+        id: studentProfileId,
+        classroomId,
+        classroom: {
+          teacherId: req.user.userId,
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!studentProfile) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const submissionCount = await prisma.submission.count({
+      where: {
+        studentId: studentProfile.userId,
+      },
+    });
+
+    if (submissionCount > 0) {
+      return res.status(409).json({
+        message: `${studentProfile.user.name} 학생은 제출글 ${submissionCount}개가 있어 삭제할 수 없습니다. 제출/피드백 기록 보호를 위해 학생 계정 삭제가 차단되었습니다.`,
+      });
+    }
+
+    await prisma.$transaction([
+      prisma.studentProfile.delete({ where: { id: studentProfile.id } }),
+      prisma.user.delete({ where: { id: studentProfile.userId } }),
+    ]);
+
+    return res.status(204).send();
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to delete student", error });
+  }
+}
+
 export async function createClassroom(req: AuthRequest, res: Response) {
   try {
     if (!req.user?.userId) {
@@ -360,6 +423,48 @@ export async function createClassroom(req: AuthRequest, res: Response) {
     return res.status(201).json(classroom);
   } catch (error) {
     return res.status(500).json({ message: "Failed to create classroom", error });
+  }
+}
+
+export async function deleteClassroom(req: AuthRequest, res: Response) {
+  try {
+    if (!req.user?.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const classroomId = Number(req.params.classroomId);
+
+    if (!Number.isInteger(classroomId) || classroomId < 1) {
+      return res.status(400).json({ message: "Invalid classroom ID" });
+    }
+
+    const classroom = await findOwnedClassroom(classroomId, req.user.userId);
+
+    if (!classroom) {
+      return res.status(404).json({ message: "Classroom not found" });
+    }
+
+    const [studentCount, topicCount, submissionCount] = await Promise.all([
+      prisma.studentProfile.count({ where: { classroomId } }),
+      prisma.topic.count({ where: { classroomId } }),
+      prisma.submission.count({ where: { classroomId } }),
+    ]);
+    const blockers = [
+      studentCount > 0 ? `학생 ${studentCount}명` : "",
+      topicCount > 0 ? `주제 ${topicCount}개` : "",
+      submissionCount > 0 ? `제출글 ${submissionCount}개` : "",
+    ].filter(Boolean);
+
+    if (blockers.length > 0) {
+      return res.status(409).json({
+        message: `${classroom.name} 학급은 ${blockers.join(", ")}가 연결되어 있어 삭제할 수 없습니다. 데이터 보호를 위해 빈 학급만 삭제할 수 있습니다.`,
+      });
+    }
+
+    await prisma.classroom.delete({ where: { id: classroom.id } });
+    return res.status(204).send();
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to delete classroom", error });
   }
 }
 

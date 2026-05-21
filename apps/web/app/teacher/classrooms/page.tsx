@@ -5,7 +5,7 @@ import Link from "next/link";
 import { NoticeBanner } from "../../../components/notice-banner";
 import { useAuth } from "../../../components/auth-provider";
 import { NeisSchoolPicker, type NeisSchool } from "../../../components/neis-school-picker";
-import { Badge, PrimaryButton } from "../../../components/ui-v2";
+import { Badge, PrimaryButton, SecondaryButton } from "../../../components/ui-v2";
 import { apiFetch } from "../../../lib/api";
 
 type Classroom = {
@@ -61,6 +61,7 @@ export default function TeacherClassroomsPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [deletingClassroomId, setDeletingClassroomId] = useState<number | null>(null);
 
   async function loadClassrooms() {
     if (!token) {
@@ -106,6 +107,37 @@ export default function TeacherClassroomsPage() {
       setError(createError instanceof Error ? createError.message : "학급을 생성하지 못했습니다.");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleDeleteClassroom(classroom: Classroom) {
+    if (!token || deletingClassroomId) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `${classroom.name} 학급을 삭제할까요?\n\n학생, 주제, 제출글이 연결된 학급은 삭제되지 않습니다.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setMessage("");
+    setError("");
+    setDeletingClassroomId(classroom.id);
+
+    try {
+      await apiFetch<void>(`/api/classrooms/${classroom.id}`, {
+        method: "DELETE",
+        token,
+      });
+      setMessage(`${classroom.name} 학급을 삭제했습니다.`);
+      await loadClassrooms();
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "학급을 삭제하지 못했습니다.");
+    } finally {
+      setDeletingClassroomId(null);
     }
   }
 
@@ -257,10 +289,9 @@ export default function TeacherClassroomsPage() {
           {!isLoading && classrooms.length > 0 ? (
             <div className="mt-5 grid gap-4">
               {classrooms.map((classroom) => (
-                <Link
+                <article
                   key={classroom.id}
-                  className="group relative overflow-hidden rounded-xl border border-ink-100 bg-paper-surface p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-teacher-accent/35 hover:bg-paper-base/60"
-                  href={`/teacher/classrooms/${classroom.id}`}
+                  className="relative overflow-hidden rounded-xl border border-ink-100 bg-paper-surface p-4 shadow-sm transition hover:border-teacher-accent/35 hover:bg-paper-base/60"
                 >
                   <span className="absolute inset-y-0 left-0 w-2 bg-teacher-accent/80" />
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -285,12 +316,25 @@ export default function TeacherClassroomsPage() {
                       <p className="mt-1 font-mono text-lg font-bold tracking-[0.12em] text-teacher-accent">
                         {classroom.classCode}
                       </p>
-                      <p className="mt-1 text-xs font-semibold text-teacher-deep group-hover:text-teacher-accent">
-                        명단 관리 →
-                      </p>
                     </div>
                   </div>
-                </Link>
+                  <div className="mt-4 flex flex-wrap justify-end gap-2 pl-3">
+                    <Link
+                      className="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-md border border-ink-100 bg-paper-surface px-4 text-sm font-semibold text-ink-900 hover:bg-paper-base"
+                      href={`/teacher/classrooms/${classroom.id}`}
+                    >
+                      명단 관리
+                    </Link>
+                    <SecondaryButton
+                      className="h-10 min-h-10 border-status-error/25 px-4 text-status-error hover:bg-status-error/5"
+                      disabled={deletingClassroomId === classroom.id}
+                      onClick={() => void handleDeleteClassroom(classroom)}
+                      type="button"
+                    >
+                      {deletingClassroomId === classroom.id ? "삭제 중..." : "학급 삭제"}
+                    </SecondaryButton>
+                  </div>
+                </article>
               ))}
             </div>
           ) : null}

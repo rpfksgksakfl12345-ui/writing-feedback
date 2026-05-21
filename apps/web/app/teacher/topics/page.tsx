@@ -261,6 +261,35 @@ export default function TeacherTopicsPage() {
     selectedSuggestionTitleRef.current = selectedSuggestionTitle;
   }, [selectedSuggestionTitle]);
 
+  function clearSuggestionState() {
+    setSuggestedTopics([]);
+    setSelectedSuggestionTitle("");
+    selectedSuggestionTitleRef.current = "";
+    setPublicDataNotice("");
+    setAiError("");
+    setRefinementError("");
+    setGuideGenerationError("");
+    setGeneratingGuideTitle("");
+    setGeneratedGuidesByKey({});
+    setRefinementInstruction("");
+  }
+
+  function handleSelectClassroom(nextClassroomId: string) {
+    const nextClassroom = classrooms.find(
+      (classroom) => String(classroom.id) === nextClassroomId,
+    );
+
+    setClassroomId(nextClassroomId);
+    setTitle("");
+    setDescription("");
+    setMessage("");
+    clearSuggestionState();
+
+    if (nextClassroom) {
+      setGrade(String(nextClassroom.grade));
+    }
+  }
+
   useEffect(() => {
     const selected = classrooms.find((classroom) => String(classroom.id) === classroomId) ?? null;
 
@@ -611,6 +640,28 @@ export default function TeacherTopicsPage() {
               </Badge>
             </div>
 
+            <div className="mt-4 rounded-xl border border-teacher-accent/20 bg-paper-surface/85 px-4 py-3 shadow-sm">
+              <label className="block text-sm font-semibold text-ink-700" htmlFor="topicClassroomId">
+                학급 선택
+              </label>
+              <select
+                className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-teacher-accent focus:ring-teacher-accent/20"
+                id="topicClassroomId"
+                value={classroomId}
+                disabled={!hasClassrooms || isGenerating || isRefining || isGeneratingGuide}
+                onChange={(event) => handleSelectClassroom(event.target.value)}
+              >
+                {classrooms.map((classroom) => (
+                  <option key={classroom.id} value={classroom.id}>
+                    {classroom.name} · {classroom.grade}학년 · {classroom.classCode}
+                  </option>
+                ))}
+              </select>
+              <p className="kr-keep mt-2 text-xs leading-5 text-ink-500">
+                선택한 학급 기준으로 주제 목록, AI 추천, 저장 범위가 분리됩니다.
+              </p>
+            </div>
+
             <div className="kr-keep mt-4 rounded-xl border border-teacher-accent/20 bg-paper-surface/80 px-4 py-3 text-sm leading-6 text-ink-700">
               {selectedClassroom?.neisSchoolName ? (
                 <>
@@ -874,20 +925,8 @@ export default function TeacherTopicsPage() {
                 <select
                   className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-teacher-accent focus:ring-teacher-accent/20"
                   value={classroomId}
-                  disabled={!hasClassrooms}
-                  onChange={(event) => {
-                    const nextClassroomId = event.target.value;
-                    const nextClassroom = classrooms.find(
-                      (classroom) => String(classroom.id) === nextClassroomId,
-                    );
-
-                    setClassroomId(nextClassroomId);
-                    setPublicDataNotice("");
-
-                    if (nextClassroom) {
-                      setGrade(String(nextClassroom.grade));
-                    }
-                  }}
+                  disabled={!hasClassrooms || isGenerating || isRefining || isGeneratingGuide}
+                  onChange={(event) => handleSelectClassroom(event.target.value)}
                 >
                   {classrooms.map((classroom) => (
                     <option key={classroom.id} value={classroom.id}>

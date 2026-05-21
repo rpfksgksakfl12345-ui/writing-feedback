@@ -114,6 +114,7 @@ export default function TeacherClassroomDetailPage() {
   const [isBulkSaving, setIsBulkSaving] = useState(false);
   const [issuedLoginPasswords, setIssuedLoginPasswords] = useState<Record<number, string>>({});
   const [reissuingStudentId, setReissuingStudentId] = useState<number | null>(null);
+  const [deletingStudentId, setDeletingStudentId] = useState<number | null>(null);
 
   const classroom = useMemo(
     () => classrooms.find((item) => item.id === classroomId) ?? null,
@@ -353,6 +354,44 @@ export default function TeacherClassroomDetailPage() {
       );
     } finally {
       setReissuingStudentId(null);
+    }
+  }
+
+  async function handleDeleteStudent(student: ClassroomStudent) {
+    if (!token || deletingStudentId) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `${getStudentLabel(student)} 학생 계정을 삭제할까요?\n\n제출글이 있는 학생은 삭제되지 않습니다.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setMessage("");
+    setError("");
+    setDeletingStudentId(student.id);
+
+    try {
+      await apiFetch<void>(`/api/classrooms/${classroomId}/students/${student.id}`, {
+        method: "DELETE",
+        token,
+      });
+      setStudents((currentStudents) =>
+        currentStudents.filter((currentStudent) => currentStudent.id !== student.id),
+      );
+      setIssuedLoginPasswords((current) => {
+        const nextPasswords = { ...current };
+        delete nextPasswords[student.id];
+        return nextPasswords;
+      });
+      setMessage(`${getStudentLabel(student)} 학생 계정을 삭제했습니다.`);
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "학생 계정을 삭제하지 못했습니다.");
+    } finally {
+      setDeletingStudentId(null);
     }
   }
 
@@ -656,7 +695,7 @@ export default function TeacherClassroomDetailPage() {
 
             {!isLoading && students.length > 0 ? (
               <div className="print-roster-table-wrap mt-5 overflow-x-auto rounded-xl border border-ink-100 bg-paper-base/35">
-                <table className="w-full min-w-[640px] table-fixed border-collapse text-left text-sm">
+                <table className="w-full min-w-[760px] table-fixed border-collapse text-left text-sm">
                   <thead className="bg-paper-base text-xs font-semibold uppercase tracking-[0.12em] text-ink-500">
                     <tr>
                       <th className="w-[90px] px-4 py-3">번호</th>
@@ -664,6 +703,7 @@ export default function TeacherClassroomDetailPage() {
                       <th className="w-[150px] px-4 py-3">학급코드</th>
                       <th className="w-[170px] px-4 py-3">로그인 비밀번호</th>
                       <th className="w-[140px] px-4 py-3">발급일</th>
+                      <th className="no-print w-[130px] px-4 py-3">정리</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-ink-100 bg-paper-surface text-ink-900">
@@ -697,6 +737,16 @@ export default function TeacherClassroomDetailPage() {
                         </td>
                         <td className="whitespace-nowrap px-4 py-4 text-ink-700">
                           {formatDate(student.createdAt)}
+                        </td>
+                        <td className="no-print whitespace-nowrap px-4 py-4">
+                          <SecondaryButton
+                            className="min-h-8 border-status-error/25 px-3 py-1 text-xs text-status-error hover:bg-status-error/5"
+                            disabled={deletingStudentId === student.id}
+                            onClick={() => void handleDeleteStudent(student)}
+                            type="button"
+                          >
+                            {deletingStudentId === student.id ? "삭제 중" : "학생 삭제"}
+                          </SecondaryButton>
                         </td>
                       </tr>
                     ))}

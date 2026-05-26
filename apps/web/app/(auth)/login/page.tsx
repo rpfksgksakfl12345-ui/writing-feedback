@@ -43,14 +43,14 @@ const modeCopy: Record<
 > = {
   TEACHER: {
     eyebrow: "교사용 로그인",
-    title: "교사 계정으로 들어가기",
-    description: "이메일과 비밀번호로 주제, 학급, 제출 글을 관리하는 화면에 들어갑니다.",
+    title: "우리 반 공책 글쓰기 확인하기",
+    description: "우리 반 공책 글쓰기를 한곳에서 확인하고 피드백해요.",
     accentClass: "text-teacher-accent",
   },
   STUDENT: {
     eyebrow: "학생용 로그인",
-    title: "학생 정보로 내 책장 열기",
-    description: "선생님이 나눠준 학급코드, 내 번호, 로그인 비밀번호를 차례대로 입력합니다.",
+    title: "우리 반 책장 열기",
+    description: "공책에 쓴 글을 우리 반 책장에 올려요.",
     accentClass: "text-student-accent",
   },
 };
@@ -229,25 +229,25 @@ export default function LoginPage() {
             글
           </div>
           <div className="kr-keep">
-            <p className="text-base font-bold leading-5 text-ink-900">주제글쓰기</p>
+            <p className="text-base font-bold leading-5 text-ink-900">공책톡톡</p>
             <p className="mt-0.5 text-xs font-semibold tracking-[0.12em] text-ink-500">
-              writing-feedback
+              공책과 피드백을 잇는 교실 도구
             </p>
           </div>
         </div>
 
         <div className="relative z-10 mt-20 max-w-[620px]">
           <p className="font-login-hand kr-keep text-[20px] font-bold leading-relaxed text-student-accent">
-            오늘도 한 편의 글이 쌓입니다.
+            공책에 쓴 글을 톡 올리면,
           </p>
-          <h1 className="font-login-display kr-keep mt-5 text-[40px] font-bold leading-[1.23] tracking-[-0.02em] text-ink-900 xl:text-[46px]">
-            <span className="block">선생님이 주제를 펼치고,</span>
-            <span className="block">아이들이 글로 답하는 곳.</span>
+          <h1 className="font-login-display kr-keep mt-5 text-[40px] font-bold leading-[1.23] text-ink-900 xl:text-[46px]">
+            <span className="block">피드백이 톡톡 이어지는</span>
+            <span className="block">우리 반 글쓰기 책장.</span>
           </h1>
           <p className="font-login-hand kr-keep mt-6 max-w-[560px] text-[17px] font-normal leading-[1.7] text-ink-700 xl:text-[18px]">
-            매일의 주제 글쓰기와 선생님 피드백이 책장처럼 쌓여,
+            손글씨 공책 사진, 글 확인, AI 초안, 담임 피드백이
             <br />
-            한 학기를 한 권의 책으로 만들어 갑니다.
+            교실 글쓰기 흐름 안에서 자연스럽게 이어집니다.
           </p>
         </div>
 
@@ -296,9 +296,9 @@ export default function LoginPage() {
           <h2 className="kr-keep mt-2 text-3xl font-bold tracking-tight text-ink-900">
             {activeCopy?.title ?? "어떻게 들어갈까요?"}
           </h2>
-          <p className="kr-keep mt-3 text-sm leading-6 text-ink-700">
+            <p className="kr-keep mt-3 text-sm leading-6 text-ink-700">
             {activeCopy?.description ??
-              "교사는 수업을 준비하고, 학생은 책장에서 글쓰기 주제를 골라 공책을 엽니다."}
+              "학생은 공책에 쓰고, 선생님은 글을 확인해 피드백을 남깁니다."}
           </p>
 
           {registeredNotice ? (
@@ -339,14 +339,14 @@ export default function LoginPage() {
                   id: "STUDENT",
                   eyebrow: "학생 로그인",
                   title: "학생으로 들어가기",
-                  description: "선생님이 알려준 학급코드, 번호, 로그인 비밀번호로 글을 써요.",
+                  description: "학급코드, 번호, 로그인 비밀번호로 내 책장을 열어요.",
                   accent: "student",
                 },
                 {
                   id: "TEACHER",
                   eyebrow: "선생님 로그인",
                   title: "선생님으로 들어가기",
-                  description: "주제를 만들고, 학생 글을 확인하고, 따뜻한 피드백을 남겨요.",
+                  description: "주제 만들기, 제출 확인, 피드백 작성을 이어서 할 수 있어요.",
                   accent: "teacher",
                 },
               ] satisfies Array<{
@@ -407,7 +407,7 @@ export default function LoginPage() {
               </p>
               <h2 className="kr-keep mt-1 text-xl font-bold text-ink-900">교사 계정</h2>
               <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
-                주제, 학급, 제출물을 관리하는 교사 화면으로 이동합니다.
+                우리 반 공책 글쓰기를 모아 보고 담임 피드백을 완성합니다.
               </p>
             </div>
             <label className="block text-sm font-semibold text-ink-700">
@@ -439,7 +439,7 @@ export default function LoginPage() {
               disabled={loading}
               type="submit"
             >
-              {loading ? "로그인 중..." : "교사실로 들어가기 →"}
+              {loading ? "로그인 중..." : "우리 반 피드백 보러 가기 →"}
             </button>
             <p className="kr-keep text-center text-sm leading-6 text-ink-700">
               계정이 아직 없나요?{" "}
@@ -459,7 +459,7 @@ export default function LoginPage() {
               </p>
               <h2 className="kr-keep mt-1 text-xl font-bold text-ink-900">학생 접속</h2>
               <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
-                안내 카드에 적힌 학급코드, 번호, 로그인 비밀번호를 입력하세요.
+                선생님이 나눠준 안내 카드의 학급코드, 번호, 로그인 비밀번호를 입력하세요.
               </p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -499,7 +499,7 @@ export default function LoginPage() {
               disabled={loading}
               type="submit"
             >
-              {loading ? "접속 중..." : "내 책장 열기 →"}
+              {loading ? "접속 중..." : "내 공책 책장 열기 →"}
             </button>
             <p className="kr-keep text-center text-sm leading-6 text-ink-500">
               학생 계정은 선생님이 학급 관리에서 발급해요.

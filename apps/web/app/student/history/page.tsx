@@ -32,7 +32,7 @@ function formatSubmissionDate(createdAt: string) {
 }
 
 function getInputTypeLabel(inputType: SubmissionItem["inputType"]) {
-  return inputType === "TYPED" ? "직접쓰기" : "사진제출";
+  return inputType === "TYPED" ? "직접 입력" : "공책 사진";
 }
 
 function getStatusMeta(status: SubmissionItem["status"]) {
@@ -47,7 +47,7 @@ function getStatusMeta(status: SubmissionItem["status"]) {
   return {
     label: "피드백 대기",
     tone: "teacher" as const,
-    description: "선생님 피드백을 기다리고 있어요.",
+    description: "선생님이 글을 확인하고 있어요.",
   };
 }
 
@@ -88,10 +88,10 @@ export default function StudentHistoryPage() {
               {user?.name ? `${user.name}의 글쓰기` : "학생 글쓰기"}
             </p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">
-              제출 기록
+              내 글과 피드백
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-700">
-              제출한 주제와 피드백 상태만 간단히 확인합니다. 글 원본과 선생님 피드백은 책장에서 주제를 열어 봅니다.
+              내가 올린 공책과 선생님 피드백 상태를 한눈에 봅니다. 자세한 글과 피드백은 책장에서 주제를 열어 확인해요.
             </p>
           </div>
 
@@ -153,7 +153,7 @@ export default function StudentHistoryPage() {
                     className="inline-flex min-h-10 w-fit shrink-0 items-center justify-center whitespace-nowrap rounded-md border border-ink-100 bg-paper-surface px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-paper-base"
                     href={`/student/upload?topicId=${submission.topic.id}`}
                   >
-                    책장에서 확인하기
+                    {submission.finalFeedback ? "피드백 보기" : "공책 보기"}
                   </Link>
                 </div>
               </article>
@@ -162,9 +162,9 @@ export default function StudentHistoryPage() {
 
           {submissions.length === 0 ? (
             <div className="rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-14 text-center">
-              <p className="text-lg font-semibold text-ink-900">아직 제출한 글이 없습니다.</p>
+              <p className="text-lg font-semibold text-ink-900">아직 올린 공책이 없어요.</p>
               <p className="mt-2 text-sm text-ink-700">
-                책장에서 주제를 고른 뒤 공책에 글을 써 보세요.
+                책장에서 주제를 고른 뒤 공책에 쓰거나 사진으로 올려 보세요.
               </p>
               <Link
                 className="mt-5 inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"

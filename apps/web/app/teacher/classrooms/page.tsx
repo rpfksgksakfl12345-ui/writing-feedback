@@ -34,7 +34,7 @@ const onboardingSteps = [
   },
   {
     title: "글쓰기 주제 만들기",
-    description: "학생 책장에 보낼 첫 글쓰기 주제를 준비합니다.",
+    description: "우리 반 공책 책장에 보낼 첫 주제를 준비합니다.",
   },
 ];
 
@@ -101,7 +101,7 @@ export default function TeacherClassroomsPage() {
       setName("");
       setGrade("3");
       setSelectedSchool(null);
-      setMessage(`${classroom.name} 학급이 생성되었습니다. 학급코드: ${classroom.classCode}`);
+      setMessage(`${classroom.name} 학급을 만들었어요. 학생 로그인에 쓸 학급코드: ${classroom.classCode}`);
       await loadClassrooms();
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : "학급을 생성하지 못했습니다.");
@@ -158,9 +158,9 @@ export default function TeacherClassroomsPage() {
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="text-sm font-semibold text-teacher-accent">교사 학급</p>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">학급 관리</h1>
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">우리 반 관리</h1>
             <p className="kr-keep mt-3 max-w-2xl text-sm leading-6 text-ink-700">
-              먼저 우리 반 학급을 만들고, 학생 로그인 계정을 발급한 뒤 글쓰기 주제를 보냅니다.
+              학급코드를 만들고, 학생 로그인 계정을 발급한 뒤 공책 글쓰기 주제를 보냅니다.
             </p>
           </div>
 
@@ -188,7 +188,7 @@ export default function TeacherClassroomsPage() {
             {hasClassrooms ? "학급 만들기" : "첫 학급 만들기"}
           </h2>
           <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
-            학급을 만들면 학생 로그인 계정을 발급하고 글쓰기 주제를 보낼 수 있어요.
+            학급을 만들면 학생 로그인 계정을 발급하고 공책 글쓰기 주제를 보낼 수 있어요.
           </p>
 
           {!isLoading && !hasClassrooms ? (
@@ -243,12 +243,12 @@ export default function TeacherClassroomsPage() {
               token={token}
             />
 
-            {message ? <NoticeBanner tone="success" title="학급 생성 완료" description={message} /> : null}
+            {message ? <NoticeBanner tone="success" title="학급 만들기 완료" description={message} /> : null}
             {error ? <NoticeBanner tone="error" title="학급 처리 실패" description={error} /> : null}
 
             <div className="flex justify-end">
               <PrimaryButton className="min-w-[120px]" disabled={isSaving} tone="teacher" type="submit">
-                {isSaving ? "생성 중..." : "학급 생성"}
+                {isSaving ? "생성 중..." : "우리 반 만들기"}
               </PrimaryButton>
             </div>
           </form>
@@ -262,7 +262,7 @@ export default function TeacherClassroomsPage() {
               </p>
               <h2 className="mt-1 text-xl font-bold text-ink-900">학급 목록</h2>
               <p className="mt-2 text-sm leading-6 text-ink-700">
-                학급을 선택하면 학생 명단과 로그인 정보를 관리할 수 있습니다.
+                학급을 선택하면 학생 계정 발급, 로그인 안내 카드, 학교 일정 연결을 관리할 수 있습니다.
               </p>
             </div>
             <Badge tone="teacher">{classrooms.length}개</Badge>
@@ -280,7 +280,7 @@ export default function TeacherClassroomsPage() {
                 먼저 우리 반 학급을 만들어주세요.
               </p>
               <p className="mx-auto mt-2 max-w-[520px] text-sm leading-6 text-ink-700">
-                학급을 만들면 학생 로그인 계정을 발급하고 글쓰기 주제를 보낼 수 있어요.
+                학급을 만들면 학생 로그인 계정을 발급하고 공책 글쓰기 주제를 보낼 수 있어요.
                 왼쪽의 첫 학급 만들기 카드에서 바로 시작하세요.
               </p>
             </div>
@@ -323,7 +323,7 @@ export default function TeacherClassroomsPage() {
                       className="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-md border border-ink-100 bg-paper-surface px-4 text-sm font-semibold text-ink-900 hover:bg-paper-base"
                       href={`/teacher/classrooms/${classroom.id}`}
                     >
-                      명단 관리
+                      학생 계정 발급하기
                     </Link>
                     <SecondaryButton
                       className="h-10 min-h-10 border-status-error/25 px-4 text-status-error hover:bg-status-error/5"

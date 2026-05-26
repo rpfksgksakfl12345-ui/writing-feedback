@@ -19,9 +19,7 @@ function getHomeHref(role?: "TEACHER" | "STUDENT") {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, logout, isReady } = useAuth();
   const router = useRouter();
-  const roleLabel = user?.role === "TEACHER" ? "교사" : "학생";
-  const brandWidthClass =
-    user?.role === "STUDENT" ? "md:w-[260px]" : user?.role === "TEACHER" ? "md:w-[240px]" : "";
+  const roleLabel = user?.role === "TEACHER" ? "담임" : "학생";
 
   function handleLogout() {
     logout();
@@ -34,9 +32,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <Link
             href={getHomeHref(user?.role)}
-            className={`inline-flex justify-center text-center text-lg font-semibold tracking-tight text-ink-900 ${brandWidthClass}`}
+            className="inline-flex min-w-0 items-center gap-2 text-left text-ink-900"
           >
-            주제 글쓰기
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-student-accent/25 bg-student-soft text-sm font-bold text-student-deep">
+              톡
+            </span>
+            <span className="min-w-0">
+              <span className="block text-lg font-bold leading-5">공책톡톡</span>
+              <span className="hidden text-[11px] font-medium leading-4 text-ink-500 sm:block">
+                공책 사진부터 담임 피드백까지
+              </span>
+            </span>
           </Link>
           <div className="flex items-center gap-3 text-sm">
             {isReady && user ? (
@@ -62,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </>
             ) : (
               <Link className="whitespace-nowrap rounded-xl bg-teacher-accent px-3 py-2 text-paper-surface hover:bg-teacher-accent/90" href="/login">
-                로그인
+                우리 반 들어가기
               </Link>
             )}
           </div>

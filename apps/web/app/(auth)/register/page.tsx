@@ -71,12 +71,12 @@ export default function RegisterPage() {
   return (
     <section className="mx-auto flex min-h-[calc(100vh-140px)] max-w-[1240px] items-center justify-center rounded-[28px] border border-ink-100 bg-[#F6EBD3] px-6 py-10 shadow-[0_1px_2px_rgba(60,40,20,.06),0_18px_42px_rgba(60,40,20,.10)] sm:px-8">
       <div className="w-full max-w-[460px] rounded-2xl border border-ink-100 bg-paper-surface p-6 shadow-[0_18px_40px_-24px_rgba(60,40,20,.3)] sm:p-7">
-        <p className="text-sm font-semibold text-teacher-accent">교사 회원가입</p>
+        <p className="text-sm font-semibold text-teacher-accent">공책톡톡 교사 회원가입</p>
         <h1 className="kr-keep mt-2 text-[24px] font-bold leading-[1.35] text-ink-900">
           교사 계정 만들기
         </h1>
         <p className="kr-keep mt-3 text-[14px] leading-[1.7] text-ink-700">
-          학급을 만들고 학생들의 글쓰기를 관리할 선생님 계정을 만들어 주세요.
+          학급을 만들고 학생들의 공책 글쓰기와 담임 피드백을 관리할 선생님 계정을 만들어 주세요.
         </p>
 
         <form className="mt-7 grid gap-5" onSubmit={handleSubmit}>
@@ -152,7 +152,7 @@ export default function RegisterPage() {
             disabled={loading}
             type="submit"
           >
-            {loading ? "계정 만드는 중..." : "계정 만들기"}
+            {loading ? "계정 만드는 중..." : "공책톡톡 교사 계정 만들기"}
           </button>
         </form>
 

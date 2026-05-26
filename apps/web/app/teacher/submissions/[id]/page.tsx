@@ -60,9 +60,9 @@ function formatFeedbackDraft(draft: FeedbackDraftResult) {
 function getOcrStatusLabel(ocrStatus: SubmissionDetail["ocrStatus"]) {
   switch (ocrStatus) {
     case "PROCESSING":
-      return "OCR 처리 중";
+      return "사진 속 글 읽는 중";
     case "DONE":
-      return "OCR 완료";
+      return "OCR 글 확인 가능";
     case "FAILED":
       return "OCR 실패";
     default:
@@ -88,7 +88,7 @@ function getEditableExtractedText(
 }
 
 function getInputTypeLabel(inputType: SubmissionDetail["inputType"]) {
-  return inputType === "TYPED" ? "직접쓰기" : "사진제출";
+  return inputType === "TYPED" ? "직접 입력" : "공책 사진";
 }
 
 function getSubmissionStatusMeta(status: SubmissionDetail["status"]) {
@@ -96,14 +96,14 @@ function getSubmissionStatusMeta(status: SubmissionDetail["status"]) {
     return {
       label: "피드백 완료",
       tone: "feedback" as const,
-      description: "최종 피드백이 저장된 제출물입니다.",
+      description: "담임 피드백이 저장된 글입니다.",
     };
   }
 
   return {
     label: "피드백 대기",
     tone: "student" as const,
-    description: "검토 후 최종 피드백 저장이 필요합니다.",
+    description: "글 확인 후 담임 피드백 저장이 필요합니다.",
   };
 }
 
@@ -165,7 +165,7 @@ export default function SubmissionDetailPage() {
       setFinalFeedback(data.finalFeedback || data.aiFeedback || "");
       setError("");
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "제출물을 불러오지 못했습니다.");
+      setError(loadError instanceof Error ? loadError.message : "제출 글을 불러오지 못했습니다.");
     }
   }
 
@@ -235,7 +235,7 @@ export default function SubmissionDetailPage() {
       editableExtractedText !== getEditableExtractedText(submission)
     ) {
       setDraftMessage("");
-      setDraftError("AI 초안을 생성하기 전에 수정한 텍스트를 먼저 저장해 주세요.");
+      setDraftError("AI 초안을 만들기 전에 OCR 확인 글을 먼저 저장해 주세요.");
       return;
     }
 
@@ -252,10 +252,10 @@ export default function SubmissionDetailPage() {
       const nextFeedback = formatFeedbackDraft(draft);
 
       setFinalFeedback(nextFeedback);
-      setDraftMessage("AI 초안이 피드백 입력칸에 들어갔습니다. 저장 전 내용을 확인해 주세요.");
+      setDraftMessage("AI 초안이 입력칸에 들어갔습니다. 담임 피드백으로 저장하기 전 내용을 확인해 주세요.");
     } catch (generateError) {
       setDraftError(
-        generateError instanceof Error ? generateError.message : "AI 피드백 초안 생성에 실패했습니다.",
+        generateError instanceof Error ? generateError.message : "AI 초안 생성에 실패했습니다.",
       );
     } finally {
       setIsGeneratingDraft(false);
@@ -302,7 +302,7 @@ export default function SubmissionDetailPage() {
           : current,
       );
       setEditableExtractedText(nextEditableExtractedText);
-      setExtractedTextMessage("수정 텍스트를 저장했습니다.");
+      setExtractedTextMessage("사진 속 글을 확인해 저장했습니다.");
     } catch (saveError) {
       setExtractedTextError(
         saveError instanceof Error ? saveError.message : "수정 텍스트 저장에 실패했습니다.",
@@ -325,7 +325,7 @@ export default function SubmissionDetailPage() {
       });
       router.push("/teacher/submissions?saved=1");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "피드백 저장에 실패했습니다.");
+      setError(submitError instanceof Error ? submitError.message : "담임 피드백 저장에 실패했습니다.");
     } finally {
       setIsSaving(false);
     }
@@ -342,7 +342,7 @@ export default function SubmissionDetailPage() {
   if (!submission) {
     return (
       <section className="rounded-xl border border-ink-100 bg-paper-surface p-6 text-ink-700 shadow-sm">
-        제출물을 불러오는 중입니다...
+        제출 글을 불러오는 중입니다...
       </section>
     );
   }
@@ -361,10 +361,10 @@ export default function SubmissionDetailPage() {
       !hasUnsavedExtractedTextChanges);
   const draftUnavailableDescription =
     submission.inputType === "PHOTO" && hasUnsavedExtractedTextChanges
-      ? "AI 초안을 생성하기 전에 수정 텍스트를 저장해 주세요."
+      ? "AI 초안을 만들기 전에 OCR 확인 글을 저장해 주세요."
       : submission.inputType === "PHOTO" && submission.ocrStatus === "DONE" && !savedPhotoText
-        ? "AI 초안을 생성하기 전에 텍스트를 추가하고 저장해 주세요."
-        : "사진 제출은 OCR이 완료된 뒤 AI 초안을 생성할 수 있습니다.";
+        ? "AI 초안을 만들기 전에 확인한 글을 추가하고 저장해 주세요."
+        : "사진 제출은 OCR 글 확인이 끝난 뒤 AI 초안을 만들 수 있습니다.";
   const statusMeta = getSubmissionStatusMeta(submission.status);
   const submittedAt = formatSubmissionDate(submission.createdAt);
   const hasPreparedAiDraft = Boolean(submission.aiFeedback?.trim() && !submission.finalFeedback?.trim());
@@ -378,7 +378,7 @@ export default function SubmissionDetailPage() {
               className="inline-flex min-h-9 items-center rounded-md border border-ink-100 bg-paper-surface px-3 text-sm font-semibold text-ink-700 hover:bg-paper-base"
               href="/teacher/submissions"
             >
-              ← 제출물 목록
+              ← 확인할 글 목록
             </Link>
             <div className="mt-5 flex flex-wrap items-center gap-2">
               <Badge tone={statusMeta.tone}>{statusMeta.label}</Badge>
@@ -425,7 +425,7 @@ export default function SubmissionDetailPage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
-                  학생 제출물
+                  학생 원문
                 </p>
                 <h2 className="mt-1 text-lg font-bold text-ink-900">
                   {submission.inputType === "TYPED" ? "직접 쓴 글 원문" : "사진 원본"}
@@ -464,9 +464,9 @@ export default function SubmissionDetailPage() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
-                    OCR / 추출 텍스트
+                    OCR 글 확인
                   </p>
-                  <h2 className="mt-1 text-lg font-bold text-ink-900">사진 글자 확인</h2>
+                  <h2 className="mt-1 text-lg font-bold text-ink-900">사진 속 글 다시 확인하기</h2>
                 </div>
                 <Badge tone={getOcrStatusTone(submission.ocrStatus)}>
                   {getOcrStatusLabel(submission.ocrStatus)}
@@ -475,13 +475,13 @@ export default function SubmissionDetailPage() {
 
               {submission.ocrError ? (
                 <div className="mt-4">
-                  <NoticeBanner tone="error" title="OCR 처리 오류" description={submission.ocrError} />
+                  <NoticeBanner tone="error" title="사진 속 글 읽기 오류" description={submission.ocrError} />
                 </div>
               ) : null}
 
               <div className="mt-5 rounded-lg border border-ink-100 bg-paper-base/60 px-5 py-4 shadow-[inset_0_1px_rgba(255,255,255,.45)]">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
-                  OCR 원본
+                  사진에서 처음 읽은 글
                 </p>
                 {originalOcrText ? (
                   <p className="mt-3 max-h-56 overflow-auto whitespace-pre-line text-sm leading-7 text-ink-900">
@@ -489,7 +489,7 @@ export default function SubmissionDetailPage() {
                   </p>
                 ) : (
                   <p className="mt-3 text-sm text-ink-500">
-                    아직 OCR 원본 텍스트가 없습니다.
+                    아직 사진에서 읽어온 글이 없습니다.
                   </p>
                 )}
               </div>
@@ -498,10 +498,10 @@ export default function SubmissionDetailPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
-                      교사 수정 텍스트
+                      담임 확인 글
                     </p>
                     <p className="mt-2 text-sm text-ink-700">
-                      저장된 텍스트가 AI 피드백 초안 생성에 사용됩니다.
+                      저장된 글이 AI 초안 만들기에 사용됩니다. 사진과 비교해 한 번 확인해 주세요.
                     </p>
                   </div>
                   <SecondaryButton
@@ -509,7 +509,7 @@ export default function SubmissionDetailPage() {
                     onClick={handleSaveExtractedText}
                     disabled={!canEditExtractedText || isSavingExtractedText}
                   >
-                    {isSavingExtractedText ? "저장 중..." : "수정 텍스트 저장"}
+                    {isSavingExtractedText ? "저장 중..." : "OCR 글 다시 확인하기"}
                   </SecondaryButton>
                 </div>
 
@@ -522,25 +522,25 @@ export default function SubmissionDetailPage() {
                     setExtractedTextMessage("");
                     setExtractedTextError("");
                   }}
-                  placeholder="OCR 처리가 끝나면 추출 텍스트가 여기에 표시됩니다."
+                  placeholder="사진 속 글을 읽어오면 여기에 표시됩니다."
                   disabled={!canEditExtractedText}
                 />
 
                 {!canEditExtractedText ? (
                   <p className="mt-2 text-sm text-ink-500">
-                    OCR이 완료된 뒤 수정 텍스트를 저장할 수 있습니다.
+                    사진 속 글 읽기가 끝난 뒤 확인한 글을 저장할 수 있습니다.
                   </p>
                 ) : null}
 
                 {extractedTextMessage ? (
                   <div className="mt-4">
-                    <NoticeBanner tone="success" title="수정 텍스트 저장 완료" description={extractedTextMessage} />
+                    <NoticeBanner tone="success" title="OCR 글 확인 완료" description={extractedTextMessage} />
                   </div>
                 ) : null}
 
                 {extractedTextError ? (
                   <div className="mt-4">
-                    <NoticeBanner tone="error" title="수정 텍스트 저장 실패" description={extractedTextError} />
+                    <NoticeBanner tone="error" title="OCR 글 확인 실패" description={extractedTextError} />
                   </div>
                 ) : null}
               </div>
@@ -553,11 +553,11 @@ export default function SubmissionDetailPage() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-feedback-pen">
-                교사 피드백
+                담임 피드백
               </p>
-              <h2 className="mt-1 text-xl font-bold text-ink-900">최종 피드백 작성</h2>
+              <h2 className="mt-1 text-xl font-bold text-ink-900">담임 피드백 완성</h2>
               <p className="mt-2 text-sm leading-6 text-ink-700">
-                AI 초안은 선택 사항입니다. 내용을 검토한 뒤 최종 피드백으로 저장하세요.
+                AI 초안은 선택 사항입니다. 선생님이 읽고 고친 뒤 담임 피드백으로 저장하세요.
               </p>
             </div>
             <PrimaryButton
@@ -566,7 +566,7 @@ export default function SubmissionDetailPage() {
               onClick={handleGenerateDraft}
               disabled={!canGenerateDraft || isGeneratingDraft}
             >
-              {isGeneratingDraft ? "초안 생성 중..." : "AI 초안 생성"}
+              {isGeneratingDraft ? "초안 생성 중..." : "AI 초안 만들기"}
             </PrimaryButton>
           </div>
 
@@ -574,7 +574,7 @@ export default function SubmissionDetailPage() {
             <div className="mt-4">
               <NoticeBanner
                 tone="error"
-                title="AI 초안 생성 불가"
+                title="AI 초안 만들기 전 확인 필요"
                 description={draftUnavailableDescription}
               />
             </div>
@@ -597,7 +597,7 @@ export default function SubmissionDetailPage() {
               <NoticeBanner
                 tone="success"
                 title="AI 초안 준비됨"
-                description="주제별 일괄 생성으로 만든 초안이 입력칸에 들어가 있습니다. 확인한 뒤 최종 피드백으로 저장하세요."
+                description="주제별 일괄 생성으로 만든 초안이 입력칸에 들어가 있습니다. 확인한 뒤 담임 피드백으로 저장하세요."
               />
             </div>
           ) : null}
@@ -608,20 +608,20 @@ export default function SubmissionDetailPage() {
               rows={12}
               value={finalFeedback}
               onChange={(event) => setFinalFeedback(event.target.value)}
-              placeholder="학생에게 보낼 최종 피드백을 입력하세요."
+              placeholder="학생에게 보낼 담임 피드백을 입력하세요."
             />
 
-            {error ? <NoticeBanner tone="error" title="피드백 저장 실패" description={error} /> : null}
+            {error ? <NoticeBanner tone="error" title="담임 피드백 저장 실패" description={error} /> : null}
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Link
                 className="inline-flex min-h-11 min-w-[150px] items-center justify-center whitespace-nowrap rounded-md border border-ink-100 bg-paper-surface px-[18px] py-[13px] text-[15px] font-semibold text-ink-900 hover:bg-paper-base"
                 href="/teacher/submissions"
               >
-                목록으로 돌아가기
+                확인할 글 목록
               </Link>
               <PrimaryButton className="min-w-[150px] whitespace-nowrap" tone="teacher" type="submit" disabled={isSaving}>
-                {isSaving ? "저장 중..." : "최종 피드백 저장"}
+                {isSaving ? "저장 중..." : "담임 피드백으로 저장하기"}
               </PrimaryButton>
             </div>
           </form>

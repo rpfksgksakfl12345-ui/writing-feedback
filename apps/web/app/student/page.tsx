@@ -38,7 +38,7 @@ const topicStatusMeta: Record<
 > = {
   NOT_STARTED: {
     label: "미작성",
-    description: "아직 제출한 글이 없어요.",
+    description: "공책에 쓰거나 사진으로 올릴 수 있어요.",
     badgeTone: "student",
     spineClass: "bg-student-accent",
   },
@@ -202,7 +202,12 @@ export default function StudentLibraryPage() {
       createdAt: topic.createdAt,
       status,
       href: `/student/upload?topicId=${topic.id}`,
-      actionLabel: status === "NOT_STARTED" ? "글쓰기" : "공책 보기",
+      actionLabel:
+        status === "NOT_STARTED"
+          ? "글 쓰러 가기"
+          : status === "FEEDBACK_READY"
+            ? "피드백 보기"
+            : "공책 보기",
     };
   });
 
@@ -229,7 +234,7 @@ export default function StudentLibraryPage() {
   ].filter((item): item is { label: string; value: string } => Boolean(item));
   const filterTabs: Array<{ id: TopicFilter; label: string; count: number }> = [
     { id: "ALL", label: "전체", count: cards.length },
-    { id: "TODO", label: "해야 할 글", count: statusCounts.NOT_STARTED },
+    { id: "TODO", label: "쓸 글", count: statusCounts.NOT_STARTED },
     { id: "WAITING", label: "피드백 대기", count: statusCounts.SUBMITTED },
     { id: "DONE", label: "완료", count: statusCounts.FEEDBACK_READY },
   ];
@@ -242,8 +247,8 @@ export default function StudentLibraryPage() {
             <p className="text-sm font-semibold text-student-accent">안녕, {user?.name ?? "친구"}!</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">내 책장</h1>
             <p className="kr-keep mt-3 max-w-2xl text-sm leading-6 text-ink-700">
-              선생님이 낸 글쓰기 주제를 책처럼 모아두었어요. 새 주제는 공책에 쓰고, 제출한 주제는
-              내가 쓴 공책과 선생님 피드백을 확인할 수 있습니다.
+              선생님이 낸 주제를 책처럼 모아두었어요. 공책에 쓴 글을 사진으로 올려도 괜찮고,
+              바로 입력해서 제출해도 됩니다.
             </p>
           </div>
           <div className="grid w-full gap-2 rounded-xl border border-ink-100 bg-paper-soft/85 p-3 shadow-sm sm:grid-cols-2 lg:w-auto lg:min-w-[300px]">
@@ -267,7 +272,7 @@ export default function StudentLibraryPage() {
               <div>
                 <p className="kr-keep font-semibold text-ink-900">새로 써야 할 주제가 있어요</p>
                 <p className="kr-keep mt-1 text-sm text-ink-700">
-                  {firstTodoCard.title} · {formatTopicDate(firstTodoCard.createdAt)}
+                  {firstTodoCard.title} · 공책에 쓰고 사진으로 톡 올릴 수 있어요.
                 </p>
               </div>
             </div>
@@ -275,10 +280,24 @@ export default function StudentLibraryPage() {
               className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
               href={firstTodoCard.href}
             >
-              시작하기
+              글 쓰러 가기
             </Link>
           </div>
         ) : null}
+
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          {["공책에 쓰기", "사진으로 올리기", "선생님 피드백 보기"].map((item, index) => (
+            <div
+              className="flex items-center gap-3 rounded-lg border border-ink-100 bg-paper-surface/80 px-4 py-3 text-sm font-semibold text-ink-800"
+              key={item}
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-student-soft text-xs font-bold text-student-deep">
+                {index + 1}
+              </span>
+              {item}
+            </div>
+          ))}
+        </div>
 
         <div className="mt-7 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="inline-flex w-fit rounded-md bg-paper-base p-1">
@@ -342,7 +361,7 @@ export default function StudentLibraryPage() {
             </div>
             <p className="kr-keep text-lg font-semibold text-ink-900">첫 글이 곧 도착할 거예요</p>
             <p className="kr-keep mt-2 text-sm text-ink-700">
-              선생님이 주제를 보내면 여기에 책처럼 쌓입니다.
+              선생님이 주제를 보내면 여기에 책처럼 쌓이고, 공책 사진으로 제출할 수 있어요.
             </p>
           </div>
         ) : null}
@@ -402,12 +421,12 @@ export default function StudentLibraryPage() {
                         <div className="mt-auto pl-3">
                           <div className="rounded-lg border border-ink-100 bg-paper-surface/70 px-4 py-3 shadow-[inset_0_1px_rgba(255,255,255,.45)]">
                             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
-                              도서 라벨
+                              공책 라벨
                             </p>
                             <div className="mt-2 flex items-center justify-between gap-3">
                               <span className="text-sm font-semibold text-ink-900">{card.grade}학년</span>
                               <span className="whitespace-nowrap text-sm text-ink-700 group-hover:text-student-accent">
-                                {card.status === "NOT_STARTED" ? "쓰러 가기" : card.actionLabel}
+                                {card.actionLabel}
                               </span>
                             </div>
                           </div>

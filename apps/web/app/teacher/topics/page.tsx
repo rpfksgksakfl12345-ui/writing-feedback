@@ -377,7 +377,7 @@ export default function TeacherTopicsPage() {
       setGuideGenerationError("");
       setGeneratingGuideTitle("");
       setGeneratedGuidesByKey({});
-      setMessage("주제가 등록되었습니다. 학생은 이제 해당 학년에서 이 주제를 선택할 수 있습니다.");
+      setMessage("우리 반 주제가 만들어졌어요. 학생 책장에서 바로 확인할 수 있습니다.");
       await loadTopicsForClassroom(classroomId);
     } catch (submitError) {
       setError(
@@ -419,7 +419,7 @@ export default function TeacherTopicsPage() {
       selectedSuggestionTitleRef.current = "";
       setPublicDataNotice(
         response.publicData?.schoolContextUsed
-          ? `${response.publicData.schoolName ?? "연결 학교"} 학사일정을 AI 추천에 반영했어요.`
+          ? `${response.publicData.schoolName ?? "연결 학교"} 학사일정을 우리 반 주제 추천에 반영했어요.`
           : response.publicData?.warning
             ? `학교 공공데이터는 반영하지 못했지만 일반 추천은 생성했어요. (${response.publicData.warning})`
             : "",
@@ -432,7 +432,7 @@ export default function TeacherTopicsPage() {
       setAiError(
         generateError instanceof Error
           ? generateError.message
-          : "AI 주제 추천에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+          : "우리 반 주제 추천에 실패했습니다. 잠시 후 다시 시도해 주세요.",
       );
     } finally {
       setIsGenerating(false);
@@ -450,14 +450,14 @@ export default function TeacherTopicsPage() {
     }
 
     if (suggestedTopics.length === 0) {
-      setRefinementError("먼저 AI 추천을 받은 뒤, 아쉬운 점을 적어 주세요.");
+      setRefinementError("먼저 우리 반 주제를 추천받은 뒤, 아쉬운 점을 적어 주세요.");
       return;
     }
 
     const teacherFeedback = refinementInstruction.trim();
 
     if (!teacherFeedback) {
-      setRefinementError("AI에게 반영할 의견을 한 문장 이상 적어 주세요.");
+      setRefinementError("추천에 반영할 의견을 한 문장 이상 적어 주세요.");
       return;
     }
 
@@ -496,7 +496,7 @@ export default function TeacherTopicsPage() {
       setRefinementInstruction("");
     } catch {
       setPublicDataNotice("");
-      setRefinementError("AI가 주제를 다시 추천하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      setRefinementError("주제를 다시 추천하지 못했어요. 잠시 후 다시 시도해 주세요.");
     } finally {
       setIsRefining(false);
     }
@@ -590,10 +590,10 @@ export default function TeacherTopicsPage() {
           <div>
             <p className="text-sm font-semibold text-teacher-accent">교사 주제 관리</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">
-              글쓰기 주제 관리
+              우리 반 주제 관리
             </h1>
             <p className="kr-keep mt-3 max-w-2xl text-sm leading-6 text-ink-700">
-              학년별 글쓰기 주제를 만들고, 학생 책장에 꽂힐 주제를 준비합니다.
+              학년, 시기, 학교 일정 맥락에 맞춰 학생 책장에 보낼 글쓰기 주제를 준비합니다.
             </p>
           </div>
 
@@ -628,11 +628,11 @@ export default function TeacherTopicsPage() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
-                  AI 추천
+                  우리 반 맥락 추천
                 </p>
                 <h2 className="kr-keep mt-1 text-xl font-bold text-ink-900">오늘의 글쓰기 주제 찾기</h2>
                 <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
-                  버튼을 누를 때에만 AI를 호출하며, 선택한 학급의 학년에 맞는 주제를 추천합니다.
+                  선택한 학급의 학년, 시기, 학교 일정 맥락을 반영해 쓸 만한 주제를 제안합니다.
                 </p>
               </div>
               <Badge tone="teacher">
@@ -658,7 +658,7 @@ export default function TeacherTopicsPage() {
                 ))}
               </select>
               <p className="kr-keep mt-2 text-xs leading-5 text-ink-500">
-                선택한 학급 기준으로 주제 목록, AI 추천, 저장 범위가 분리됩니다.
+                선택한 학급 기준으로 주제 목록, 추천 결과, 저장 범위가 분리됩니다.
               </p>
             </div>
 
@@ -669,7 +669,7 @@ export default function TeacherTopicsPage() {
                     연결 학교: {selectedClassroom.neisSchoolName}
                   </p>
                   <p className="mt-1 text-xs leading-5 text-ink-600">
-                    AI 추천에 NEIS 학사일정이 자동 반영됩니다.
+                    학사일정과 계절 맥락을 주제 추천에 함께 반영합니다.
                   </p>
                   {isLoadingSchedules ? (
                     <p className="mt-2 text-xs font-semibold text-teacher-deep">
@@ -739,19 +739,19 @@ export default function TeacherTopicsPage() {
                 tone="teacher"
                 type="button"
               >
-                {isGenerating ? "추천 생성 중..." : suggestedTopics.length > 0 ? "다시 추천 받기" : "추천 받기"}
+                {isGenerating ? "추천 생성 중..." : suggestedTopics.length > 0 ? "다시 추천 받기" : "우리 반 주제 추천받기"}
               </PrimaryButton>
             </div>
 
             {!isLoadingClassrooms && !hasClassrooms ? (
               <div className="kr-keep mt-4 rounded-xl border border-teacher-accent/20 bg-teacher-soft/55 px-4 py-3 text-sm leading-6 text-teacher-deep">
-                아직 연결할 학급이 없어 AI 추천을 받을 수 없습니다. 먼저 학급을 만들어 주세요.
+                아직 연결할 학급이 없어 우리 반 맥락 추천을 받을 수 없습니다. 먼저 학급을 만들어 주세요.
               </div>
             ) : null}
 
             {aiError ? (
               <div className="mt-4">
-                <NoticeBanner tone="error" title="AI 추천 실패" description={aiError} />
+                <NoticeBanner tone="error" title="주제 추천 실패" description={aiError} />
               </div>
             ) : null}
             {publicDataNotice ? (
@@ -831,10 +831,10 @@ export default function TeacherTopicsPage() {
 
                 <div className="rounded-xl border border-teacher-accent/20 bg-paper-surface/85 p-4 shadow-sm">
                   <p className="kr-keep text-sm font-bold text-ink-900">
-                    AI와 주제 상의하기
+                    추천 방향 다듬기
                   </p>
                   <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
-                    추천받은 주제가 조금 아쉽다면 원하는 방향을 말해 주세요. AI가 그 의견을 반영해서 다시 추천해 줄게요.
+                    추천받은 주제가 조금 아쉽다면 원하는 방향을 적어 주세요. 그 의견을 반영해 다시 추천합니다.
                   </p>
                   <textarea
                     className="mt-3 min-h-[96px] rounded-md border-ink-100 bg-paper-surface text-sm leading-6 text-ink-900 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20"
@@ -876,7 +876,7 @@ export default function TeacherTopicsPage() {
               <div className="mt-5 rounded-lg border border-dashed border-ink-200 bg-paper-base/60 px-5 py-6 text-sm text-ink-500">
                 <span className="kr-keep block">
                   {hasClassrooms
-                    ? "아직 추천 결과가 없습니다. 학급과 학년을 확인한 뒤 AI 추천을 생성해 보세요."
+                    ? "아직 추천 결과가 없습니다. 학급과 학년을 확인한 뒤 우리 반 주제를 추천받아 보세요."
                     : noClassroomHelp}
                 </span>
               </div>
@@ -956,7 +956,7 @@ export default function TeacherTopicsPage() {
 
               <div className="flex justify-end">
                 <PrimaryButton disabled={isTopicWorkDisabled || isGeneratingGuide} tone="teacher" type="submit">
-                  주제 저장
+                  우리 반 주제 만들기
                 </PrimaryButton>
               </div>
             </form>
@@ -967,11 +967,11 @@ export default function TeacherTopicsPage() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
-                주제 목록
+                학생 책장 주제
               </p>
-              <h2 className="mt-1 text-xl font-bold text-ink-900">주제 목록</h2>
+              <h2 className="mt-1 text-xl font-bold text-ink-900">학생에게 보이는 주제</h2>
               <p className="mt-2 text-sm leading-6 text-ink-700">
-                학생 책장에 보일 글쓰기 주제입니다.
+                학생 책장에 꽂힌 주제와 글쓰기 안내입니다.
               </p>
             </div>
             <Badge tone="teacher">{topics.length}개</Badge>
@@ -987,7 +987,7 @@ export default function TeacherTopicsPage() {
             {!isLoadingTopics && topics.length === 0 ? (
               <div className="rounded-xl border border-dashed border-ink-200 bg-paper-base/60 px-6 py-12 text-center">
                 <p className="kr-keep text-lg font-semibold text-ink-900">
-                  {hasClassrooms ? "이 학급에 등록된 주제가 없습니다." : "먼저 학급을 만들어주세요"}
+                  {hasClassrooms ? "우리 반 첫 글쓰기 주제를 만들어볼까요?" : "먼저 학급을 만들어주세요"}
                 </p>
                 <p className="kr-keep mt-2 text-sm text-ink-700">
                   {hasClassrooms

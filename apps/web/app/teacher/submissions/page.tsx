@@ -78,14 +78,14 @@ function getStatusMeta(status: SubmissionItem["status"]) {
     return {
       label: "피드백 완료",
       tone: "feedback" as const,
-      description: "학생에게 보낼 피드백이 저장되었습니다.",
+      description: "담임 피드백이 학생에게 저장되었습니다.",
     };
   }
 
   return {
     label: "피드백 대기",
     tone: "student" as const,
-    description: "교사 검토와 최종 피드백 작성이 필요합니다.",
+    description: "글 확인과 담임 피드백 작성이 필요합니다.",
   };
 }
 
@@ -185,7 +185,7 @@ function TeacherSubmissionsContent() {
         return nextTopics[0] ? String(nextTopics[0].id) : "";
       });
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "제출물을 불러오지 못했습니다.");
+      setError(loadError instanceof Error ? loadError.message : "제출 글을 불러오지 못했습니다.");
     } finally {
       setIsLoading(false);
     }
@@ -300,9 +300,9 @@ function TeacherSubmissionsContent() {
           action: "주제 만들러 가기",
         }
       : {
-          title: selectedTopic ? "선택한 주제에 제출물이 없어요" : "아직 검토할 글이 없어요",
+          title: selectedTopic ? "선택한 주제에 제출된 글이 없어요" : "아직 검토할 글이 없어요",
           description: selectedTopic
-            ? "학생이 직접 제출하거나, 위 일괄 업로드에서 학생 글 사진을 대신 올릴 수 있어요."
+            ? "학생이 직접 제출하거나, 위 사진 수합에서 학생 공책 사진을 대신 올릴 수 있어요."
             : "학생들이 글을 제출하면 이곳에서 읽고 피드백을 남길 수 있어요.",
           href: null,
           action: null,
@@ -334,7 +334,7 @@ function TeacherSubmissionsContent() {
       .filter((entry): entry is { student: StudentRosterItem; file: File } => Boolean(entry.file));
 
     if (selectedEntries.length === 0) {
-      setBulkUploadError("업로드할 학생 글 사진을 하나 이상 선택해 주세요.");
+      setBulkUploadError("올릴 공책 사진을 하나 이상 선택해 주세요.");
       return;
     }
 
@@ -363,7 +363,7 @@ function TeacherSubmissionsContent() {
       await loadTeacherContext();
     } catch (uploadError) {
       setBulkUploadError(
-        uploadError instanceof Error ? uploadError.message : "학생 글 사진 일괄 업로드에 실패했습니다.",
+        uploadError instanceof Error ? uploadError.message : "공책 사진 올리기에 실패했습니다.",
       );
     } finally {
       setIsBulkUploading(false);
@@ -376,11 +376,11 @@ function TeacherSubmissionsContent() {
     }
 
     if (selectedTopicReadyFeedbackCount === 0) {
-      setBulkFeedbackError("AI 초안을 만들 수 있는 제출물이 없습니다.");
+      setBulkFeedbackError("AI 초안을 만들 수 있는 제출 글이 없습니다.");
       return;
     }
 
-    const confirmed = window.confirm("피드백이 없는 제출물에 대해서만 AI 초안을 만들어요.");
+    const confirmed = window.confirm("담임 피드백이 아직 없는 글에 대해서만 AI 초안을 만들어요.");
 
     if (!confirmed) {
       return;
@@ -405,7 +405,7 @@ function TeacherSubmissionsContent() {
       setBulkFeedbackError(
         feedbackError instanceof Error
           ? feedbackError.message
-          : "주제별 AI 피드백 일괄 생성에 실패했습니다.",
+          : "주제별 AI 초안 생성에 실패했습니다.",
       );
     } finally {
       setIsBulkGeneratingFeedback(false);
@@ -417,10 +417,10 @@ function TeacherSubmissionsContent() {
       <section className="bg-paper-surface bg-[radial-gradient(rgba(90,110,133,.07)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-sm font-semibold text-teacher-accent">교사 피드백</p>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">제출물 목록</h1>
+            <p className="text-sm font-semibold text-teacher-accent">오늘 확인할 글</p>
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">제출 글 확인</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-700">
-              학생이 제출한 글과 사진을 확인하고, 선생님이 학생 글 사진을 대신 올리거나 AI 피드백 초안을 주제별로 만들 수 있습니다.
+              공책 사진과 직접 입력 글을 모아 보고, 글 확인, AI 초안, 담임 피드백 저장까지 이어갑니다.
             </p>
           </div>
 
@@ -428,17 +428,17 @@ function TeacherSubmissionsContent() {
             className="inline-flex min-h-11 w-fit items-center justify-center whitespace-nowrap rounded-md border border-ink-100 bg-paper-surface px-[18px] py-[13px] text-[15px] font-semibold text-ink-900 hover:bg-paper-base"
             href="/teacher/topics"
           >
-            주제 관리로 이동
+            우리 반 주제 만들기
           </Link>
         </div>
 
         <div className="mt-6 grid gap-3 md:grid-cols-5">
           <div className="rounded-lg border border-ink-100 bg-paper-surface/85 px-4 py-3">
-            <p className="text-xs text-ink-500">전체 제출</p>
+            <p className="text-xs text-ink-500">오늘 모인 글</p>
             <p className="mt-1 text-lg font-semibold text-ink-900">{submissions.length}</p>
           </div>
           <div className="rounded-lg border border-ink-100 bg-paper-surface/85 px-4 py-3">
-            <p className="text-xs text-ink-500">피드백 대기</p>
+            <p className="text-xs text-ink-500">피드백 필요한 글</p>
             <p className="mt-1 text-lg font-semibold text-student-accent">{pendingCount}</p>
           </div>
           <div className="rounded-lg border border-ink-100 bg-paper-surface/85 px-4 py-3">
@@ -446,11 +446,11 @@ function TeacherSubmissionsContent() {
             <p className="mt-1 text-lg font-semibold text-feedback-pen">{reviewedCount}</p>
           </div>
           <div className="rounded-lg border border-ink-100 bg-paper-surface/85 px-4 py-3">
-            <p className="text-xs text-ink-500">AI 초안</p>
+            <p className="text-xs text-ink-500">AI 초안 준비</p>
             <p className="mt-1 text-lg font-semibold text-feedback-pen">{aiDraftCount}</p>
           </div>
           <div className="rounded-lg border border-ink-100 bg-paper-surface/85 px-4 py-3">
-            <p className="text-xs text-ink-500">사진 제출</p>
+            <p className="text-xs text-ink-500">공책 사진</p>
             <p className="mt-1 text-lg font-semibold text-teacher-accent">{photoCount}</p>
           </div>
         </div>
@@ -462,20 +462,20 @@ function TeacherSubmissionsContent() {
             <NoticeBanner
               tone="success"
               title="피드백 저장 완료"
-              description="저장 후 다시 제출물 목록으로 돌아왔습니다."
+              description="담임 피드백을 저장하고 확인할 글 목록으로 돌아왔습니다."
             />
           </div>
         ) : null}
 
         {error ? (
           <div className="mb-5">
-            <NoticeBanner tone="error" title="제출물 불러오기 실패" description={error} />
+            <NoticeBanner tone="error" title="제출 글 불러오기 실패" description={error} />
           </div>
         ) : null}
 
         {isLoading ? (
           <div className="rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-14 text-center text-sm text-ink-500">
-            제출물을 불러오는 중입니다...
+            제출 글을 불러오는 중입니다...
           </div>
         ) : null}
 
@@ -484,7 +484,7 @@ function TeacherSubmissionsContent() {
             <div className="grid gap-4 lg:grid-cols-[minmax(240px,.55fr)_minmax(0,1fr)]">
               <div>
                 <label className="block text-sm font-semibold text-ink-700" htmlFor="bulkTopicId">
-                  주제 선택
+                  확인할 주제 선택
                 </label>
                 <select
                   className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-teacher-accent focus:ring-teacher-accent/20"
@@ -507,19 +507,19 @@ function TeacherSubmissionsContent() {
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="rounded-lg border border-ink-100 bg-paper-base/50 px-4 py-3">
-                  <p className="text-xs text-ink-500">선택 주제 제출</p>
+                  <p className="text-xs text-ink-500">선택 주제 글</p>
                   <p className="mt-1 text-lg font-semibold text-ink-900">
                     {selectedTopicSubmissions.length}
                   </p>
                 </div>
                 <div className="rounded-lg border border-ink-100 bg-paper-base/50 px-4 py-3">
-                  <p className="text-xs text-ink-500">피드백 없는 제출</p>
+                  <p className="text-xs text-ink-500">담임 피드백 필요</p>
                   <p className="mt-1 text-lg font-semibold text-student-accent">
                     {selectedTopicNoFeedbackCount}
                   </p>
                 </div>
                 <div className="rounded-lg border border-ink-100 bg-paper-base/50 px-4 py-3">
-                  <p className="text-xs text-ink-500">AI 생성 가능</p>
+                  <p className="text-xs text-ink-500">AI 초안 가능</p>
                   <p className="mt-1 text-lg font-semibold text-feedback-pen">
                     {selectedTopicReadyFeedbackCount}
                   </p>
@@ -532,13 +532,13 @@ function TeacherSubmissionsContent() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
-                      Bulk Upload
+                      공책 사진 수합
                     </p>
                     <h2 className="kr-keep mt-1 text-xl font-bold text-ink-900">
-                      학생 글 사진 일괄 업로드
+                      학생 공책 사진 대신 올리기
                     </h2>
                     <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
-                      태블릿을 사용하지 않고, 선생님이 학생 글 사진을 대신 올릴 수 있어요. 비어 있는 학생만 사진을 선택해 주세요.
+                      학생이 기기를 쓰지 않아도 선생님이 공책 사진을 대신 올릴 수 있어요. 아직 제출이 없는 학생만 선택해 주세요.
                     </p>
                   </div>
                   <Badge tone="teacher">
@@ -663,7 +663,7 @@ function TeacherSubmissionsContent() {
                     tone="teacher"
                     type="button"
                   >
-                    {isBulkUploading ? "업로드와 OCR 처리 중..." : "선택한 사진 업로드"}
+                    {isBulkUploading ? "사진 속 글을 읽는 중..." : "선택한 공책 사진 올리기"}
                   </PrimaryButton>
                 </div>
               </div>
@@ -671,18 +671,18 @@ function TeacherSubmissionsContent() {
               <div className="rounded-xl border border-feedback-pen/25 bg-feedback-soft p-5 shadow-sm">
                 <div className="mb-4 h-1.5 rounded-full bg-feedback-pen/70" />
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-feedback-pen">
-                  Bulk Feedback
+                  AI 초안
                 </p>
                 <h2 className="kr-keep mt-1 text-xl font-bold text-ink-900">
-                  이 주제 피드백 일괄 생성
+                  이 주제 AI 초안 만들기
                 </h2>
                 <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
-                  버튼을 누를 때에만 AI를 호출합니다. 피드백이 없는 제출물에 대해서만 AI 초안을 만들어요.
+                  버튼을 누를 때에만 AI를 호출합니다. 담임 피드백이 아직 없는 글에 초안만 준비해 둡니다.
                 </p>
 
                 <div className="mt-5 grid gap-3">
                   <div className="rounded-lg border border-feedback-pen/15 bg-paper-surface/75 px-4 py-3">
-                    <p className="text-xs text-ink-500">생성 대상</p>
+                    <p className="text-xs text-ink-500">초안 대상</p>
                     <p className="mt-1 text-lg font-semibold text-feedback-pen">
                       {selectedTopicReadyFeedbackCount}개
                     </p>
@@ -690,14 +690,14 @@ function TeacherSubmissionsContent() {
                   <div className="rounded-lg border border-feedback-pen/15 bg-paper-surface/75 px-4 py-3">
                     <p className="text-xs text-ink-500">건너뛸 수 있는 항목</p>
                     <p className="mt-1 text-sm font-semibold text-ink-900">
-                      이미 피드백 있음, OCR 미완료, 텍스트 없음
+                      이미 담임 피드백 있음, 글자 확인 미완료, 텍스트 없음
                     </p>
                   </div>
                 </div>
 
                 {bulkFeedbackError ? (
                   <div className="mt-4">
-                    <NoticeBanner tone="error" title="AI 일괄 생성 실패" description={bulkFeedbackError} />
+                    <NoticeBanner tone="error" title="AI 초안 생성 실패" description={bulkFeedbackError} />
                   </div>
                 ) : null}
 
@@ -709,13 +709,13 @@ function TeacherSubmissionsContent() {
                       {bulkFeedbackResult.summary.failed}개 실패
                     </p>
                     <p className="mt-1 text-xs text-ink-500">
-                      AI 호출 {bulkFeedbackResult.summary.aiCalls}회 · 생성된 초안은 제출물 상세에서 확인하고 저장할 수 있어요.
+                      AI 호출 {bulkFeedbackResult.summary.aiCalls}회 · 생성된 초안은 글 상세에서 확인하고 담임 피드백으로 저장할 수 있어요.
                     </p>
                     {bulkFeedbackResult.failed.length > 0 ? (
                       <ul className="mt-3 space-y-1 text-xs text-status-error">
                         {bulkFeedbackResult.failed.map((item) => (
                           <li key={`feedback-failed-${item.submissionId}`}>
-                            제출물 {item.submissionId} · {item.reason}
+                            제출 글 {item.submissionId} · {item.reason}
                           </li>
                         ))}
                       </ul>
@@ -725,7 +725,7 @@ function TeacherSubmissionsContent() {
 
                 {isBulkGeneratingFeedback ? (
                   <p className="mt-4 text-sm font-semibold text-feedback-pen">
-                    AI가 여러 글의 피드백을 만들고 있어요.
+                    여러 글의 AI 초안을 준비하고 있어요.
                   </p>
                 ) : null}
 
@@ -736,7 +736,7 @@ function TeacherSubmissionsContent() {
                     tone="teacher"
                     type="button"
                   >
-                    {isBulkGeneratingFeedback ? "AI 초안 생성 중..." : "이 주제 피드백 일괄 생성"}
+                    {isBulkGeneratingFeedback ? "AI 초안 생성 중..." : "이 주제 AI 초안 만들기"}
                   </PrimaryButton>
                 </div>
               </div>
@@ -782,11 +782,11 @@ function TeacherSubmissionsContent() {
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge tone={statusMeta.tone}>{statusMeta.label}</Badge>
                       <Badge tone={hasFinalFeedback ? "feedback" : hasAiDraft ? "teacher" : "neutral"}>
-                        {hasFinalFeedback ? "최종 피드백 있음" : hasAiDraft ? "AI 초안 있음" : "피드백 없음"}
+                        {hasFinalFeedback ? "담임 피드백 완료" : hasAiDraft ? "AI 초안 준비" : "담임 피드백 필요"}
                       </Badge>
                       {submission.inputType === "PHOTO" ? (
                         <Badge tone={submission.ocrStatus === "DONE" ? "success" : "neutral"}>
-                          {submission.ocrStatus === "DONE" ? "OCR 완료" : "OCR 확인 필요"}
+                          {submission.ocrStatus === "DONE" ? "글자 확인 완료" : "글자 확인 필요"}
                         </Badge>
                       ) : null}
                     </div>
@@ -812,7 +812,7 @@ function TeacherSubmissionsContent() {
                       }`}
                       href={`/teacher/submissions/${submission.id}`}
                     >
-                      {isPending ? "피드백 작성" : "다시 보기"}
+                      {isPending ? "피드백 작성하기" : "글 다시 보기"}
                     </Link>
                   </div>
                 </article>

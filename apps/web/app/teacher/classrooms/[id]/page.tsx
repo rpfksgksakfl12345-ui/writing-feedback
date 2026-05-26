@@ -482,12 +482,12 @@ export default function TeacherClassroomDetailPage() {
         </Link>
         <div className="mt-5 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-sm font-semibold text-teacher-accent">학급 관리</p>
+            <p className="text-sm font-semibold text-teacher-accent">우리 반 관리</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">
               {classroom?.name ?? "학급을 불러오는 중"}
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-700">
-              학생을 발급하고 학급코드, 번호, 로그인 비밀번호를 전달합니다.
+              학생 계정을 발급하고 학급코드, 번호, 로그인 비밀번호를 안내 카드로 전달합니다.
             </p>
           </div>
 
@@ -535,7 +535,7 @@ export default function TeacherClassroomDetailPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
               단건 발급
             </p>
-            <h2 className="mt-1 text-xl font-bold text-ink-900">학생 한 명 발급</h2>
+            <h2 className="mt-1 text-xl font-bold text-ink-900">학생 한 명 계정 발급</h2>
             <p className="mt-2 text-sm leading-6 text-ink-700">
               로그인 비밀번호를 비워두면 자동 생성됩니다.
             </p>
@@ -580,7 +580,7 @@ export default function TeacherClassroomDetailPage() {
 
               <div className="flex justify-end">
                 <PrimaryButton disabled={isSaving || !classroom} tone="teacher" type="submit">
-                  {isSaving ? "발급 중..." : "학생 발급"}
+                  {isSaving ? "발급 중..." : "학생 계정 발급하기"}
                 </PrimaryButton>
               </div>
             </form>
@@ -591,7 +591,7 @@ export default function TeacherClassroomDetailPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
               단체 발급
             </p>
-            <h2 className="mt-1 text-xl font-bold text-ink-900">여러 학생 한 번에 발급</h2>
+            <h2 className="mt-1 text-xl font-bold text-ink-900">여러 학생 계정 한 번에 발급</h2>
             <p className="mt-2 text-sm leading-6 text-ink-700">
               행을 추가해 여러 명을 입력합니다. 로그인 비밀번호는 자동으로 만들어집니다.
             </p>
@@ -638,7 +638,7 @@ export default function TeacherClassroomDetailPage() {
                   행 추가
                 </SecondaryButton>
                 <PrimaryButton disabled={isBulkSaving || !classroom} tone="teacher" type="submit">
-                  {isBulkSaving ? "발급 중..." : "입력한 학생 발급"}
+                  {isBulkSaving ? "발급 중..." : "입력한 학생 계정 발급하기"}
                 </PrimaryButton>
               </div>
 
@@ -660,7 +660,7 @@ export default function TeacherClassroomDetailPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                   학생 명단
                 </p>
-                <h2 className="mt-1 text-xl font-bold text-ink-900">발급된 학생과 로그인 정보</h2>
+                <h2 className="mt-1 text-xl font-bold text-ink-900">학생 명단과 로그인 정보</h2>
                 <p className="mt-2 text-sm leading-6 text-ink-700">
                   로그인 비밀번호는 발급 직후 또는 재발급 직후에만 확인할 수 있습니다.
                 </p>
@@ -673,7 +673,7 @@ export default function TeacherClassroomDetailPage() {
                   onClick={handlePrintRoster}
                   type="button"
                 >
-                  학생 명단 출력
+                  학생 명단 출력하기
                 </SecondaryButton>
               </div>
             </div>
@@ -686,9 +686,9 @@ export default function TeacherClassroomDetailPage() {
 
             {!isLoading && students.length === 0 ? (
               <div className="mt-5 rounded-xl border border-dashed border-ink-200 bg-paper-base/60 px-6 py-12 text-center">
-                <p className="text-lg font-semibold text-ink-900">아직 학생이 없습니다.</p>
+                <p className="text-lg font-semibold text-ink-900">아직 발급한 학생 계정이 없어요.</p>
                 <p className="mt-2 text-sm text-ink-700">
-                  학생을 발급하면 이곳에서 로그인 정보를 확인할 수 있습니다. 비밀번호를 잊었다면 새로 재발급해 주세요.
+                  위 카드에서 학생 계정을 발급하면 이곳에서 학급코드, 번호, 로그인 비밀번호를 확인할 수 있습니다.
                 </p>
               </div>
             ) : null}
@@ -791,7 +791,7 @@ export default function TeacherClassroomDetailPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-500">
-                          주제 글쓰기
+                          공책톡톡
                         </p>
                         <h3 className="mt-2 text-xl font-bold text-ink-900">
                           {getStudentLabel(student)}
@@ -823,7 +823,7 @@ export default function TeacherClassroomDetailPage() {
                     </div>
 
                     <p className="mt-4 rounded-lg bg-paper-sunk px-3 py-2 text-xs leading-5 text-ink-700">
-                      학생 로그인에서 학급 코드, 번호, 로그인 비밀번호를 입력하세요. 비밀번호를 잊었다면 담임 선생님께 재발급을 요청하세요.
+                      공책톡톡 학생 로그인에서 학급코드, 번호, 로그인 비밀번호를 입력하세요. 비밀번호를 잊었다면 담임 선생님께 재발급을 요청하세요.
                     </p>
                   </article>
                 ))}

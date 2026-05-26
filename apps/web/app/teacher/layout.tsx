@@ -6,9 +6,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../components/auth-provider";
 
 const teacherLinks = [
-  { href: "/teacher/classrooms", label: "학급 관리" },
-  { href: "/teacher/topics", label: "주제 관리" },
-  { href: "/teacher/submissions", label: "제출 글" },
+  { href: "/teacher/classrooms", label: "우리 반 관리" },
+  { href: "/teacher/topics", label: "우리 반 주제" },
+  { href: "/teacher/submissions", label: "확인할 글" },
 ];
 
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {
@@ -34,7 +34,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
     <div className="grid gap-6 md:grid-cols-[240px_1fr]">
       <aside className="rounded-[24px] border border-ink-100 bg-paper-surface/95 p-4 shadow-[0_1px_2px_rgba(60,40,20,.05),0_10px_26px_rgba(60,40,20,.07)]">
         <p className="px-3 text-xs font-semibold uppercase tracking-[0.18em] text-teacher-accent">
-          교사 메뉴
+          담임 메뉴
         </p>
         <nav className="mt-3 space-y-2">
           {teacherLinks.map((link) => {
@@ -56,7 +56,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
           })}
         </nav>
         <div className="mt-6 rounded-2xl border border-ink-100 bg-paper-base/70 p-4 text-sm leading-6 text-ink-700">
-          학급을 만들고 주제를 준비한 뒤 학생 제출 글에 피드백을 남깁니다.
+          공책 사진 제출, 글 확인, AI 초안, 담임 피드백 순서로 우리 반 글쓰기를 정리합니다.
         </div>
       </aside>
       <div>{children}</div>

@@ -1,7 +1,7 @@
 type SubmissionStatus = "PENDING" | "REVIEWED";
 
 const statusLabel: Record<SubmissionStatus, string> = {
-  PENDING: "피드백 대기",
+  PENDING: "피드백 필요",
   REVIEWED: "피드백 완료",
 };
 

@@ -155,7 +155,7 @@ function SubmissionNotebookView({
   const submittedAt = formatSubmissionDate(submission.createdAt);
   const hasFeedback = Boolean(submission.finalFeedback?.trim());
   const photoText = getPhotoText(submission);
-  const feedbackText = submission.finalFeedback || "선생님이 아직 피드백을 작성 중이에요.";
+  const feedbackText = submission.finalFeedback || "선생님이 글을 확인하고 있어요.";
   const feedbackBlock = (
     <div className="mt-[38px] border-t border-feedback-pen/25 pt-[19px]">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-feedback-pen">
@@ -172,7 +172,7 @@ function SubmissionNotebookView({
       {message ? (
         <NoticeBanner
           tone="success"
-          title="글쓰기 저장 완료"
+          title="공책 제출 완료"
           description={message}
         />
       ) : null}
@@ -236,7 +236,7 @@ function SubmissionNotebookView({
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs leading-5 text-ink-500">
-          이 주제는 이미 제출되어 새 입력창 대신 저장된 공책을 보여줍니다.
+          이 주제는 이미 제출했어요. 선생님 피드백이 도착하면 이 화면에서 함께 볼 수 있습니다.
         </p>
         <Link
           className="inline-flex min-h-11 items-center justify-center rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
@@ -445,7 +445,7 @@ function StudentUploadContent() {
         ...current.filter((submission) => getSubmissionTopicId(submission) !== Number(topicId)),
       ]);
       setContent("");
-      setMessage("제출이 저장되었습니다. 이제 책장에서 같은 주제를 열면 이 공책을 볼 수 있어요.");
+      setMessage("쓴 글이 선생님께 전해졌어요. 책장에서 같은 주제를 열면 제출한 공책을 볼 수 있습니다.");
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -492,7 +492,7 @@ function StudentUploadContent() {
         ...current.filter((submission) => getSubmissionTopicId(submission) !== Number(topicId)),
       ]);
       setImage(null);
-      setMessage("사진 제출이 저장되었습니다. 이제 책장에서 같은 주제를 열면 제출한 공책을 볼 수 있어요.");
+      setMessage("공책 사진이 선생님께 전해졌어요. 사진 속 글을 읽어 선생님이 확인할 수 있게 준비할게요.");
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -523,8 +523,8 @@ function StudentUploadContent() {
       ? "피드백 도착"
       : "제출 완료"
     : activeType === "TYPED"
-      ? "직접 쓰기"
-      : "사진 제출";
+      ? "직접 입력"
+      : "공책 사진";
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
@@ -552,7 +552,7 @@ function StudentUploadContent() {
               {selectedSubmission
                 ? "이미 제출한 주제입니다. 내가 쓴 공책과 선생님 피드백을 한 화면에서 확인합니다."
                 : selectedTopic?.description ||
-                  "책장에서 고른 주제로 바로 글을 쓰거나, 공책에 쓴 글을 사진으로 제출할 수 있습니다."}
+                  "책장에서 고른 주제로 바로 글을 쓰거나, 공책에 쓴 글을 사진으로 올릴 수 있습니다."}
             </p>
             {!selectedSubmission && selectedTopic?.description ? (
               <TopicGuide text={selectedTopic.description} />
@@ -564,7 +564,7 @@ function StudentUploadContent() {
               {statusBadgeLabel}
             </Badge>
             <p className="text-xs opacity-80">
-              {user?.grade ? `${user.grade}학년 주제` : "학생 글쓰기"} · {user?.name ?? "학생"}
+              {user?.grade ? `${user.grade}학년 주제` : "공책톡톡"} · {user?.name ?? "학생"}
             </p>
           </div>
         </div>
@@ -590,8 +590,8 @@ function StudentUploadContent() {
               <div className="inline-flex w-fit rounded-md bg-paper-base p-1">
                 {(
                   [
-                    { id: "TYPED", label: "직접 쓰기", icon: "Aa" },
-                    { id: "PHOTO", label: "사진 제출", icon: "▣" },
+                    { id: "TYPED", label: "직접 입력", icon: "Aa" },
+                    { id: "PHOTO", label: "공책 사진", icon: "톡" },
                   ] satisfies Array<{ id: SubmissionInputType; label: string; icon: string }>
                 ).map((type) => {
                   const isActive = activeType === type.id;
@@ -626,7 +626,7 @@ function StudentUploadContent() {
                 </span>
               ) : (
                 <span className="max-w-[320px] truncate">
-                  {image ? image.name : "사진 파일을 선택해 제출할 수 있습니다"}
+                  {image ? image.name : "공책 사진을 선택해 제출할 수 있습니다"}
                 </span>
               )}
             </div>
@@ -634,7 +634,7 @@ function StudentUploadContent() {
 
           <div>
             <label className="mb-2 block text-sm font-semibold text-ink-700" htmlFor="topicId">
-              주제 선택
+              오늘 쓸 주제
             </label>
             <select
               className="h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-student-accent focus:ring-student-accent/20"
@@ -670,7 +670,7 @@ function StudentUploadContent() {
                   <p className="text-sm font-semibold text-ink-700">
                     {topicDate} · {user?.name ?? "학생"}
                   </p>
-                  <p className="text-xs text-ink-300">생각을 천천히 적어 보세요</p>
+                  <p className="text-xs text-ink-300">공책에 쓰듯 천천히 적어 보세요</p>
                 </div>
                 <div className="p-5 sm:p-7">
                   <NotebookTextArea
@@ -678,7 +678,7 @@ function StudentUploadContent() {
                     rows={12}
                     value={content}
                     onChange={(event) => setContent(event.target.value)}
-                    placeholder="여기에 글을 써 보세요. 줄과 줄 사이에 천천히 생각을 채워 넣으면 됩니다."
+                    placeholder="여기에 글을 써 보세요. 공책에 쓰듯 한 문장씩 천천히 채워도 괜찮아요."
                   />
                 </div>
               </div>
@@ -700,7 +700,7 @@ function StudentUploadContent() {
                 </Link>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <span className="text-xs text-ink-500">한 번 제출하면 다시 고치기 어려워요.</span>
-                  <PrimaryButton type="submit">선생님께 제출하기 →</PrimaryButton>
+                  <PrimaryButton type="submit">쓴 글 제출하기 →</PrimaryButton>
                 </div>
               </div>
             </form>
@@ -712,10 +712,10 @@ function StudentUploadContent() {
                     ▣
                   </div>
                   <label className="mt-5 block text-base font-semibold text-ink-900" htmlFor="writingPhoto">
-                    공책 사진 선택
+                    공책 사진 올리기
                   </label>
                   <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink-700">
-                    공책에 쓴 글이 선명하게 보이는 사진을 올려 주세요. 기존 OCR 처리 흐름으로 제출됩니다.
+                    손글씨도 괜찮아요. 공책에 쓴 글이 선명하게 보이면 사진 속 글을 읽어 선생님이 확인할 수 있어요.
                   </p>
                   <input
                     className="mx-auto mt-5 max-w-md rounded-md border-ink-100 bg-paper-surface text-sm text-ink-700 file:mr-4 file:rounded-md file:border-0 file:bg-student-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-paper-surface hover:file:bg-student-accent/90"
@@ -739,7 +739,7 @@ function StudentUploadContent() {
                 </Link>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <span className="text-xs text-ink-500">사진 속 글이 잘 보이는지 확인해 주세요.</span>
-                  <PrimaryButton type="submit">사진 업로드하기 →</PrimaryButton>
+                  <PrimaryButton type="submit">공책 사진 제출하기 →</PrimaryButton>
                 </div>
               </div>
             </form>

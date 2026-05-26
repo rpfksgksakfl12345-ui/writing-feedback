@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { NoticeBanner } from "../../../../components/notice-banner";
 import { useAuth } from "../../../../components/auth-provider";
 import { NeisSchoolPicker, type NeisSchool } from "../../../../components/neis-school-picker";
@@ -36,6 +36,11 @@ type ClassroomStudent = {
 
 type IssuedClassroomStudent = ClassroomStudent & {
   issuedLoginPassword?: string;
+};
+
+type DeleteResponse = {
+  ok: boolean;
+  message: string;
 };
 
 type BulkStudentRow = {
@@ -94,6 +99,7 @@ function getNeisSchoolFromClassroom(classroom: Classroom | null): NeisSchool | n
 
 export default function TeacherClassroomDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const classroomId = Number(params.id);
   const { token, user, isReady } = useAuth();
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
@@ -115,6 +121,12 @@ export default function TeacherClassroomDetailPage() {
   const [issuedLoginPasswords, setIssuedLoginPasswords] = useState<Record<number, string>>({});
   const [reissuingStudentId, setReissuingStudentId] = useState<number | null>(null);
   const [deletingStudentId, setDeletingStudentId] = useState<number | null>(null);
+  const [deleteStudentDraft, setDeleteStudentDraft] = useState<{
+    student: ClassroomStudent;
+    confirmation: string;
+  } | null>(null);
+  const [deleteClassroomConfirmation, setDeleteClassroomConfirmation] = useState("");
+  const [isDeletingClassroom, setIsDeletingClassroom] = useState(false);
 
   const classroom = useMemo(
     () => classrooms.find((item) => item.id === classroomId) ?? null,
@@ -358,15 +370,7 @@ export default function TeacherClassroomDetailPage() {
   }
 
   async function handleDeleteStudent(student: ClassroomStudent) {
-    if (!token || deletingStudentId) {
-      return;
-    }
-
-    const confirmed = window.confirm(
-      `${getStudentLabel(student)} 학생 계정을 삭제할까요?\n\n제출글이 있는 학생은 삭제되지 않습니다.`,
-    );
-
-    if (!confirmed) {
+    if (!token || deletingStudentId || deleteStudentDraft?.confirmation !== "삭제") {
       return;
     }
 
@@ -375,7 +379,7 @@ export default function TeacherClassroomDetailPage() {
     setDeletingStudentId(student.id);
 
     try {
-      await apiFetch<void>(`/api/classrooms/${classroomId}/students/${student.id}`, {
+      const result = await apiFetch<DeleteResponse>(`/api/classrooms/${classroomId}/students/${student.id}`, {
         method: "DELETE",
         token,
       });
@@ -387,11 +391,42 @@ export default function TeacherClassroomDetailPage() {
         delete nextPasswords[student.id];
         return nextPasswords;
       });
-      setMessage(`${getStudentLabel(student)} 학생 계정을 삭제했습니다.`);
+      setDeleteStudentDraft(null);
+      setMessage(result.message || `${getStudentLabel(student)} 학생 계정을 삭제했습니다.`);
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "학생 계정을 삭제하지 못했습니다.");
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "학생 계정을 삭제하지 못했습니다. 새로고침 후 다시 시도해 주세요.",
+      );
     } finally {
       setDeletingStudentId(null);
+    }
+  }
+
+  async function handleDeleteClassroom() {
+    if (!token || !classroom || isDeletingClassroom || deleteClassroomConfirmation !== "삭제") {
+      return;
+    }
+
+    setMessage("");
+    setError("");
+    setIsDeletingClassroom(true);
+
+    try {
+      await apiFetch<DeleteResponse>(`/api/classrooms/${classroom.id}`, {
+        method: "DELETE",
+        token,
+      });
+      router.push("/teacher/classrooms");
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "학급을 삭제하지 못했습니다. 새로고침 후 다시 시도해 주세요.",
+      );
+    } finally {
+      setIsDeletingClassroom(false);
     }
   }
 
@@ -684,6 +719,54 @@ export default function TeacherClassroomDetailPage() {
               </div>
             ) : null}
 
+            {deleteStudentDraft ? (
+              <div className="no-print mt-5 rounded-xl border border-status-error/25 bg-status-error/5 p-4">
+                <p className="text-sm font-bold text-status-error">
+                  학생 계정을 완전히 삭제할까요?
+                </p>
+                <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
+                  {getStudentLabel(deleteStudentDraft.student)} 학생의 제출 글, OCR 글,
+                  피드백 기록이 함께 삭제됩니다. 삭제 후에는 복구할 수 없습니다.
+                </p>
+                <label className="mt-3 block text-sm font-semibold text-ink-700">
+                  계속하려면 아래 칸에 ‘삭제’를 입력해 주세요.
+                  <input
+                    className="mt-2 h-10 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 placeholder:text-ink-300 focus:border-status-error focus:ring-status-error/20"
+                    value={deleteStudentDraft.confirmation}
+                    onChange={(event) =>
+                      setDeleteStudentDraft({
+                        student: deleteStudentDraft.student,
+                        confirmation: event.target.value,
+                      })
+                    }
+                    placeholder="삭제"
+                  />
+                </label>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <SecondaryButton
+                    className="h-10 min-h-10"
+                    onClick={() => setDeleteStudentDraft(null)}
+                    type="button"
+                  >
+                    취소
+                  </SecondaryButton>
+                  <button
+                    className="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-md border border-status-error/30 bg-status-error px-4 text-sm font-semibold text-paper-surface hover:bg-status-error/90 disabled:cursor-not-allowed disabled:border-ink-100 disabled:bg-ink-200"
+                    disabled={
+                      deleteStudentDraft.confirmation !== "삭제" ||
+                      deletingStudentId === deleteStudentDraft.student.id
+                    }
+                    onClick={() => void handleDeleteStudent(deleteStudentDraft.student)}
+                    type="button"
+                  >
+                    {deletingStudentId === deleteStudentDraft.student.id
+                      ? "삭제 중..."
+                      : "학생 계정 삭제"}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
             {!isLoading && students.length === 0 ? (
               <div className="mt-5 rounded-xl border border-dashed border-ink-200 bg-paper-base/60 px-6 py-12 text-center">
                 <p className="text-lg font-semibold text-ink-900">아직 발급한 학생 계정이 없어요.</p>
@@ -742,10 +825,14 @@ export default function TeacherClassroomDetailPage() {
                           <SecondaryButton
                             className="min-h-8 border-status-error/25 px-3 py-1 text-xs text-status-error hover:bg-status-error/5"
                             disabled={deletingStudentId === student.id}
-                            onClick={() => void handleDeleteStudent(student)}
+                            onClick={() => {
+                              setMessage("");
+                              setError("");
+                              setDeleteStudentDraft({ student, confirmation: "" });
+                            }}
                             type="button"
                           >
-                            {deletingStudentId === student.id ? "삭제 중" : "학생 삭제"}
+                            {deletingStudentId === student.id ? "삭제 중" : "삭제 확인"}
                           </SecondaryButton>
                         </td>
                       </tr>
@@ -828,6 +915,52 @@ export default function TeacherClassroomDetailPage() {
                   </article>
                 ))}
               </div>
+          </section>
+        ) : null}
+
+        {classroom && !isLoading ? (
+          <section className="no-print rounded-xl border border-status-error/25 bg-paper-surface p-5 shadow-sm">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-status-error">
+                  위험 작업
+                </p>
+                <h2 className="mt-1 text-xl font-bold text-ink-900">학급을 완전히 삭제할까요?</h2>
+                <p className="kr-keep mt-2 max-w-2xl text-sm leading-6 text-ink-700">
+                  이 학급의 학생 계정, 주제, 제출 글, OCR 글, 피드백이 함께 삭제됩니다.
+                  삭제 후에는 복구할 수 없습니다.
+                </p>
+              </div>
+              <Badge className="w-fit" tone="warning">
+                복구 불가
+              </Badge>
+            </div>
+            <label className="mt-4 block text-sm font-semibold text-ink-700">
+              계속하려면 아래 칸에 ‘삭제’를 입력해 주세요.
+              <input
+                className="mt-2 h-10 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 placeholder:text-ink-300 focus:border-status-error focus:ring-status-error/20"
+                value={deleteClassroomConfirmation}
+                onChange={(event) => setDeleteClassroomConfirmation(event.target.value)}
+                placeholder="삭제"
+              />
+            </label>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <SecondaryButton
+                className="h-10 min-h-10"
+                onClick={() => setDeleteClassroomConfirmation("")}
+                type="button"
+              >
+                취소
+              </SecondaryButton>
+              <button
+                className="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-md border border-status-error/30 bg-status-error px-4 text-sm font-semibold text-paper-surface hover:bg-status-error/90 disabled:cursor-not-allowed disabled:border-ink-100 disabled:bg-ink-200"
+                disabled={deleteClassroomConfirmation !== "삭제" || isDeletingClassroom}
+                onClick={() => void handleDeleteClassroom()}
+                type="button"
+              >
+                {isDeletingClassroom ? "삭제 중..." : "학급 완전히 삭제"}
+              </button>
+            </div>
           </section>
         ) : null}
       </section>

@@ -366,26 +366,22 @@ export async function deleteClassroomStudent(req: AuthRequest, res: Response) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    const submissionCount = await prisma.submission.count({
-      where: {
-        studentId: studentProfile.userId,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.submission.deleteMany({
+        where: {
+          studentId: studentProfile.userId,
+        },
+      });
+      await tx.studentProfile.delete({ where: { id: studentProfile.id } });
+      await tx.user.delete({ where: { id: studentProfile.userId } });
     });
 
-    if (submissionCount > 0) {
-      return res.status(409).json({
-        message: `${studentProfile.user.name} 학생은 제출글 ${submissionCount}개가 있어 삭제할 수 없습니다. 제출/피드백 기록 보호를 위해 학생 계정 삭제가 차단되었습니다.`,
-      });
-    }
-
-    await prisma.$transaction([
-      prisma.studentProfile.delete({ where: { id: studentProfile.id } }),
-      prisma.user.delete({ where: { id: studentProfile.userId } }),
-    ]);
-
-    return res.status(204).send();
+    return res.json({ ok: true, message: "학생 계정과 관련 글이 삭제되었습니다." });
   } catch (error) {
-    return res.status(500).json({ message: "Failed to delete student", error });
+    return res.status(500).json({
+      message: "학생 계정을 삭제하지 못했습니다. 새로고침 후 다시 시도해 주세요.",
+      error,
+    });
   }
 }
 
@@ -432,39 +428,71 @@ export async function deleteClassroom(req: AuthRequest, res: Response) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    const teacherId = req.user.userId;
     const classroomId = Number(req.params.classroomId);
 
     if (!Number.isInteger(classroomId) || classroomId < 1) {
       return res.status(400).json({ message: "Invalid classroom ID" });
     }
 
-    const classroom = await findOwnedClassroom(classroomId, req.user.userId);
+    const classroom = await findOwnedClassroom(classroomId, teacherId);
 
     if (!classroom) {
       return res.status(404).json({ message: "Classroom not found" });
     }
 
-    const [studentCount, topicCount, submissionCount] = await Promise.all([
-      prisma.studentProfile.count({ where: { classroomId } }),
-      prisma.topic.count({ where: { classroomId } }),
-      prisma.submission.count({ where: { classroomId } }),
-    ]);
-    const blockers = [
-      studentCount > 0 ? `학생 ${studentCount}명` : "",
-      topicCount > 0 ? `주제 ${topicCount}개` : "",
-      submissionCount > 0 ? `제출글 ${submissionCount}개` : "",
-    ].filter(Boolean);
+    await prisma.$transaction(async (tx) => {
+      const [studentProfiles, topics] = await Promise.all([
+        tx.studentProfile.findMany({
+          where: { classroomId },
+          select: { userId: true },
+        }),
+        tx.topic.findMany({
+          where: {
+            classroomId,
+            teacherId,
+          },
+          select: { id: true },
+        }),
+      ]);
+      const studentUserIds = studentProfiles.map((studentProfile) => studentProfile.userId);
+      const topicIds = topics.map((topic) => topic.id);
 
-    if (blockers.length > 0) {
-      return res.status(409).json({
-        message: `${classroom.name} 학급은 ${blockers.join(", ")}가 연결되어 있어 삭제할 수 없습니다. 데이터 보호를 위해 빈 학급만 삭제할 수 있습니다.`,
+      await tx.submission.deleteMany({
+        where: {
+          OR: [
+            { classroomId },
+            ...(studentUserIds.length > 0 ? [{ studentId: { in: studentUserIds } }] : []),
+            ...(topicIds.length > 0 ? [{ topicId: { in: topicIds } }] : []),
+          ],
+        },
       });
-    }
+      await tx.topic.deleteMany({
+        where: {
+          classroomId,
+          teacherId,
+        },
+      });
+      await tx.studentProfile.deleteMany({ where: { classroomId } });
 
-    await prisma.classroom.delete({ where: { id: classroom.id } });
-    return res.status(204).send();
+      if (studentUserIds.length > 0) {
+        await tx.user.deleteMany({
+          where: {
+            id: { in: studentUserIds },
+            role: Role.STUDENT,
+          },
+        });
+      }
+
+      await tx.classroom.delete({ where: { id: classroom.id } });
+    });
+
+    return res.json({ ok: true, message: "학급과 관련 데이터가 삭제되었습니다." });
   } catch (error) {
-    return res.status(500).json({ message: "Failed to delete classroom", error });
+    return res.status(500).json({
+      message: "학급을 삭제하지 못했습니다. 새로고침 후 다시 시도해 주세요.",
+      error,
+    });
   }
 }
 

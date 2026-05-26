@@ -5,7 +5,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { NoticeBanner } from "../../../components/notice-banner";
 import { useAuth } from "../../../components/auth-provider";
-import { Badge, PrimaryButton } from "../../../components/ui-v2";
+import { Badge, PrimaryButton, SecondaryButton } from "../../../components/ui-v2";
 import { apiFetch } from "../../../lib/api";
 
 type SubmissionItem = {
@@ -157,6 +157,7 @@ function TeacherSubmissionsContent() {
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [isBulkUploading, setIsBulkUploading] = useState(false);
   const [isBulkGeneratingFeedback, setIsBulkGeneratingFeedback] = useState(false);
+  const [isBulkFeedbackConfirmOpen, setIsBulkFeedbackConfirmOpen] = useState(false);
   const saved = searchParams.get("saved") === "1";
 
   async function loadTeacherContext() {
@@ -315,6 +316,7 @@ function TeacherSubmissionsContent() {
     setBulkFeedbackResult(null);
     setBulkUploadError("");
     setBulkFeedbackError("");
+    setIsBulkFeedbackConfirmOpen(false);
     setFileInputResetKey((current) => current + 1);
   }
 
@@ -380,14 +382,9 @@ function TeacherSubmissionsContent() {
       return;
     }
 
-    const confirmed = window.confirm("담임 피드백이 아직 없는 글에 대해서만 AI 초안을 만들어요.");
-
-    if (!confirmed) {
-      return;
-    }
-
     setBulkFeedbackError("");
     setBulkFeedbackResult(null);
+    setIsBulkFeedbackConfirmOpen(false);
     setIsBulkGeneratingFeedback(true);
 
     try {
@@ -729,16 +726,50 @@ function TeacherSubmissionsContent() {
                   </p>
                 ) : null}
 
-                <div className="mt-5 flex justify-end">
-                  <PrimaryButton
-                    disabled={!selectedTopic || selectedTopicReadyFeedbackCount === 0 || isBulkGeneratingFeedback}
-                    onClick={handleBulkFeedback}
-                    tone="teacher"
-                    type="button"
-                  >
-                    {isBulkGeneratingFeedback ? "AI 초안 생성 중..." : "이 주제 AI 초안 만들기"}
-                  </PrimaryButton>
-                </div>
+                {isBulkFeedbackConfirmOpen ? (
+                  <div className="mt-4 rounded-lg border border-feedback-pen/20 bg-feedback-pen/5 p-4">
+                    <p className="text-sm font-bold text-feedback-pen">
+                      이 주제의 AI 초안을 만들까요?
+                    </p>
+                    <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
+                      담임 피드백이 아직 없는 글에 대해서만 초안을 만듭니다. 생성된 초안은
+                      글 상세에서 선생님이 확인하고 고친 뒤 담임 피드백으로 저장할 수 있어요.
+                    </p>
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                      <SecondaryButton
+                        className="h-10 min-h-10"
+                        onClick={() => setIsBulkFeedbackConfirmOpen(false)}
+                        type="button"
+                      >
+                        취소
+                      </SecondaryButton>
+                      <PrimaryButton
+                        disabled={isBulkGeneratingFeedback}
+                        onClick={handleBulkFeedback}
+                        tone="teacher"
+                        type="button"
+                      >
+                        {isBulkGeneratingFeedback ? "AI 초안 생성 중..." : "AI 초안 만들기"}
+                      </PrimaryButton>
+                    </div>
+                  </div>
+                ) : null}
+
+                {!isBulkFeedbackConfirmOpen ? (
+                  <div className="mt-5 flex justify-end">
+                    <PrimaryButton
+                      disabled={!selectedTopic || selectedTopicReadyFeedbackCount === 0 || isBulkGeneratingFeedback}
+                      onClick={() => {
+                        setBulkFeedbackError("");
+                        setIsBulkFeedbackConfirmOpen(true);
+                      }}
+                      tone="teacher"
+                      type="button"
+                    >
+                      {isBulkGeneratingFeedback ? "AI 초안 생성 중..." : "이 주제 AI 초안 만들기"}
+                    </PrimaryButton>
+                  </div>
+                ) : null}
               </div>
             </div>
           </section>

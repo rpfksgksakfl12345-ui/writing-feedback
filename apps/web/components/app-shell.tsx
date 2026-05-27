@@ -34,11 +34,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             href={getHomeHref(user?.role)}
             className="inline-flex min-w-0 items-center gap-2 text-left text-ink-900"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-student-accent/25 bg-student-soft text-sm font-bold text-student-deep">
+            <span className="font-brand-logo flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-student-accent/25 bg-student-soft text-sm font-bold text-student-deep">
               톡
             </span>
             <span className="min-w-0">
-              <span className="block text-lg font-bold leading-5">공책톡톡</span>
+              <span className="font-brand-logo block text-xl font-bold leading-5">공책톡톡</span>
               <span className="hidden text-[11px] font-medium leading-4 text-ink-500 sm:block">
                 공책 사진부터 담임 피드백까지
               </span>
@@ -67,7 +67,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </button>
               </>
             ) : (
-              <Link className="whitespace-nowrap rounded-xl bg-teacher-accent px-3 py-2 text-paper-surface hover:bg-teacher-accent/90" href="/login">
+              <Link className="hidden whitespace-nowrap rounded-xl bg-teacher-accent px-3 py-2 text-paper-surface hover:bg-teacher-accent/90 sm:inline-block" href="/login">
                 우리 반 들어가기
               </Link>
             )}
@@ -75,7 +75,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
+      <main className="mx-auto max-w-6xl overflow-x-hidden px-4 py-6">{children}</main>
     </div>
   );
 }

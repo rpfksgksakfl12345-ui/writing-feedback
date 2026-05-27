@@ -27,11 +27,6 @@ type LoginResponse = {
 
 type LoginMode = "STUDENT" | "TEACHER";
 
-const loginRoleTabs = [
-  { id: "STUDENT", label: "학생", accent: "student" },
-  { id: "TEACHER", label: "선생님", accent: "teacher" },
-] satisfies Array<{ id: LoginMode; label: string; accent: "teacher" | "student" }>;
-
 const modeCopy: Record<
   LoginMode,
   {
@@ -44,7 +39,7 @@ const modeCopy: Record<
   TEACHER: {
     eyebrow: "교사용 로그인",
     title: "우리 반 공책 글쓰기 확인하기",
-    description: "우리 반 공책 글쓰기를 한곳에서 확인하고 피드백해요.",
+    description: "우리 반 주제, 제출 글, 담임 피드백을 한곳에서 관리해요.",
     accentClass: "text-teacher-accent",
   },
   STUDENT: {
@@ -222,33 +217,47 @@ export default function LoginPage() {
     "mt-2 h-11 w-full rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 transition duration-300 placeholder:text-ink-300 focus:border-student-accent focus:ring-student-accent/20";
 
   return (
-    <section className="mx-auto grid max-w-6xl overflow-hidden rounded-[28px] border border-ink-100 bg-[#F6EBD3] shadow-[0_1px_2px_rgba(60,40,20,.06),0_18px_42px_rgba(60,40,20,.10)] lg:grid-cols-[1.1fr_.9fr]">
-      <div className="relative hidden min-h-[700px] overflow-hidden bg-paper-surface bg-[radial-gradient(rgba(120,90,50,.065)_1px,transparent_1px)] bg-[length:22px_22px] px-12 py-11 lg:block">
+    <section className="mx-auto grid max-w-6xl overflow-hidden rounded-[28px] border border-ink-100 bg-[#F6EBD3] shadow-[0_1px_2px_rgba(60,40,20,.06),0_18px_42px_rgba(60,40,20,.10)] lg:grid-cols-[1.05fr_.95fr]">
+      <div className="relative hidden min-h-[660px] overflow-hidden bg-paper-surface bg-[radial-gradient(rgba(120,90,50,.065)_1px,transparent_1px)] bg-[length:22px_22px] px-12 py-10 lg:block">
         <div className="relative z-10 flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-student-soft text-base font-bold text-student-deep shadow-[inset_0_1px_rgba(255,255,255,.55),0_8px_18px_rgba(120,70,30,.12)]">
+          <div className="font-brand-logo flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-student-soft text-base font-bold text-student-deep shadow-[inset_0_1px_rgba(255,255,255,.55),0_8px_18px_rgba(120,70,30,.12)]">
             글
           </div>
           <div className="kr-keep">
-            <p className="text-base font-bold leading-5 text-ink-900">공책톡톡</p>
+            <p className="font-brand-logo text-2xl font-bold leading-6 text-ink-900">공책톡톡</p>
             <p className="mt-0.5 text-xs font-semibold tracking-[0.12em] text-ink-500">
               공책과 피드백을 잇는 교실 도구
             </p>
           </div>
         </div>
 
-        <div className="relative z-10 mt-20 max-w-[620px]">
+        <div className="relative z-10 mt-16 max-w-[620px]">
           <p className="font-login-hand kr-keep text-[20px] font-bold leading-relaxed text-student-accent">
             공책에 쓴 글을 톡 올리면,
           </p>
-          <h1 className="font-login-display kr-keep mt-5 text-[40px] font-bold leading-[1.23] text-ink-900 xl:text-[46px]">
-            <span className="block">피드백이 톡톡 이어지는</span>
-            <span className="block">우리 반 글쓰기 책장.</span>
+          <h1 className="font-login-display kr-keep mt-4 font-bold leading-[1.18] text-ink-900">
+            <span className="font-brand-logo block text-[58px] leading-none xl:text-[68px]">
+              공책톡톡
+            </span>
+            <span className="mt-3 block text-[34px] xl:text-[40px]">
+              우리 반 공책 글쓰기 책장.
+            </span>
           </h1>
           <p className="font-login-hand kr-keep mt-6 max-w-[560px] text-[17px] font-normal leading-[1.7] text-ink-700 xl:text-[18px]">
             손글씨 공책 사진, 글 확인, AI 초안, 담임 피드백이
             <br />
             교실 글쓰기 흐름 안에서 자연스럽게 이어집니다.
           </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {["학교 일정 맥락 추천", "공책 사진 제출", "담임 피드백 완성"].map((badge) => (
+              <span
+                className="rounded-full border border-ink-100 bg-paper-soft px-3 py-1 text-xs font-semibold text-ink-700"
+                key={badge}
+              >
+                {badge}
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="absolute bottom-12 left-12 flex items-end gap-3">
@@ -288,8 +297,25 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <div className="bg-paper-soft px-6 py-7 sm:px-8 lg:px-9 lg:py-9">
-        <div className="rounded-2xl border border-ink-100 bg-paper-surface p-5 shadow-sm sm:p-6">
+      <div className="bg-paper-soft px-6 py-6 sm:px-8 lg:px-8 lg:py-8">
+        <div className="rounded-2xl border border-ink-100 bg-paper-surface p-4 shadow-sm sm:p-5">
+          <div className="kr-keep mb-4 rounded-xl border border-teacher-accent/15 bg-teacher-soft/45 px-4 py-3">
+            <p className="font-brand-logo text-[30px] font-bold leading-none text-ink-900">
+              공책톡톡
+            </p>
+            <p className="mt-2 text-sm leading-6 text-ink-700">
+              우리 반 공책 글쓰기를 사진 제출, 글 확인, 담임 피드백으로 이어주는 도구입니다.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="rounded-full bg-paper-surface px-3 py-1 text-xs font-semibold text-teacher-deep">
+                학교 일정 참고
+              </span>
+              <span className="rounded-full bg-paper-surface px-3 py-1 text-xs font-semibold text-student-deep">
+                우리 반 책장
+              </span>
+            </div>
+          </div>
+
           <p className={`text-sm font-semibold ${activeCopy?.accentClass ?? "text-teacher-accent"}`}>
             {activeCopy?.eyebrow ?? "출입 카드"}
           </p>
@@ -307,32 +333,7 @@ export default function LoginPage() {
             </div>
           ) : null}
 
-          <div className="mt-6 grid grid-cols-2 rounded-xl bg-paper-base p-1">
-            {loginRoleTabs.map((tab) => {
-              const isActive = mode === tab.id;
-              const activeClass =
-                tab.accent === "teacher"
-                  ? "bg-teacher-accent text-paper-surface"
-                  : "bg-student-accent text-paper-surface";
-
-              return (
-                <button
-                  key={tab.id}
-                  className={`min-h-11 whitespace-nowrap rounded-lg px-5 py-2 text-sm font-semibold shadow-none transition ${
-                    isActive
-                      ? activeClass
-                      : "bg-transparent text-ink-700 hover:bg-paper-surface/70 hover:text-ink-900"
-                  }`}
-                  type="button"
-                  onClick={() => selectMode(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {(
               [
                 {
@@ -370,7 +371,7 @@ export default function LoginPage() {
               return (
                 <button
                   key={card.id}
-                  className={`kr-keep rounded-xl border p-4 text-left shadow-sm transition hover:-translate-y-0.5 ${
+                  className={`kr-keep rounded-xl border p-3 text-left shadow-sm transition hover:-translate-y-0.5 ${
                     isActive ? activeCardClass : inactiveCardClass
                   }`}
                   type="button"
@@ -379,14 +380,14 @@ export default function LoginPage() {
                   <span className={`text-xs font-semibold uppercase tracking-[0.16em] ${accentTextClass}`}>
                     {card.eyebrow}
                   </span>
-                  <span className="mt-3 block text-base font-bold leading-6 text-ink-900">
+                  <span className="mt-2 block text-base font-bold leading-6 text-ink-900">
                     {card.title}
                   </span>
                   <span className="mt-2 block text-sm leading-6 text-ink-700">
                     {card.description}
                   </span>
                   <span
-                    className={`mt-4 inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${
+                    className={`mt-3 inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${
                       isActive
                         ? `${accentTextClass} bg-paper-surface/80`
                         : "bg-paper-base text-ink-500"
@@ -400,7 +401,7 @@ export default function LoginPage() {
           </div>
 
           {mode === "TEACHER" ? (
-          <form className="mt-6 grid gap-5 rounded-xl border border-teacher-accent/20 bg-paper-soft/70 p-5 shadow-sm" onSubmit={handleTeacherLogin}>
+          <form className="mt-4 grid gap-4 rounded-xl border border-teacher-accent/20 bg-paper-soft/70 p-4 shadow-sm" onSubmit={handleTeacherLogin}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teacher-accent">
                 {modeCopy.TEACHER.eyebrow}
@@ -452,7 +453,7 @@ export default function LoginPage() {
             </p>
           </form>
         ) : mode === "STUDENT" ? (
-          <form className="mt-6 grid gap-5 rounded-xl border border-student-accent/20 bg-paper-soft/70 p-5 shadow-sm" onSubmit={handleStudentLogin}>
+          <form className="mt-4 grid gap-4 rounded-xl border border-student-accent/20 bg-paper-soft/70 p-4 shadow-sm" onSubmit={handleStudentLogin}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-student-accent">
                 {modeCopy.STUDENT.eyebrow}

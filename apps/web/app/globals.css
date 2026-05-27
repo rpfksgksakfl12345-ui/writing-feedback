@@ -41,6 +41,10 @@
     font-family: "Gaegu", "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   }
 
+  .font-brand-logo {
+    font-family: "Gaegu", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  }
+
   .font-notebook-hand {
     font-family: "Nanum Pen Script", "Gaegu", "GangwonEduAllLight", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   }
@@ -66,7 +70,13 @@
 
   .kr-keep {
     word-break: keep-all;
-    overflow-wrap: normal;
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 640px) {
+    .kr-keep {
+      word-break: normal;
+    }
   }
 
   .ui-v2-notebook-paper {

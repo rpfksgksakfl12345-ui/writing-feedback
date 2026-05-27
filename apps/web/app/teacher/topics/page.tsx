@@ -588,12 +588,12 @@ export default function TeacherTopicsPage() {
       <section className="bg-paper-surface bg-[radial-gradient(rgba(90,110,133,.07)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-sm font-semibold text-teacher-accent">교사 주제 관리</p>
+            <p className="text-sm font-semibold text-teacher-accent">우리 반 맥락 주제 추천</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">
-              우리 반 주제 관리
+              학교 일정과 우리 반 주제
             </h1>
             <p className="kr-keep mt-3 max-w-2xl text-sm leading-6 text-ink-700">
-              학년, 시기, 학교 일정 맥락에 맞춰 학생 책장에 보낼 글쓰기 주제를 준비합니다.
+              공공데이터로 가져온 학교 일정과 학년, 시기 맥락을 참고해 학생 책장에 보낼 글쓰기 주제를 준비합니다.
             </p>
           </div>
 
@@ -630,9 +630,11 @@ export default function TeacherTopicsPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
                   우리 반 맥락 추천
                 </p>
-                <h2 className="kr-keep mt-1 text-xl font-bold text-ink-900">오늘의 글쓰기 주제 찾기</h2>
+                <h2 className="kr-keep mt-1 text-xl font-bold text-ink-900">
+                  우리 학교 경험을 글감으로 연결하기
+                </h2>
                 <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
-                  선택한 학급의 학년, 시기, 학교 일정 맥락을 반영해 쓸 만한 주제를 제안합니다.
+                  선택한 학급의 학년, 시기, 가까운 학교 행사 맥락을 참고해 담임이 고를 수 있는 주제를 제안합니다.
                 </p>
               </div>
               <Badge tone="teacher">
@@ -666,14 +668,14 @@ export default function TeacherTopicsPage() {
               {selectedClassroom?.neisSchoolName ? (
                 <>
                   <p className="font-bold text-ink-900">
-                    연결 학교: {selectedClassroom.neisSchoolName}
+                    학교 일정 맥락 참고 중: {selectedClassroom.neisSchoolName}
                   </p>
                   <p className="mt-1 text-xs leading-5 text-ink-600">
-                    학사일정과 계절 맥락을 주제 추천에 함께 반영합니다.
+                    공공데이터로 불러온 학교 일정을 담임의 주제 만들기에 참고합니다.
                   </p>
                   {isLoadingSchedules ? (
                     <p className="mt-2 text-xs font-semibold text-teacher-deep">
-                      가까운 학사일정을 확인하는 중입니다...
+                      가까운 학교 일정을 확인하는 중입니다...
                     </p>
                   ) : null}
                   {!isLoadingSchedules && schedulePreview.length > 0 ? (
@@ -687,7 +689,7 @@ export default function TeacherTopicsPage() {
                   ) : null}
                   {!isLoadingSchedules && schedulePreview.length === 0 && !schedulePreviewError ? (
                     <p className="mt-2 text-xs leading-5 text-ink-500">
-                      가까운 학사일정이 없으면 학교명과 계절 맥락만 참고합니다.
+                      가까운 학교 일정이 없어도 학년과 시기 중심으로 추천합니다.
                     </p>
                   ) : null}
                   {schedulePreviewError ? (
@@ -698,9 +700,9 @@ export default function TeacherTopicsPage() {
                 </>
               ) : (
                 <>
-                  <p className="font-bold text-ink-900">공공데이터 학교 미연결</p>
+                  <p className="font-bold text-ink-900">학교 일정 연결 전</p>
                   <p className="mt-1 text-xs leading-5 text-ink-600">
-                    학급 관리에서 학교를 연결하면 공공데이터 기반 추천을 사용할 수 있어요.
+                    학교 일정이 없어도 학년과 시기 중심으로 추천할 수 있어요. 학급 관리에서 학교를 연결하면 학교 행사와 교실 경험을 글감으로 더 쉽게 연결합니다.
                   </p>
                 </>
               )}
@@ -756,7 +758,7 @@ export default function TeacherTopicsPage() {
             ) : null}
             {publicDataNotice ? (
               <div className="mt-4">
-                <NoticeBanner tone="success" title="공공데이터 반영" description={publicDataNotice} />
+                <NoticeBanner tone="success" title="학교 일정 맥락 확인" description={publicDataNotice} />
               </div>
             ) : null}
 

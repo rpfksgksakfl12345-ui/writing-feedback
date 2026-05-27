@@ -62,6 +62,8 @@ type ClassroomScheduleResult = {
   schedules: NeisSchedulePreview[];
 };
 
+type SuggestionSource = "" | "general" | "request" | "refinement";
+
 function normalizeGuideText(value: string | null | undefined) {
   return (value ?? "")
     .replace(/\\r\\n/g, "\n")
@@ -177,7 +179,10 @@ export default function TeacherTopicsPage() {
   const [error, setError] = useState("");
   const [aiError, setAiError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isRequestGenerating, setIsRequestGenerating] = useState(false);
   const [isRefining, setIsRefining] = useState(false);
+  const [topicRequest, setTopicRequest] = useState("");
+  const [topicRequestError, setTopicRequestError] = useState("");
   const [refinementInstruction, setRefinementInstruction] = useState("");
   const [refinementError, setRefinementError] = useState("");
   const [isLoadingTopics, setIsLoadingTopics] = useState(true);
@@ -187,6 +192,8 @@ export default function TeacherTopicsPage() {
   const [schedulePreview, setSchedulePreview] = useState<NeisSchedulePreview[]>([]);
   const [schedulePreviewError, setSchedulePreviewError] = useState("");
   const [suggestedTopics, setSuggestedTopics] = useState<TopicSuggestion[]>([]);
+  const [suggestionSource, setSuggestionSource] = useState<SuggestionSource>("");
+  const [lastTopicRequest, setLastTopicRequest] = useState("");
   const [selectedSuggestionTitle, setSelectedSuggestionTitle] = useState("");
   const selectedSuggestionTitleRef = useRef("");
   const [generatingGuideTitle, setGeneratingGuideTitle] = useState("");
@@ -263,10 +270,14 @@ export default function TeacherTopicsPage() {
 
   function clearSuggestionState() {
     setSuggestedTopics([]);
+    setSuggestionSource("");
+    setLastTopicRequest("");
     setSelectedSuggestionTitle("");
     selectedSuggestionTitleRef.current = "";
     setPublicDataNotice("");
     setAiError("");
+    setTopicRequest("");
+    setTopicRequestError("");
     setRefinementError("");
     setGuideGenerationError("");
     setGeneratingGuideTitle("");
@@ -372,11 +383,15 @@ export default function TeacherTopicsPage() {
       setDescription("");
       setGrade(selectedClassroom ? String(selectedClassroom.grade) : getDefaultGradeFromClassrooms(classrooms));
       setSuggestedTopics([]);
+      setSuggestionSource("");
+      setLastTopicRequest("");
       setSelectedSuggestionTitle("");
       selectedSuggestionTitleRef.current = "";
       setGuideGenerationError("");
       setGeneratingGuideTitle("");
       setGeneratedGuidesByKey({});
+      setTopicRequest("");
+      setTopicRequestError("");
       setMessage("우리 반 주제가 만들어졌어요. 학생 책장에서 바로 확인할 수 있습니다.");
       await loadTopicsForClassroom(classroomId);
     } catch (submitError) {
@@ -389,7 +404,7 @@ export default function TeacherTopicsPage() {
   }
 
   async function handleGenerateTopics() {
-    if (!token || isGenerating || isRefining || generatingGuideTitle) {
+    if (!token || isGenerating || isRequestGenerating || isRefining || generatingGuideTitle) {
       return;
     }
 
@@ -399,6 +414,7 @@ export default function TeacherTopicsPage() {
     }
 
     setAiError("");
+    setTopicRequestError("");
     setRefinementError("");
     setGuideGenerationError("");
     setGeneratingGuideTitle("");
@@ -415,6 +431,8 @@ export default function TeacherTopicsPage() {
       });
 
       setSuggestedTopics(normalizeTopicSuggestions(response.topics));
+      setSuggestionSource("general");
+      setLastTopicRequest("");
       setSelectedSuggestionTitle("");
       selectedSuggestionTitleRef.current = "";
       setPublicDataNotice(
@@ -426,6 +444,8 @@ export default function TeacherTopicsPage() {
       );
     } catch (generateError) {
       setSuggestedTopics([]);
+      setSuggestionSource("");
+      setLastTopicRequest("");
       setSelectedSuggestionTitle("");
       selectedSuggestionTitleRef.current = "";
       setPublicDataNotice("");
@@ -439,8 +459,77 @@ export default function TeacherTopicsPage() {
     }
   }
 
+  async function handleGenerateRequestedTopics() {
+    if (!token || isGenerating || isRequestGenerating || isRefining || generatingGuideTitle) {
+      return;
+    }
+
+    if (!classroomId) {
+      setTopicRequestError("추천을 받기 전에 학급을 먼저 만들어 주세요.");
+      return;
+    }
+
+    const teacherRequest = topicRequest.trim();
+
+    if (!teacherRequest) {
+      setTopicRequestError("어떤 주제가 필요하신지 한 줄로 적어 주세요.");
+      return;
+    }
+
+    setAiError("");
+    setTopicRequestError("");
+    setRefinementError("");
+    setGuideGenerationError("");
+    setGeneratingGuideTitle("");
+    setGeneratedGuidesByKey({});
+    setMessage("");
+    setPublicDataNotice("");
+    setSuggestedTopics([]);
+    setSuggestionSource("request");
+    setLastTopicRequest(teacherRequest);
+    setSelectedSuggestionTitle("");
+    selectedSuggestionTitleRef.current = "";
+    setIsRequestGenerating(true);
+
+    try {
+      const response = await apiFetch<TopicSuggestionResult>("/api/topics/generate", {
+        method: "POST",
+        token,
+        body: JSON.stringify({
+          grade: Number(grade),
+          classroomId: Number(classroomId),
+          teacherRequest,
+        }),
+      });
+      const nextSuggestions = normalizeTopicSuggestions(response.topics);
+
+      if (nextSuggestions.length === 0) {
+        throw new Error("EMPTY_TOPICS");
+      }
+
+      setSuggestedTopics(nextSuggestions);
+      setPublicDataNotice(
+        response.publicData?.schoolContextUsed
+          ? `${response.publicData.schoolName ?? "연결 학교"} 학사일정과 선생님 요청을 함께 참고했어요.`
+          : response.publicData?.warning
+            ? `학교 공공데이터는 반영하지 못했지만 선생님 요청으로 추천했어요. (${response.publicData.warning})`
+            : "",
+      );
+    } catch {
+      setSuggestedTopics([]);
+      setSuggestionSource("");
+      setLastTopicRequest("");
+      setPublicDataNotice("");
+      setTopicRequestError(
+        "주제를 만들지 못했어요. 요청을 조금 더 짧게 바꾸거나 잠시 후 다시 시도해 주세요.",
+      );
+    } finally {
+      setIsRequestGenerating(false);
+    }
+  }
+
   async function handleRefineTopics() {
-    if (!token || isGenerating || isRefining || generatingGuideTitle) {
+    if (!token || isGenerating || isRequestGenerating || isRefining || generatingGuideTitle) {
       return;
     }
 
@@ -462,6 +551,7 @@ export default function TeacherTopicsPage() {
     }
 
     setAiError("");
+    setTopicRequestError("");
     setRefinementError("");
     setGuideGenerationError("");
     setGeneratingGuideTitle("");
@@ -483,6 +573,8 @@ export default function TeacherTopicsPage() {
       });
 
       setSuggestedTopics(normalizeTopicSuggestions(response.topics));
+      setSuggestionSource("refinement");
+      setLastTopicRequest("");
       setSelectedSuggestionTitle("");
       selectedSuggestionTitleRef.current = "";
       setPublicDataNotice(
@@ -492,7 +584,6 @@ export default function TeacherTopicsPage() {
             ? `학교 공공데이터는 반영하지 못했지만 다시 추천했어요. (${response.publicData.warning})`
             : "",
       );
-      setRefinementInstruction("");
       setRefinementInstruction("");
     } catch {
       setPublicDataNotice("");
@@ -575,6 +666,7 @@ export default function TeacherTopicsPage() {
   const hasClassrooms = classrooms.length > 0;
   const isTopicWorkDisabled = isLoadingClassrooms || !hasClassrooms || !classroomId;
   const isGeneratingGuide = Boolean(generatingGuideTitle);
+  const isAnyTopicAiBusy = isGenerating || isRequestGenerating || isRefining || isGeneratingGuide;
   const selectedSuggestedTopic = suggestedTopics.find(
     (suggestion) => suggestion.title === selectedSuggestionTitle,
   );
@@ -582,6 +674,16 @@ export default function TeacherTopicsPage() {
     Boolean(selectedSuggestionTitle) && generatingGuideTitle === selectedSuggestionTitle;
   const noClassroomHelp =
     "학급을 만든 뒤, 그 학급에 보여줄 글쓰기 주제를 만들 수 있어요.";
+  const suggestionSectionTitle =
+    suggestionSource === "request"
+      ? "선생님 요청을 반영한 주제"
+      : suggestionSource === "refinement"
+        ? "의견을 반영한 추천 주제"
+        : "우리 반 맥락 추천 주제";
+  const suggestionSectionDescription =
+    suggestionSource === "request"
+      ? "입력한 요청과 학교 일정, 학년 맥락을 함께 살펴 만든 결과입니다. 마음에 드는 카드를 눌러 주제 생성 폼에 채워 넣으세요."
+      : "먼저 짧은 설명으로 주제를 고르고, 선택한 주제만 자세한 질문과 첫 문장 힌트를 만듭니다.";
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
@@ -650,7 +752,7 @@ export default function TeacherTopicsPage() {
                 className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-teacher-accent focus:ring-teacher-accent/20"
                 id="topicClassroomId"
                 value={classroomId}
-                disabled={!hasClassrooms || isGenerating || isRefining || isGeneratingGuide}
+                disabled={!hasClassrooms || isAnyTopicAiBusy}
                 onChange={(event) => handleSelectClassroom(event.target.value)}
               >
                 {classrooms.map((classroom) => (
@@ -724,7 +826,7 @@ export default function TeacherTopicsPage() {
                             : "border-ink-100 bg-paper-surface text-ink-700 hover:border-teacher-accent/40 hover:bg-teacher-soft/70"
                         }`}
                         type="button"
-                        disabled={isTopicWorkDisabled || isGenerating || isRefining || isGeneratingGuide}
+                        disabled={isTopicWorkDisabled || isAnyTopicAiBusy}
                         onClick={() => setGrade(String(value))}
                       >
                         {value}학년
@@ -736,13 +838,59 @@ export default function TeacherTopicsPage() {
 
               <PrimaryButton
                 className="w-full lg:w-fit"
-                disabled={isGenerating || isRefining || isGeneratingGuide || isTopicWorkDisabled}
+                disabled={isAnyTopicAiBusy || isTopicWorkDisabled}
                 onClick={handleGenerateTopics}
                 tone="teacher"
                 type="button"
               >
                 {isGenerating ? "추천 생성 중..." : suggestedTopics.length > 0 ? "다시 추천 받기" : "우리 반 주제 추천받기"}
               </PrimaryButton>
+            </div>
+
+            <div className="mt-5 rounded-xl border border-teacher-accent/20 bg-paper-surface/85 p-4 shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="kr-keep text-sm font-bold text-ink-900">
+                    선생님 요청으로 주제 만들기
+                  </p>
+                  <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
+                    우리 반 상황을 한 줄로 적으면 학교 일정과 학년 맥락을 함께 살펴 추천합니다.
+                  </p>
+                </div>
+                <Badge tone="teacher">요청 기반</Badge>
+              </div>
+              <textarea
+                className="mt-3 min-h-[104px] rounded-md border-ink-100 bg-paper-surface text-sm leading-6 text-ink-900 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20"
+                disabled={isAnyTopicAiBusy || isTopicWorkDisabled}
+                onChange={(event) => {
+                  setTopicRequest(event.target.value);
+
+                  if (event.target.value.trim()) {
+                    setTopicRequestError("");
+                  }
+                }}
+                placeholder="예: 환경 영화제 프로젝트를 마친 뒤 협력과 환경 실천을 돌아보는 주제를 만들어 주세요."
+                value={topicRequest}
+              />
+              {topicRequestError ? (
+                <p className="kr-keep mt-2 text-sm font-semibold leading-6 text-status-error">
+                  {topicRequestError}
+                </p>
+              ) : (
+                <p className="kr-keep mt-2 text-xs leading-5 text-ink-500">
+                  요청이 실패해도 입력한 문장은 지워지지 않습니다.
+                </p>
+              )}
+              <div className="mt-3 flex justify-end">
+                <PrimaryButton
+                  disabled={isAnyTopicAiBusy || isTopicWorkDisabled}
+                  onClick={handleGenerateRequestedTopics}
+                  tone="teacher"
+                  type="button"
+                >
+                  {isRequestGenerating ? "요청 반영 중..." : "요청으로 주제 만들기"}
+                </PrimaryButton>
+              </div>
             </div>
 
             {!isLoadingClassrooms && !hasClassrooms ? (
@@ -762,11 +910,27 @@ export default function TeacherTopicsPage() {
               </div>
             ) : null}
 
-            {suggestedTopics.length > 0 ? (
+            {isGenerating || isRequestGenerating ? (
+              <div className="kr-keep mt-5 rounded-lg border border-dashed border-teacher-accent/30 bg-teacher-soft/50 px-5 py-6 text-sm font-semibold leading-6 text-teacher-deep">
+                {isRequestGenerating
+                  ? "선생님 요청을 반영해 주제를 만드는 중입니다..."
+                  : "학교 일정과 우리 반 맥락을 살펴 주제를 추천하는 중입니다..."}
+              </div>
+            ) : suggestedTopics.length > 0 ? (
               <div className="mt-5 space-y-4">
-                <p className="kr-keep text-sm font-semibold text-ink-700">
-                  먼저 짧은 설명으로 주제를 고르고, 선택한 주제만 자세한 질문과 첫 문장 힌트를 만듭니다.
-                </p>
+                <div className="rounded-xl border border-teacher-accent/20 bg-paper-surface/80 px-4 py-3">
+                  <p className="kr-keep text-sm font-bold text-ink-900">
+                    {suggestionSectionTitle}
+                  </p>
+                  <p className="kr-keep mt-1 text-sm leading-6 text-ink-700">
+                    {suggestionSectionDescription}
+                  </p>
+                  {suggestionSource === "request" && lastTopicRequest ? (
+                    <p className="kr-keep mt-2 rounded-lg bg-teacher-soft/60 px-3 py-2 text-xs font-medium leading-5 text-teacher-deep">
+                      요청: “{lastTopicRequest}”
+                    </p>
+                  ) : null}
+                </div>
 
                 <div className="grid gap-2">
                   {suggestedTopics.map((suggestion, index) => {
@@ -781,7 +945,7 @@ export default function TeacherTopicsPage() {
                             ? "border-teacher-accent bg-teacher-accent/10 text-ink-900 ring-2 ring-teacher-accent/20"
                             : "border-ink-100 bg-paper-surface text-ink-700 hover:bg-paper-base"
                         }`}
-                        disabled={isGenerating || isRefining}
+                        disabled={isAnyTopicAiBusy}
                         onClick={() => void applySuggestedTopic(suggestion)}
                         type="button"
                       >
@@ -799,7 +963,11 @@ export default function TeacherTopicsPage() {
                             </span>
                           </span>
                           <span className="whitespace-nowrap pt-1 text-xs font-semibold text-teacher-accent">
-                            {isGeneratingThisGuide ? "안내 생성 중" : isSelected ? "선택됨" : "선택"}
+                            {isGeneratingThisGuide
+                              ? "안내 생성 중"
+                              : isSelected
+                                ? "폼에 채워짐"
+                                : "이 주제로 채우기"}
                           </span>
                         </div>
                       </button>
@@ -840,7 +1008,7 @@ export default function TeacherTopicsPage() {
                   </p>
                   <textarea
                     className="mt-3 min-h-[96px] rounded-md border-ink-100 bg-paper-surface text-sm leading-6 text-ink-900 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20"
-                    disabled={isGenerating || isRefining || isGeneratingGuide || isTopicWorkDisabled}
+                    disabled={isAnyTopicAiBusy || isTopicWorkDisabled}
                     onChange={(event) => {
                       setRefinementInstruction(event.target.value);
 
@@ -859,9 +1027,7 @@ export default function TeacherTopicsPage() {
                   <div className="mt-3 flex justify-end">
                     <PrimaryButton
                       disabled={
-                        isGenerating ||
-                        isRefining ||
-                        isGeneratingGuide ||
+                        isAnyTopicAiBusy ||
                         isTopicWorkDisabled ||
                         !refinementInstruction.trim()
                       }
@@ -878,7 +1044,7 @@ export default function TeacherTopicsPage() {
               <div className="mt-5 rounded-lg border border-dashed border-ink-200 bg-paper-base/60 px-5 py-6 text-sm text-ink-500">
                 <span className="kr-keep block">
                   {hasClassrooms
-                    ? "아직 추천 결과가 없습니다. 학급과 학년을 확인한 뒤 우리 반 주제를 추천받아 보세요."
+                    ? "아직 보여줄 주제가 없어요. 우리 반 상황을 한 줄로 적고 요청으로 주제를 만들어 보세요."
                     : noClassroomHelp}
                 </span>
               </div>
@@ -927,7 +1093,7 @@ export default function TeacherTopicsPage() {
                 <select
                   className="mt-2 h-11 rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 focus:border-teacher-accent focus:ring-teacher-accent/20"
                   value={classroomId}
-                  disabled={!hasClassrooms || isGenerating || isRefining || isGeneratingGuide}
+                  disabled={!hasClassrooms || isAnyTopicAiBusy}
                   onChange={(event) => handleSelectClassroom(event.target.value)}
                 >
                   {classrooms.map((classroom) => (
@@ -957,7 +1123,7 @@ export default function TeacherTopicsPage() {
               {error ? <NoticeBanner tone="error" title="주제 등록 실패" description={error} /> : null}
 
               <div className="flex justify-end">
-                <PrimaryButton disabled={isTopicWorkDisabled || isGeneratingGuide} tone="teacher" type="submit">
+                <PrimaryButton disabled={isTopicWorkDisabled || isAnyTopicAiBusy} tone="teacher" type="submit">
                   우리 반 주제 만들기
                 </PrimaryButton>
               </div>

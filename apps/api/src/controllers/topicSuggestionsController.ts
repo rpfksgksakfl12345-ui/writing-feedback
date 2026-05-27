@@ -11,6 +11,10 @@ import { AuthRequest } from "../types";
 export async function generateTopics(req: AuthRequest, res: Response) {
   const grade = Number(req.body?.grade);
   const requestedClassroomId = req.body?.classroomId ? Number(req.body.classroomId) : null;
+  const teacherRequest =
+    [req.body?.teacherRequest, req.body?.request, req.body?.customRequest].find(
+      (value): value is string => typeof value === "string" && value.trim().length > 0,
+    )?.trim() ?? "";
   const teacherFeedback =
     typeof req.body?.teacherFeedback === "string" ? req.body.teacherFeedback.trim() : "";
   const previousSuggestions = Array.isArray(req.body?.previousSuggestions)
@@ -61,10 +65,11 @@ export async function generateTopics(req: AuthRequest, res: Response) {
         requestedClassroomId ?? "none"
       } publicData=${publicDataContext.response.contextUsed} refinement=${Boolean(
         teacherFeedback,
-      )}`,
+      )} teacherRequest=${Boolean(teacherRequest)}`,
     );
 
     const topics = await generateTopicSuggestions(grade, {
+      teacherRequest,
       teacherFeedback,
       previousSuggestions,
       schoolContext: publicDataContext.schoolContext,

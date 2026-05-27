@@ -62,8 +62,8 @@ export function validateProductionEnv() {
     missing.push("GOOGLE_APPLICATION_CREDENTIALS or GOOGLE_APPLICATION_CREDENTIALS_BASE64");
   }
 
-  if (!readEnv("CORS_ORIGIN") && !readEnv("WEB_ORIGIN")) {
-    missing.push("CORS_ORIGIN or WEB_ORIGIN");
+  if (!readEnv("CORS_ORIGINS") && !readEnv("CORS_ORIGIN") && !readEnv("WEB_ORIGIN")) {
+    missing.push("CORS_ORIGINS or CORS_ORIGIN or WEB_ORIGIN");
   }
 
   if (!readEnv("TRUST_PROXY_HOPS") && !readEnv("TRUST_PROXY")) {
@@ -84,13 +84,20 @@ export function validateProductionEnv() {
 }
 
 export function getAllowedOrigins() {
-  const rawOrigins =
-    readEnv("CORS_ORIGIN") || readEnv("WEB_ORIGIN") || "http://localhost:3000";
+  const rawOrigins = [
+    readEnv("CORS_ORIGINS"),
+    readEnv("CORS_ORIGIN"),
+    readEnv("WEB_ORIGIN"),
+  ]
+    .filter(Boolean)
+    .join(",") || "http://localhost:3000";
 
-  return rawOrigins
+  const origins = rawOrigins
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
+
+  return Array.from(new Set(origins));
 }
 
 export function configureTrustProxy(app: Express) {

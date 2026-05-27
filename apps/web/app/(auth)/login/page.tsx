@@ -215,10 +215,47 @@ export default function LoginPage() {
     "mt-2 h-11 w-full rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 transition duration-300 placeholder:text-ink-300 focus:border-teacher-accent focus:ring-teacher-accent/20";
   const studentInputClass =
     "mt-2 h-11 w-full rounded-md border-ink-100 bg-paper-surface text-sm text-ink-900 transition duration-300 placeholder:text-ink-300 focus:border-student-accent focus:ring-student-accent/20";
+  const heroBadges = ["학교 일정 참고", "공책 사진 제출", "글 확인", "담임 피드백"];
+  const heroFlowSteps = [
+    "학교 일정·우리 반 활동",
+    "공책에 쓰기",
+    "사진으로 올리기",
+    "선생님 피드백",
+  ];
+  const heroCards = [
+    {
+      title: "학교 일정 맥락 추천",
+      description: "체육대회, 체험학습, 프로젝트처럼 우리 학교의 실제 일정을 글감으로 연결합니다.",
+    },
+    {
+      title: "공책 그대로 피드백",
+      description: "학생은 평소처럼 쓰고, 선생님은 더 쉽게 확인하고 피드백합니다.",
+    },
+  ];
+  const shelfCards = [
+    {
+      date: "우리 학교",
+      title: "환경 영화제 소감",
+      color: "bg-student-accent/75",
+      tilt: "-rotate-[1deg]",
+    },
+    {
+      date: "우리 반",
+      title: "친구들과 협력한 순간",
+      color: "bg-status-feedbackDone/75",
+      tilt: "rotate-0",
+    },
+    {
+      date: "담임 확인",
+      title: "다음 글을 위한 피드백",
+      color: "bg-teacher-accent/75",
+      tilt: "rotate-[1deg]",
+    },
+  ];
 
   return (
     <section className="mx-auto grid max-w-6xl overflow-hidden rounded-[28px] border border-ink-100 bg-[#F6EBD3] shadow-[0_1px_2px_rgba(60,40,20,.06),0_18px_42px_rgba(60,40,20,.10)] lg:grid-cols-[1.05fr_.95fr]">
-      <div className="relative hidden min-h-[660px] overflow-hidden bg-paper-surface bg-[radial-gradient(rgba(120,90,50,.065)_1px,transparent_1px)] bg-[length:22px_22px] px-12 py-10 lg:block">
+      <div className="relative hidden min-h-[660px] overflow-hidden bg-paper-surface bg-[radial-gradient(rgba(120,90,50,.065)_1px,transparent_1px)] bg-[length:22px_22px] px-12 py-10 lg:flex lg:flex-col">
         <div className="relative z-10 flex items-start gap-3">
           <div
             aria-hidden="true"
@@ -238,25 +275,24 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="relative z-10 mt-16 max-w-[620px]">
-          <p className="font-login-hand kr-keep text-[20px] font-bold leading-relaxed text-student-accent">
-            공책에 쓴 글을 톡 올리면,
+        <div className="relative z-10 mt-10 max-w-[620px]">
+          <p className="kr-keep text-sm font-bold uppercase tracking-[0.14em] text-student-accent">
+            공책 기반 글쓰기 피드백 도구
           </p>
-          <h1 className="kr-keep mt-4 font-bold leading-[1.18] text-ink-900">
+          <h1 className="kr-keep mt-3 font-bold leading-[1.16] text-ink-900">
             <span className="font-brand-logo block text-[58px] leading-none xl:text-[68px]">
               공책톡톡
             </span>
-            <span className="mt-3 block text-[34px] font-extrabold tracking-normal xl:text-[40px]">
-              우리 반 공책 글쓰기 책장.
+            <span className="mt-3 block text-[32px] font-extrabold tracking-normal xl:text-[38px]">
+              학교 일정은 글감으로, 공책 글은 피드백으로.
             </span>
           </h1>
-          <p className="font-login-hand kr-keep mt-6 max-w-[560px] text-[17px] font-normal leading-[1.7] text-ink-700 xl:text-[18px]">
-            손글씨 공책 사진, 글 확인, AI 초안, 담임 피드백이
-            <br />
-            교실 글쓰기 흐름 안에서 자연스럽게 이어집니다.
+          <p className="kr-keep mt-5 max-w-[580px] text-[16px] font-medium leading-[1.75] text-ink-700 xl:text-[17px]">
+            우리 학교 일정과 우리 반 활동을 글쓰기 주제로 연결하고, 학생이 공책에 쓴 글을
+            찍어 올리면 선생님의 피드백으로 이어집니다.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
-            {["학교 일정 맥락 추천", "공책 사진 제출", "담임 피드백 완성"].map((badge) => (
+            {heroBadges.map((badge) => (
               <span
                 className="rounded-full border border-ink-100 bg-paper-soft px-3 py-1 text-xs font-semibold text-ink-700"
                 key={badge}
@@ -265,42 +301,55 @@ export default function LoginPage() {
               </span>
             ))}
           </div>
+
+          <div className="mt-6 grid grid-cols-2 gap-2">
+            {heroFlowSteps.map((step, index) => (
+              <div
+                className="flex items-center gap-2 rounded-lg border border-ink-100 bg-paper-soft/80 px-3 py-2.5 shadow-sm"
+                key={step}
+              >
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-student-soft text-xs font-bold text-student-deep">
+                  {index + 1}
+                </span>
+                <span className="kr-keep text-sm font-bold leading-5 text-ink-900">{step}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 grid gap-3 xl:grid-cols-2">
+            {heroCards.map((card) => (
+              <article
+                className="rounded-xl border border-ink-100 bg-paper-surface/88 p-4 shadow-sm"
+                key={card.title}
+              >
+                <h2 className="kr-keep text-sm font-bold text-ink-900">{card.title}</h2>
+                <p className="kr-keep mt-2 text-xs leading-5 text-ink-700">{card.description}</p>
+              </article>
+            ))}
+          </div>
         </div>
 
-        <div className="absolute bottom-12 left-12 flex items-end gap-3">
-          {[
-            {
-              date: "4월 12일",
-              title: "봄을 보고 느낀 것",
-              color: "bg-student-accent/75",
-              tilt: "-rotate-[1deg]",
-            },
-            {
-              date: "4월 15일",
-              title: "내가 사랑하는 사람",
-              color: "bg-status-feedbackDone/75",
-              tilt: "rotate-0",
-            },
-            {
-              date: "4월 18일",
-              title: "만약 하루를 바꿀 수...",
-              color: "bg-teacher-accent/75",
-              tilt: "rotate-[1deg]",
-            },
-          ].map((card) => (
-            <div
-              key={card.date}
-              className={`h-[188px] w-[144px] shrink-0 rounded-lg border border-ink-100 bg-paper-surface p-4 shadow-[0_8px_18px_rgba(80,55,25,.10)] ${card.tilt}`}
-            >
-              <div className={`h-2 w-full rounded-full ${card.color}`} />
-              <p className="kr-keep mt-6 text-[12px] font-semibold leading-5 text-ink-500">
-                {card.date}
-              </p>
-              <p className="kr-keep mt-3 line-clamp-3 text-[14px] font-bold leading-[1.55] text-ink-900">
-                {card.title}
-              </p>
-            </div>
-          ))}
+        <div className="relative z-10 mt-auto pt-7">
+          <p className="kr-keep mb-3 text-xs font-semibold leading-5 text-ink-500">
+            우리 반 글쓰기 결과가 공책처럼 차곡차곡 쌓입니다.
+          </p>
+          <div className="flex items-end gap-3">
+            {shelfCards.map((card) => (
+              <div
+                key={card.date}
+                className={`h-[140px] w-[136px] shrink-0 rounded-lg border border-ink-100 bg-paper-surface p-4 shadow-[0_8px_18px_rgba(80,55,25,.10)] ${card.tilt}`}
+              >
+                <div className={`h-2 w-full rounded-full ${card.color}`} />
+                <p className="kr-keep mt-5 text-[12px] font-semibold leading-5 text-ink-500">
+                  {card.date}
+                </p>
+                <p className="kr-keep mt-2 line-clamp-2 text-[14px] font-bold leading-[1.5] text-ink-900">
+                  {card.title}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 h-3 rounded-full bg-[linear-gradient(90deg,rgba(173,121,68,.22),rgba(95,139,122,.2),rgba(91,123,162,.2))]" />
         </div>
       </div>
 

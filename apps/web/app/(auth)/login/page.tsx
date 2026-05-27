@@ -268,7 +268,7 @@ export default function LoginPage() {
             </div>
           </div>
           <div className="kr-keep">
-            <p className="font-brand-logo text-2xl font-bold leading-6 text-ink-900">공책톡톡</p>
+            <p className="font-brand-logo text-[27px] font-bold leading-6 text-ink-900">공책톡톡</p>
             <p className="mt-0.5 text-xs font-semibold tracking-[0.12em] text-ink-500">
               공책과 피드백을 잇는 교실 도구
             </p>
@@ -276,25 +276,25 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 mt-10 max-w-[620px]">
-          <p className="kr-keep text-sm font-bold uppercase tracking-[0.14em] text-student-accent">
+          <p className="font-brand-copy kr-keep text-sm font-medium uppercase tracking-[0.12em] text-student-accent">
             공책 기반 글쓰기 피드백 도구
           </p>
-          <h1 className="kr-keep mt-3 font-bold leading-[1.16] text-ink-900">
-            <span className="font-brand-logo block text-[58px] leading-none xl:text-[68px]">
+          <h1 className="kr-keep mt-3 leading-[1.18] text-ink-900">
+            <span className="font-brand-logo block text-[56px] font-bold leading-none xl:text-[66px]">
               공책톡톡
             </span>
-            <span className="mt-3 block text-[32px] font-extrabold tracking-normal xl:text-[38px]">
+            <span className="font-brand-headline mt-3 block text-[31px] font-semibold tracking-normal xl:text-[37px]">
               학교 일정은 글감으로, 공책 글은 피드백으로.
             </span>
           </h1>
-          <p className="kr-keep mt-5 max-w-[580px] text-[16px] font-medium leading-[1.75] text-ink-700 xl:text-[17px]">
+          <p className="font-brand-copy kr-keep mt-5 max-w-[580px] text-[16px] font-normal leading-relaxed text-ink-700 xl:text-[17px]">
             우리 학교 일정과 우리 반 활동을 글쓰기 주제로 연결하고, 학생이 공책에 쓴 글을
             찍어 올리면 선생님의 피드백으로 이어집니다.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             {heroBadges.map((badge) => (
               <span
-                className="rounded-full border border-ink-100 bg-paper-soft px-3 py-1 text-xs font-semibold text-ink-700"
+                className="font-brand-copy rounded-full border border-ink-100 bg-paper-soft px-3 py-1 text-xs font-medium text-ink-700"
                 key={badge}
               >
                 {badge}
@@ -311,7 +311,7 @@ export default function LoginPage() {
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-student-soft text-xs font-bold text-student-deep">
                   {index + 1}
                 </span>
-                <span className="kr-keep text-sm font-bold leading-5 text-ink-900">{step}</span>
+                <span className="font-brand-copy kr-keep text-sm font-medium leading-5 text-ink-900">{step}</span>
               </div>
             ))}
           </div>
@@ -322,15 +322,15 @@ export default function LoginPage() {
                 className="rounded-xl border border-ink-100 bg-paper-surface/88 p-4 shadow-sm"
                 key={card.title}
               >
-                <h2 className="kr-keep text-sm font-bold text-ink-900">{card.title}</h2>
-                <p className="kr-keep mt-2 text-xs leading-5 text-ink-700">{card.description}</p>
+                <h2 className="font-brand-headline kr-keep text-sm font-semibold text-ink-900">{card.title}</h2>
+                <p className="font-brand-copy kr-keep mt-2 text-xs leading-5 text-ink-700">{card.description}</p>
               </article>
             ))}
           </div>
         </div>
 
         <div className="relative z-10 mt-auto pt-7">
-          <p className="kr-keep mb-3 text-xs font-semibold leading-5 text-ink-500">
+          <p className="font-brand-copy kr-keep mb-3 text-xs font-medium leading-5 text-ink-500">
             우리 반 글쓰기 결과가 공책처럼 차곡차곡 쌓입니다.
           </p>
           <div className="flex items-end gap-3">
@@ -340,10 +340,10 @@ export default function LoginPage() {
                 className={`h-[140px] w-[136px] shrink-0 rounded-lg border border-ink-100 bg-paper-surface p-4 shadow-[0_8px_18px_rgba(80,55,25,.10)] ${card.tilt}`}
               >
                 <div className={`h-2 w-full rounded-full ${card.color}`} />
-                <p className="kr-keep mt-5 text-[12px] font-semibold leading-5 text-ink-500">
+                <p className="font-brand-copy kr-keep mt-5 text-[12px] font-medium leading-5 text-ink-500">
                   {card.date}
                 </p>
-                <p className="kr-keep mt-2 line-clamp-2 text-[14px] font-bold leading-[1.5] text-ink-900">
+                <p className="font-brand-copy kr-keep mt-2 line-clamp-2 text-[14px] font-medium leading-[1.5] text-ink-900">
                   {card.title}
                 </p>
               </div>
@@ -359,7 +359,7 @@ export default function LoginPage() {
             <p className="font-brand-logo text-[30px] font-bold leading-none text-ink-900">
               공책톡톡
             </p>
-            <p className="mt-2 text-sm leading-6 text-ink-700">
+            <p className="font-brand-copy mt-2 text-sm leading-6 text-ink-700">
               우리 반 공책 글쓰기를 사진 제출, 글 확인, 담임 피드백으로 이어주는 도구입니다.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">

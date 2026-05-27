@@ -26,13 +26,16 @@ export default function HomePage() {
                 공책 사진부터 담임 피드백까지
               </div>
 
-              <h1 className="font-brand-logo kr-keep mt-5 text-[58px] font-bold leading-none text-ink-900 sm:text-[76px]">
+              <h1 className="font-brand-logo kr-keep mt-5 text-[54px] font-bold leading-none text-ink-900 sm:text-[72px]">
                 공책톡톡
               </h1>
-              <p className="kr-keep mt-4 max-w-3xl text-[24px] font-bold leading-[1.35] text-ink-900 sm:text-[30px]">
+              <p className="font-brand-headline kr-keep mt-4 max-w-3xl text-[30px] font-semibold leading-[1.32] text-ink-900 sm:text-[42px]">
+                학교 일정은 글감으로, 공책 글은 피드백으로.
+              </p>
+              <p className="font-brand-copy kr-keep mt-4 max-w-2xl text-base font-medium leading-relaxed text-ink-700 sm:text-lg">
                 손글씨 공책과 AI 피드백을 연결하는 초등 글쓰기 도구
               </p>
-              <p className="kr-keep mt-4 max-w-2xl text-base leading-7 text-ink-700">
+              <p className="font-brand-copy kr-keep mt-4 max-w-2xl text-[15px] leading-7 text-ink-600 sm:text-base">
                 <span className="block">학생은 공책에 쓰고 사진으로 톡 제출합니다.</span>
                 <span className="block">선생님은 글을 확인합니다.</span>
                 <span className="block">AI 초안 위에 담임 피드백을 완성합니다.</span>
@@ -41,7 +44,7 @@ export default function HomePage() {
               <div className="mt-5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                 {contextBadges.map((badge) => (
                   <span
-                    className="rounded-full border border-ink-100 bg-paper-soft px-3 py-1 text-center text-xs font-semibold text-ink-700"
+                    className="font-brand-copy rounded-full border border-ink-100 bg-paper-soft px-3 py-1 text-center text-xs font-medium text-ink-700"
                     key={badge}
                   >
                     {badge}
@@ -50,10 +53,10 @@ export default function HomePage() {
               </div>
 
               <div className="kr-keep mt-5 rounded-xl border border-teacher-accent/20 bg-teacher-soft/55 p-4">
-                <p className="text-sm font-bold text-teacher-deep">
+                <p className="font-brand-headline text-sm font-semibold text-teacher-deep">
                   우리 반 오늘의 경험이 글쓰기 주제가 됩니다
                 </p>
-                <p className="mt-2 text-sm leading-6 text-ink-700">
+                <p className="font-brand-copy mt-2 text-sm leading-6 text-ink-700">
                   <span className="block">학교 일정과 교실 경험을 주제 만들기에 참고합니다.</span>
                   <span className="block">체육대회와 현장체험학습을 글감으로 연결할 수 있어요.</span>
                 </p>
@@ -81,7 +84,7 @@ export default function HomePage() {
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-500">
                 교실 글쓰기 흐름
               </p>
-              <h2 className="kr-keep mt-2 text-xl font-bold text-ink-900">
+              <h2 className="font-brand-headline kr-keep mt-2 text-xl font-semibold text-ink-900">
                 공책에서 피드백까지 한 번에 이어집니다
               </h2>
               <div className="mt-5 space-y-3">
@@ -93,7 +96,7 @@ export default function HomePage() {
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-teacher-soft text-xs font-bold text-teacher-accent">
                       {index + 1}
                     </span>
-                    <span className="text-sm font-semibold text-ink-900">{item}</span>
+                    <span className="font-brand-copy text-sm font-medium text-ink-900">{item}</span>
                   </div>
                 ))}
               </div>
@@ -101,14 +104,14 @@ export default function HomePage() {
 
             <div className="mt-4 grid gap-4">
               <div className="rounded-lg border border-feedback-pen/20 bg-feedback-soft px-4 py-4">
-                <p className="text-sm font-bold text-feedback-pen">교사용 가치</p>
-                <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
+                <p className="font-brand-headline text-sm font-semibold text-feedback-pen">교사용 가치</p>
+                <p className="font-brand-copy kr-keep mt-2 text-sm leading-6 text-ink-700">
                   수합과 초안 피드백 시간을 줄이고, 담임의 최종 판단은 남깁니다.
                 </p>
               </div>
               <div className="rounded-lg border border-student-accent/20 bg-student-soft px-4 py-4">
-                <p className="text-sm font-bold text-student-deep">학생용 가치</p>
-                <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">
+                <p className="font-brand-headline text-sm font-semibold text-student-deep">학생용 가치</p>
+                <p className="font-brand-copy kr-keep mt-2 text-sm leading-6 text-ink-700">
                   주제 설명, 생각 질문, 첫 문장 힌트로 글쓰기의 막막함을 줄입니다.
                 </p>
               </div>
@@ -140,8 +143,8 @@ export default function HomePage() {
           },
         ].map((item) => (
           <article className="rounded-lg border border-ink-100 bg-paper-surface p-5 shadow-sm" key={item.title}>
-            <h2 className="kr-keep text-lg font-bold text-ink-900">{item.title}</h2>
-            <p className="kr-keep mt-2 text-sm leading-6 text-ink-700">{item.description}</p>
+            <h2 className="font-brand-headline kr-keep text-lg font-semibold text-ink-900">{item.title}</h2>
+            <p className="font-brand-copy kr-keep mt-2 text-sm leading-6 text-ink-700">{item.description}</p>
           </article>
         ))}
       </section>

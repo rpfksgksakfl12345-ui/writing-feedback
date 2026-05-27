@@ -4,6 +4,12 @@ function readEnv(name: string) {
   return process.env[name]?.trim() || "";
 }
 
+const defaultAllowedOrigins = [
+  "http://localhost:3000",
+  "https://writing-feedback-web.vercel.app",
+  "https://gongchaek-toktok.vercel.app",
+];
+
 function requireEnv(name: string, missing: string[]) {
   if (!readEnv(name)) {
     missing.push(name);
@@ -88,9 +94,10 @@ export function getAllowedOrigins() {
     readEnv("CORS_ORIGINS"),
     readEnv("CORS_ORIGIN"),
     readEnv("WEB_ORIGIN"),
+    defaultAllowedOrigins.join(","),
   ]
     .filter(Boolean)
-    .join(",") || "http://localhost:3000";
+    .join(",");
 
   const origins = rawOrigins
     .split(",")

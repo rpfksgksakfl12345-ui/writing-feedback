@@ -255,7 +255,7 @@ export default function LoginPage() {
 
   return (
     <section className="mx-auto grid max-w-6xl overflow-hidden rounded-[28px] border border-ink-100 bg-[#F6EBD3] shadow-[0_1px_2px_rgba(60,40,20,.06),0_18px_42px_rgba(60,40,20,.10)] lg:grid-cols-[1.05fr_.95fr]">
-      <div className="relative hidden min-h-[660px] overflow-hidden bg-paper-surface bg-[radial-gradient(rgba(120,90,50,.065)_1px,transparent_1px)] bg-[length:22px_22px] px-12 py-10 lg:flex lg:flex-col">
+      <div className="relative hidden min-h-[620px] overflow-hidden bg-paper-surface bg-[radial-gradient(rgba(120,90,50,.065)_1px,transparent_1px)] bg-[length:22px_22px] px-11 py-9 lg:flex lg:flex-col">
         <div className="relative z-10 flex items-start gap-3">
           <div
             aria-hidden="true"
@@ -275,7 +275,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="relative z-10 mt-10 max-w-[620px]">
+        <div className="relative z-10 mt-8 max-w-[620px]">
           <p className="font-brand-copy kr-keep text-sm font-medium uppercase tracking-[0.12em] text-student-accent">
             공책 기반 글쓰기 피드백 도구
           </p>
@@ -288,7 +288,7 @@ export default function LoginPage() {
               <span className="block">공책 글은 피드백으로.</span>
             </span>
           </h1>
-          <p className="font-brand-copy kr-keep mt-5 max-w-[590px] text-[17px] font-normal leading-relaxed text-ink-700 xl:text-[18px]">
+          <p className="font-brand-copy kr-keep mt-4 max-w-[590px] text-[17px] font-normal leading-relaxed text-ink-700 xl:text-[18px]">
             <span className="font-semibold text-teacher-deep">학교 일정</span>과{" "}
             <span className="font-semibold text-teacher-deep">우리 반 활동</span>을 글쓰기
             주제로 연결하고,
@@ -299,7 +299,7 @@ export default function LoginPage() {
               이어집니다.
             </span>
           </p>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
             {heroBadges.map((badge) => (
               <span
                 className="font-brand-copy rounded-full border border-ink-100 bg-paper-soft px-3 py-1 text-xs font-medium text-ink-700"
@@ -310,10 +310,10 @@ export default function LoginPage() {
             ))}
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-2">
+          <div className="mt-5 grid grid-cols-2 gap-2">
             {heroFlowSteps.map((step, index) => (
               <div
-                className="flex items-center gap-2 rounded-lg border border-ink-100 bg-paper-soft/80 px-3 py-2.5 shadow-sm"
+                className="flex items-center gap-2 rounded-lg border border-ink-100 bg-paper-soft/80 px-3 py-2 shadow-sm"
                 key={step}
               >
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-student-soft text-xs font-bold text-student-deep">
@@ -324,45 +324,45 @@ export default function LoginPage() {
             ))}
           </div>
 
-          <div className="mt-4 grid gap-3 xl:grid-cols-2">
+          <div className="mt-3 grid gap-2 xl:grid-cols-2">
             {heroCards.map((card) => (
               <article
-                className="rounded-xl border border-ink-100 bg-paper-surface/88 p-4 shadow-sm"
+                className="rounded-xl border border-ink-100 bg-paper-surface/88 p-3.5 shadow-sm"
                 key={card.title}
               >
                 <h2 className="font-brand-headline kr-keep text-sm font-semibold text-ink-900">{card.title}</h2>
-                <p className="font-brand-copy kr-keep mt-2 text-xs leading-5 text-ink-700">{card.description}</p>
+                <p className="font-brand-copy kr-keep mt-1.5 text-xs leading-5 text-ink-700">{card.description}</p>
               </article>
             ))}
           </div>
         </div>
 
-        <div className="relative z-10 mt-auto pt-7">
-          <p className="font-brand-copy kr-keep mb-3 text-xs font-medium leading-5 text-ink-500">
+        <div className="relative z-10 mt-auto pt-5">
+          <p className="font-brand-copy kr-keep mb-2 text-xs font-medium leading-5 text-ink-500">
             우리 반 글쓰기 결과가 공책처럼 차곡차곡 쌓입니다.
           </p>
           <div className="flex items-end gap-3">
             {shelfCards.map((card) => (
               <div
                 key={card.date}
-                className={`h-[140px] w-[136px] shrink-0 rounded-lg border border-ink-100 bg-paper-surface p-4 shadow-[0_8px_18px_rgba(80,55,25,.10)] ${card.tilt}`}
+                className={`h-[124px] w-[126px] shrink-0 rounded-lg border border-ink-100 bg-paper-surface p-3.5 shadow-[0_8px_18px_rgba(80,55,25,.10)] ${card.tilt}`}
               >
                 <div className={`h-2 w-full rounded-full ${card.color}`} />
-                <p className="font-brand-copy kr-keep mt-5 text-[12px] font-medium leading-5 text-ink-500">
+                <p className="font-brand-copy kr-keep mt-4 text-[12px] font-medium leading-5 text-ink-500">
                   {card.date}
                 </p>
-                <p className="font-brand-copy kr-keep mt-2 line-clamp-2 text-[14px] font-medium leading-[1.5] text-ink-900">
+                <p className="font-brand-copy kr-keep mt-1.5 line-clamp-2 text-[14px] font-medium leading-[1.5] text-ink-900">
                   {card.title}
                 </p>
               </div>
             ))}
           </div>
-          <div className="mt-3 h-3 rounded-full bg-[linear-gradient(90deg,rgba(173,121,68,.22),rgba(95,139,122,.2),rgba(91,123,162,.2))]" />
+          <div className="mt-2 h-3 rounded-full bg-[linear-gradient(90deg,rgba(173,121,68,.22),rgba(95,139,122,.2),rgba(91,123,162,.2))]" />
         </div>
       </div>
 
-      <div className="bg-paper-soft px-6 py-6 sm:px-8 lg:px-8 lg:py-10">
-        <div className="rounded-2xl border border-ink-100 bg-paper-surface p-5 shadow-sm sm:p-6">
+      <div className="bg-paper-soft px-6 py-6 sm:px-8 lg:flex lg:items-center lg:px-8 lg:py-10">
+        <div className="w-full rounded-2xl border border-ink-100 bg-paper-surface p-5 shadow-sm sm:p-6 lg:p-7">
           <p className={`text-sm font-semibold ${activeCopy?.accentClass ?? "text-teacher-accent"}`}>
             {activeCopy?.eyebrow ?? "출입 카드"}
           </p>
@@ -380,7 +380,7 @@ export default function LoginPage() {
             </div>
           ) : null}
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {(
               [
                 {
@@ -448,7 +448,7 @@ export default function LoginPage() {
           </div>
 
           {mode === "TEACHER" ? (
-          <form className="mt-5 grid gap-4 rounded-xl border border-teacher-accent/20 bg-paper-soft/70 p-4 shadow-sm" onSubmit={handleTeacherLogin}>
+          <form className="mt-6 grid gap-4 rounded-xl border border-teacher-accent/20 bg-paper-soft/70 p-5 shadow-sm" onSubmit={handleTeacherLogin}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teacher-accent">
                 {modeCopy.TEACHER.eyebrow}
@@ -500,7 +500,7 @@ export default function LoginPage() {
             </p>
           </form>
         ) : mode === "STUDENT" ? (
-          <form className="mt-5 grid gap-4 rounded-xl border border-student-accent/20 bg-paper-soft/70 p-4 shadow-sm" onSubmit={handleStudentLogin}>
+          <form className="mt-6 grid gap-4 rounded-xl border border-student-accent/20 bg-paper-soft/70 p-5 shadow-sm" onSubmit={handleStudentLogin}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-student-accent">
                 {modeCopy.STUDENT.eyebrow}

@@ -283,13 +283,21 @@ export default function LoginPage() {
             <span className="font-brand-logo block text-[56px] font-bold leading-none xl:text-[66px]">
               공책톡톡
             </span>
-            <span className="font-brand-headline mt-3 block text-[31px] font-semibold tracking-normal xl:text-[37px]">
-              학교 일정은 글감으로, 공책 글은 피드백으로.
+            <span className="font-brand-headline mt-3 block text-[30px] font-semibold leading-[1.3] tracking-normal xl:text-[36px]">
+              <span className="block">학교 일정은 글감으로,</span>
+              <span className="block">공책 글은 피드백으로.</span>
             </span>
           </h1>
-          <p className="font-brand-copy kr-keep mt-5 max-w-[580px] text-[16px] font-normal leading-relaxed text-ink-700 xl:text-[17px]">
-            우리 학교 일정과 우리 반 활동을 글쓰기 주제로 연결하고, 학생이 공책에 쓴 글을
-            찍어 올리면 선생님의 피드백으로 이어집니다.
+          <p className="font-brand-copy kr-keep mt-5 max-w-[590px] text-[17px] font-normal leading-relaxed text-ink-700 xl:text-[18px]">
+            <span className="font-semibold text-teacher-deep">학교 일정</span>과{" "}
+            <span className="font-semibold text-teacher-deep">우리 반 활동</span>을 글쓰기
+            주제로 연결하고,
+            <span className="block">
+              학생이 <span className="font-semibold text-student-deep">공책에 쓴 글</span>을
+              사진으로 올리면{" "}
+              <span className="font-semibold text-teacher-deep">선생님의 피드백</span>으로
+              이어집니다.
+            </span>
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             {heroBadges.map((badge) => (

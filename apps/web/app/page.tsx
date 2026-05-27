@@ -3,12 +3,12 @@ import Link from "next/link";
 export default function HomePage() {
   const flowSteps = [
     "공책 사진 제출",
-    "OCR 글 확인",
-    "AI 초안 참고",
+    "글 확인",
+    "피드백 준비",
     "담임 피드백 저장",
   ];
 
-  const contextBadges = ["학교 일정", "공책 사진", "AI 초안", "담임 피드백"];
+  const contextBadges = ["학교 일정 참고", "공책 사진 제출", "글 확인", "담임 피드백"];
 
   return (
     <div className="space-y-8">
@@ -29,16 +29,24 @@ export default function HomePage() {
               <h1 className="font-brand-logo kr-keep mt-5 text-[54px] font-bold leading-none text-ink-900 sm:text-[72px]">
                 공책톡톡
               </h1>
-              <p className="font-brand-headline kr-keep mt-4 max-w-3xl text-[30px] font-semibold leading-[1.32] text-ink-900 sm:text-[42px]">
-                학교 일정은 글감으로, 공책 글은 피드백으로.
+              <p className="font-brand-headline kr-keep mt-4 max-w-3xl text-[30px] font-semibold leading-[1.28] text-ink-900 sm:text-[40px]">
+                <span className="block">학교 일정은 글감으로,</span>
+                <span className="block">공책 글은 피드백으로.</span>
               </p>
-              <p className="font-brand-copy kr-keep mt-4 max-w-2xl text-base font-medium leading-relaxed text-ink-700 sm:text-lg">
+              <p className="font-brand-copy kr-keep mt-3 max-w-[560px] text-sm font-normal leading-relaxed text-ink-700 sm:text-base">
                 손글씨 공책과 AI 피드백을 연결하는 초등 글쓰기 도구
               </p>
-              <p className="font-brand-copy kr-keep mt-4 max-w-2xl text-[15px] leading-7 text-ink-600 sm:text-base">
-                <span className="block">학생은 공책에 쓰고 사진으로 톡 제출합니다.</span>
-                <span className="block">선생님은 글을 확인합니다.</span>
-                <span className="block">AI 초안 위에 담임 피드백을 완성합니다.</span>
+              <p className="font-brand-copy kr-keep mt-4 max-w-2xl text-base leading-relaxed text-ink-700 sm:text-lg">
+                <span className="font-semibold text-teacher-deep">학교 일정</span>과{" "}
+                <span className="font-semibold text-teacher-deep">우리 반 활동</span>을
+                글쓰기 주제로 연결하고,
+                <span className="block sm:inline">
+                  {" "}
+                  학생이 <span className="font-semibold text-student-deep">공책에 쓴 글</span>을
+                  사진으로 올리면{" "}
+                  <span className="font-semibold text-teacher-deep">선생님의 피드백</span>으로
+                  이어집니다.
+                </span>
               </p>
 
               <div className="mt-5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">

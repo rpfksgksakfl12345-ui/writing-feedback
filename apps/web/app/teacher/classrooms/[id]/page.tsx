@@ -508,15 +508,15 @@ export default function TeacherClassroomDetailPage() {
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
-      <section className="bg-paper-surface bg-[radial-gradient(rgba(90,110,133,.07)_1px,transparent_1px)] bg-[length:24px_24px] px-8 pb-7 pt-8">
+      <section className="bg-paper-surface bg-[radial-gradient(rgba(90,110,133,.07)_1px,transparent_1px)] bg-[length:24px_24px] px-4 pb-7 pt-8 sm:px-6 lg:px-8">
         <Link
           className="inline-flex min-h-9 items-center whitespace-nowrap rounded-md border border-ink-100 bg-paper-surface px-3 text-sm font-semibold text-ink-700 hover:bg-paper-base"
           href="/teacher/classrooms"
         >
           학급 목록
         </Link>
-        <div className="mt-5 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div>
+        <div className="mt-5 flex min-w-0 flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <div className="min-w-0">
             <p className="text-sm font-semibold text-teacher-accent">우리 반 관리</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink-900">
               {classroom?.name ?? "학급을 불러오는 중"}
@@ -526,7 +526,7 @@ export default function TeacherClassroomDetailPage() {
             </p>
           </div>
 
-          <div className="grid min-w-[300px] gap-3 rounded-xl border border-ink-100 bg-paper-surface/85 p-4 shadow-sm">
+          <div className="grid w-full min-w-0 gap-3 rounded-xl border border-ink-100 bg-paper-surface/85 p-4 shadow-sm sm:max-w-[360px] xl:w-[360px] xl:shrink-0">
             <div>
               <p className="text-xs text-ink-500">학년</p>
               <p className="mt-1 text-lg font-semibold text-ink-900">
@@ -543,8 +543,8 @@ export default function TeacherClassroomDetailPage() {
         </div>
       </section>
 
-      <section className="grid gap-6 px-8 pb-10 pt-7">
-        <section className="rounded-xl border border-teacher-accent/20 bg-paper-surface p-5 shadow-sm">
+      <section className="grid min-w-0 gap-6 px-4 pb-10 pt-7 sm:px-6 lg:px-8">
+        <section className="min-w-0 rounded-xl border border-teacher-accent/20 bg-paper-surface p-5 shadow-sm">
           <NeisSchoolPicker
             disabled={isUpdatingSchool || !classroom}
             onClear={() => handleUpdateSchool(null)}
@@ -564,8 +564,8 @@ export default function TeacherClassroomDetailPage() {
           ) : null}
         </section>
 
-        <div className="grid gap-6 xl:grid-cols-2">
-          <section className="h-fit rounded-xl border border-teacher-accent/20 bg-paper-surface p-5 shadow-sm">
+        <div className="grid min-w-0 gap-6 xl:grid-cols-2">
+          <section className="h-fit min-w-0 rounded-xl border border-teacher-accent/20 bg-paper-surface p-5 shadow-sm">
             <div className="mb-4 h-1.5 rounded-full bg-teacher-accent/70" />
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
               단건 발급
@@ -621,7 +621,7 @@ export default function TeacherClassroomDetailPage() {
             </form>
           </section>
 
-          <section className="h-fit rounded-xl border border-dashed border-teacher-accent/30 bg-paper-soft/75 p-5 shadow-sm">
+          <section className="h-fit min-w-0 rounded-xl border border-dashed border-teacher-accent/30 bg-paper-soft/75 p-5 shadow-sm">
             <div className="mb-4 h-1.5 rounded-full bg-student-accent/70" />
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
               단체 발급
@@ -636,7 +636,7 @@ export default function TeacherClassroomDetailPage() {
                 {bulkRows.map((row) => (
                   <div
                     key={row.rowId}
-                    className="grid grid-cols-[76px_minmax(0,1fr)_56px] items-end gap-2 rounded-lg border border-ink-100 bg-paper-surface p-3 shadow-sm"
+                    className="grid min-w-0 grid-cols-[72px_minmax(0,1fr)] items-end gap-2 rounded-lg border border-ink-100 bg-paper-surface p-3 shadow-sm sm:grid-cols-[76px_minmax(0,1fr)_56px]"
                   >
                     <label className="block min-w-0 text-sm font-semibold text-ink-700">
                       번호
@@ -658,7 +658,7 @@ export default function TeacherClassroomDetailPage() {
                       />
                     </label>
                     <SecondaryButton
-                      className="h-10 min-h-10 w-14 whitespace-nowrap px-0 py-0 text-sm"
+                      className="col-span-2 h-10 min-h-10 w-full whitespace-nowrap px-0 py-0 text-sm sm:col-span-1 sm:w-14"
                       type="button"
                       onClick={() => removeBulkRow(row.rowId)}
                     >
@@ -689,7 +689,7 @@ export default function TeacherClassroomDetailPage() {
           </section>
         </div>
 
-        <section className="print-roster-area rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
+        <section className="print-roster-area min-w-0 rounded-xl border border-ink-100 bg-paper-surface p-4 shadow-sm sm:p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
@@ -720,7 +720,7 @@ export default function TeacherClassroomDetailPage() {
             ) : null}
 
             {deleteStudentDraft ? (
-              <div className="no-print mt-5 rounded-xl border border-status-error/25 bg-status-error/5 p-4">
+              <div className="no-print mt-5 min-w-0 rounded-xl border border-status-error/25 bg-status-error/5 p-4">
                 <p className="text-sm font-bold text-status-error">
                   학생 계정을 완전히 삭제할까요?
                 </p>
@@ -777,29 +777,32 @@ export default function TeacherClassroomDetailPage() {
             ) : null}
 
             {!isLoading && students.length > 0 ? (
-              <div className="print-roster-table-wrap mt-5 overflow-x-auto rounded-xl border border-ink-100 bg-paper-base/35">
-                <table className="w-full min-w-[760px] table-fixed border-collapse text-left text-sm">
+              <div className="print-roster-table-wrap mt-5 max-w-full overflow-x-auto rounded-xl border border-ink-100 bg-paper-base/35">
+                <table className="w-full min-w-[660px] table-fixed border-collapse text-left text-sm">
                   <thead className="bg-paper-base text-xs font-semibold uppercase tracking-[0.12em] text-ink-500">
                     <tr>
-                      <th className="w-[90px] px-4 py-3">번호</th>
-                      <th className="w-[160px] px-4 py-3">학생 이름</th>
-                      <th className="w-[150px] px-4 py-3">학급코드</th>
-                      <th className="w-[170px] px-4 py-3">로그인 비밀번호</th>
-                      <th className="w-[140px] px-4 py-3">발급일</th>
-                      <th className="no-print w-[130px] px-4 py-3">정리</th>
+                      <th className="w-[74px] px-3 py-3">번호</th>
+                      <th className="w-[130px] px-3 py-3">학생 이름</th>
+                      <th className="w-[128px] px-3 py-3">학급코드</th>
+                      <th className="w-[170px] px-3 py-3">로그인 비밀번호</th>
+                      <th className="w-[110px] px-3 py-3">발급일</th>
+                      <th className="no-print w-[118px] px-3 py-3">정리</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-ink-100 bg-paper-surface text-ink-900">
                     {students.map((student) => (
                       <tr key={student.id} className="transition hover:bg-paper-base/60">
-                        <td className="whitespace-nowrap px-4 py-4 font-semibold">
+                        <td className="whitespace-nowrap px-3 py-4 font-semibold">
                           {student.studentNumber}번
                         </td>
-                        <td className="px-4 py-4 font-semibold">{getStudentLabel(student)}</td>
-                        <td className="whitespace-nowrap px-4 py-4 font-mono font-bold tracking-[0.12em] text-teacher-accent">
+                        <td className="min-w-0 px-3 py-4 font-semibold">
+                          <span className="block truncate">{getStudentLabel(student)}</span>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 font-mono font-bold tracking-[0.12em] text-teacher-accent">
                           {classroom?.classCode ?? "-"}
                         </td>
-                        <td className="whitespace-nowrap px-4 py-4">
+                        <td className="px-3 py-4">
+                          <div className="flex flex-wrap items-center gap-2">
                           {getIssuedLoginPassword(student, issuedLoginPasswords) ? (
                             <span className="rounded-md border border-feedback-pen/20 bg-feedback-soft px-2 py-1 font-mono font-bold text-feedback-pen">
                               {getIssuedLoginPassword(student, issuedLoginPasswords)}
@@ -810,18 +813,19 @@ export default function TeacherClassroomDetailPage() {
                             </span>
                           )}
                           <SecondaryButton
-                            className="no-print ml-2 min-h-8 px-3 py-1 text-xs"
+                            className="no-print min-h-8 px-3 py-1 text-xs"
                             disabled={reissuingStudentId === student.id}
                             onClick={() => void handleReissueStudentPassword(student)}
                             type="button"
                           >
                             {reissuingStudentId === student.id ? "재발급 중" : "재발급"}
                           </SecondaryButton>
+                          </div>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-ink-700">
+                        <td className="whitespace-nowrap px-3 py-4 text-ink-700">
                           {formatDate(student.createdAt)}
                         </td>
-                        <td className="no-print whitespace-nowrap px-4 py-4">
+                        <td className="no-print whitespace-nowrap px-3 py-4">
                           <SecondaryButton
                             className="min-h-8 border-status-error/25 px-3 py-1 text-xs text-status-error hover:bg-status-error/5"
                             disabled={deletingStudentId === student.id}
@@ -844,7 +848,7 @@ export default function TeacherClassroomDetailPage() {
         </section>
 
         {classroom && !isLoading && students.length > 0 ? (
-          <section className="print-label-area rounded-xl border border-ink-100 bg-paper-surface p-5 shadow-sm">
+          <section className="print-label-area min-w-0 rounded-xl border border-ink-100 bg-paper-surface p-4 shadow-sm sm:p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
@@ -869,19 +873,19 @@ export default function TeacherClassroomDetailPage() {
                 </div>
               </div>
 
-              <div className="print-label-grid mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <div className="print-label-grid mt-5 grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {students.map((student) => (
                   <article
-                    className="print-label-card break-inside-avoid rounded-xl border border-ink-100 bg-paper-base p-5 shadow-sm"
+                    className="print-label-card min-w-0 break-inside-avoid rounded-xl border border-ink-100 bg-paper-base p-4 shadow-sm sm:p-5"
                     key={`login-card-${student.id}`}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-500">
                           공책톡톡
                         </p>
                         <h3 className="mt-2 text-xl font-bold text-ink-900">
-                          {getStudentLabel(student)}
+                          <span className="block truncate">{getStudentLabel(student)}</span>
                         </h3>
                       </div>
                       <Badge tone="teacher">{student.studentNumber}번</Badge>
@@ -894,7 +898,7 @@ export default function TeacherClassroomDetailPage() {
                           {classroom.classCode}
                         </p>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid gap-3 sm:grid-cols-2">
                         <div className="rounded-lg border border-ink-100 bg-paper-surface px-3 py-2">
                           <p className="text-xs text-ink-500">번호</p>
                           <p className="mt-1 text-lg font-bold text-ink-900">{student.studentNumber}</p>
@@ -919,7 +923,7 @@ export default function TeacherClassroomDetailPage() {
         ) : null}
 
         {classroom && !isLoading ? (
-          <section className="no-print rounded-xl border border-status-error/25 bg-paper-surface p-5 shadow-sm">
+          <section className="no-print min-w-0 rounded-xl border border-status-error/25 bg-paper-surface p-4 shadow-sm sm:p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-status-error">

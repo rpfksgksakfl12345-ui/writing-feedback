@@ -34,8 +34,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             href={getHomeHref(user?.role)}
             className="inline-flex min-w-0 items-center gap-2 text-left text-ink-900"
           >
-            <span className="font-brand-logo flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-student-accent/25 bg-student-soft text-sm font-bold text-student-deep">
-              톡
+            <span
+              aria-hidden="true"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-student-accent/25 bg-student-soft"
+            >
+              <span className="relative h-5 w-5 rounded-md border border-student-accent/30 bg-paper-surface">
+                <span className="absolute left-1 right-1 top-1.5 h-px bg-student-accent/30" />
+                <span className="absolute left-1 right-1 top-3 h-px bg-student-accent/30" />
+                <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-student-accent" />
+              </span>
             </span>
             <span className="min-w-0">
               <span className="font-brand-logo block text-xl font-bold leading-5">공책톡톡</span>

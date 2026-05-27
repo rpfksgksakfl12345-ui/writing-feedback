@@ -220,8 +220,15 @@ export default function LoginPage() {
     <section className="mx-auto grid max-w-6xl overflow-hidden rounded-[28px] border border-ink-100 bg-[#F6EBD3] shadow-[0_1px_2px_rgba(60,40,20,.06),0_18px_42px_rgba(60,40,20,.10)] lg:grid-cols-[1.05fr_.95fr]">
       <div className="relative hidden min-h-[660px] overflow-hidden bg-paper-surface bg-[radial-gradient(rgba(120,90,50,.065)_1px,transparent_1px)] bg-[length:22px_22px] px-12 py-10 lg:block">
         <div className="relative z-10 flex items-start gap-3">
-          <div className="font-brand-logo flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-student-soft text-base font-bold text-student-deep shadow-[inset_0_1px_rgba(255,255,255,.55),0_8px_18px_rgba(120,70,30,.12)]">
-            글
+          <div
+            aria-hidden="true"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-student-soft shadow-[inset_0_1px_rgba(255,255,255,.55),0_8px_18px_rgba(120,70,30,.12)]"
+          >
+            <div className="relative h-6 w-7 rounded-lg border border-student-accent/35 bg-paper-surface">
+              <span className="absolute left-1.5 right-1.5 top-2 h-px bg-student-accent/30" />
+              <span className="absolute left-1.5 right-1.5 top-3.5 h-px bg-student-accent/30" />
+              <span className="absolute -right-1.5 -top-1 h-3 w-3 rounded-full bg-student-accent shadow-[0_0_0_3px_rgba(95,139,122,.14)]" />
+            </div>
           </div>
           <div className="kr-keep">
             <p className="font-brand-logo text-2xl font-bold leading-6 text-ink-900">공책톡톡</p>
@@ -235,11 +242,11 @@ export default function LoginPage() {
           <p className="font-login-hand kr-keep text-[20px] font-bold leading-relaxed text-student-accent">
             공책에 쓴 글을 톡 올리면,
           </p>
-          <h1 className="font-login-display kr-keep mt-4 font-bold leading-[1.18] text-ink-900">
+          <h1 className="kr-keep mt-4 font-bold leading-[1.18] text-ink-900">
             <span className="font-brand-logo block text-[58px] leading-none xl:text-[68px]">
               공책톡톡
             </span>
-            <span className="mt-3 block text-[34px] xl:text-[40px]">
+            <span className="mt-3 block text-[34px] font-extrabold tracking-normal xl:text-[40px]">
               우리 반 공책 글쓰기 책장.
             </span>
           </h1>

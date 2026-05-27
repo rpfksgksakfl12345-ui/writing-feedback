@@ -17,8 +17,11 @@ export default function HomePage() {
           <div className="flex min-h-[500px] min-w-0 flex-col justify-between">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-student-accent/25 bg-student-soft px-3 py-1 text-sm font-semibold text-student-deep">
-                <span className="font-brand-logo flex h-6 w-6 items-center justify-center rounded-md bg-paper-surface text-sm font-bold">
-                  톡
+                <span
+                  aria-hidden="true"
+                  className="flex h-6 w-6 items-center justify-center rounded-md bg-paper-surface shadow-[inset_0_0_0_1px_rgba(180,130,70,.18)]"
+                >
+                  <span className="h-2.5 w-2.5 rounded-full bg-student-accent shadow-[7px_0_0_rgba(95,139,122,.35)]" />
                 </span>
                 공책 사진부터 담임 피드백까지
               </div>

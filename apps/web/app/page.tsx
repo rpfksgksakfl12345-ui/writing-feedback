@@ -37,13 +37,16 @@ export default function HomePage() {
                 손글씨 공책과 AI 피드백을 연결하는 초등 글쓰기 도구
               </p>
               <p className="font-brand-copy kr-keep mt-4 max-w-2xl text-base leading-relaxed text-ink-700 sm:text-lg">
-                <span className="font-semibold text-teacher-deep">학교 일정</span>과{" "}
-                <span className="font-semibold text-teacher-deep">우리 반 활동</span>을
-                글쓰기 주제로 연결하고,
-                <span className="block sm:inline">
-                  {" "}
+                <span className="block">
+                  <span className="font-semibold text-teacher-deep">우리 학교 일정</span>과{" "}
+                  <span className="font-semibold text-teacher-deep">우리 반 활동</span>을
+                  글쓰기 주제로 연결하고,
+                </span>
+                <span className="block">
                   학생이 <span className="font-semibold text-student-deep">공책에 쓴 글</span>을
-                  사진으로 올리면{" "}
+                  사진으로 올리면
+                </span>
+                <span className="block">
                   <span className="font-semibold text-teacher-deep">선생님의 피드백</span>으로
                   이어집니다.
                 </span>

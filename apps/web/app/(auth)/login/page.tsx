@@ -361,25 +361,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <div className="bg-paper-soft px-6 py-6 sm:px-8 lg:px-8 lg:py-8">
-        <div className="rounded-2xl border border-ink-100 bg-paper-surface p-4 shadow-sm sm:p-5">
-          <div className="kr-keep mb-4 rounded-xl border border-teacher-accent/15 bg-teacher-soft/45 px-4 py-3">
-            <p className="font-brand-logo text-[30px] font-bold leading-none text-ink-900">
-              공책톡톡
-            </p>
-            <p className="font-brand-copy mt-2 text-sm leading-6 text-ink-700">
-              우리 반 공책 글쓰기를 사진 제출, 글 확인, 담임 피드백으로 이어주는 도구입니다.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <span className="rounded-full bg-paper-surface px-3 py-1 text-xs font-semibold text-teacher-deep">
-                학교 일정 참고
-              </span>
-              <span className="rounded-full bg-paper-surface px-3 py-1 text-xs font-semibold text-student-deep">
-                우리 반 책장
-              </span>
-            </div>
-          </div>
-
+      <div className="bg-paper-soft px-6 py-6 sm:px-8 lg:px-8 lg:py-10">
+        <div className="rounded-2xl border border-ink-100 bg-paper-surface p-5 shadow-sm sm:p-6">
           <p className={`text-sm font-semibold ${activeCopy?.accentClass ?? "text-teacher-accent"}`}>
             {activeCopy?.eyebrow ?? "출입 카드"}
           </p>
@@ -397,7 +380,7 @@ export default function LoginPage() {
             </div>
           ) : null}
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {(
               [
                 {
@@ -465,7 +448,7 @@ export default function LoginPage() {
           </div>
 
           {mode === "TEACHER" ? (
-          <form className="mt-4 grid gap-4 rounded-xl border border-teacher-accent/20 bg-paper-soft/70 p-4 shadow-sm" onSubmit={handleTeacherLogin}>
+          <form className="mt-5 grid gap-4 rounded-xl border border-teacher-accent/20 bg-paper-soft/70 p-4 shadow-sm" onSubmit={handleTeacherLogin}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teacher-accent">
                 {modeCopy.TEACHER.eyebrow}
@@ -517,7 +500,7 @@ export default function LoginPage() {
             </p>
           </form>
         ) : mode === "STUDENT" ? (
-          <form className="mt-4 grid gap-4 rounded-xl border border-student-accent/20 bg-paper-soft/70 p-4 shadow-sm" onSubmit={handleStudentLogin}>
+          <form className="mt-5 grid gap-4 rounded-xl border border-student-accent/20 bg-paper-soft/70 p-4 shadow-sm" onSubmit={handleStudentLogin}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-student-accent">
                 {modeCopy.STUDENT.eyebrow}

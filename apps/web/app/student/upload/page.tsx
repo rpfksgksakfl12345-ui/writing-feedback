@@ -72,7 +72,7 @@ function TopicGuide({ text }: { text: string }) {
   }
 
   return (
-    <div className="kr-keep mt-3 max-w-3xl rounded-lg border border-paper-surface/20 bg-paper-surface/10 px-4 py-3 text-[13px] leading-6 text-paper-surface shadow-sm">
+    <div className="kr-keep mt-3 max-w-3xl rounded-lg border border-paper-surface/20 bg-paper-surface/10 px-4 py-2.5 text-[13px] leading-5 text-paper-surface shadow-sm">
       {lines.map((line, index) => {
         const trimmed = line.trim();
         const isHeading = isGuideHeading(trimmed);
@@ -259,7 +259,7 @@ function StudentUploadContent() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [submissions, setSubmissions] = useState<SubmissionItem[]>([]);
   const [topicId, setTopicId] = useState("");
-  const [activeType, setActiveType] = useState<SubmissionInputType>("TYPED");
+  const [activeType, setActiveType] = useState<SubmissionInputType>("PHOTO");
   const [content, setContent] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [message, setMessage] = useState("");
@@ -531,8 +531,8 @@ function StudentUploadContent() {
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-ink-100 bg-paper-soft shadow-[0_1px_2px_rgba(60,40,20,.06),0_14px_34px_rgba(60,40,20,.08)]">
-      <section className="bg-student-accent px-8 pb-7 pt-6 text-paper-surface">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+      <section className="bg-student-accent px-6 pb-5 pt-5 text-paper-surface sm:px-8">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <Link
               className="inline-flex min-h-8 items-center whitespace-nowrap rounded-md bg-paper-surface/15 px-3 text-xs font-semibold text-paper-surface hover:bg-paper-surface/25"
@@ -540,9 +540,9 @@ function StudentUploadContent() {
             >
               ← 내 책장
             </Link>
-            <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-2">
+            <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-2">
               <p className="text-sm font-semibold opacity-85">{topicDate}</p>
-              <h1 className="text-[28px] font-bold leading-tight">
+              <h1 className="text-[26px] font-bold leading-tight">
                 {selectedTopic?.title ?? "글쓰기 주제를 고르는 중입니다"}
               </h1>
             </div>
@@ -573,7 +573,7 @@ function StudentUploadContent() {
         </div>
       </section>
 
-      <section className="px-6 py-8 xl:px-10">
+      <section className="px-6 py-6 xl:px-10">
         <div className="mx-auto flex w-full max-w-[820px] flex-col gap-5">
           {isLoading ? (
             <div className="rounded-xl border border-dashed border-ink-200 bg-paper-surface px-6 py-12 text-center text-sm text-ink-500">

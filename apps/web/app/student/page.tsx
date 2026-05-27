@@ -44,7 +44,7 @@ const topicStatusMeta: Record<
   },
   SUBMITTED: {
     label: "피드백 대기",
-    description: "제출은 끝났고 피드백을 기다리고 있어요.",
+    description: "선생님이 글을 확인하고 있어요.",
     badgeTone: "teacher",
     spineClass: "bg-teacher-accent",
   },
@@ -204,10 +204,10 @@ export default function StudentLibraryPage() {
       href: `/student/upload?topicId=${topic.id}`,
       actionLabel:
         status === "NOT_STARTED"
-          ? "글 쓰러 가기"
+          ? "글 쓰기/사진 올리기"
           : status === "FEEDBACK_READY"
-            ? "피드백 보기"
-            : "공책 보기",
+            ? "선생님 피드백 보기"
+            : "제출한 글 보기",
     };
   });
 
@@ -272,7 +272,7 @@ export default function StudentLibraryPage() {
               <div>
                 <p className="kr-keep font-semibold text-ink-900">새로 써야 할 주제가 있어요</p>
                 <p className="kr-keep mt-1 text-sm text-ink-700">
-                  {firstTodoCard.title} · 공책에 쓰고 사진으로 톡 올릴 수 있어요.
+                  {firstTodoCard.title} · 공책 사진이나 직접 입력으로 제출할 수 있어요.
                 </p>
               </div>
             </div>
@@ -280,7 +280,7 @@ export default function StudentLibraryPage() {
               className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
               href={firstTodoCard.href}
             >
-              글 쓰러 가기
+              글 쓰기/사진 올리기
             </Link>
           </div>
         ) : null}
@@ -328,7 +328,7 @@ export default function StudentLibraryPage() {
               <p className="mt-1 font-semibold text-ink-900">{statusCounts.NOT_STARTED}</p>
             </div>
             <div className="rounded-lg border border-ink-100 bg-paper-surface/80 px-4 py-3">
-              <p className="text-xs text-ink-500">대기</p>
+              <p className="text-xs text-ink-500">확인 중</p>
               <p className="mt-1 font-semibold text-ink-900">{statusCounts.SUBMITTED}</p>
             </div>
             <div className="rounded-lg border border-ink-100 bg-paper-surface/80 px-4 py-3">

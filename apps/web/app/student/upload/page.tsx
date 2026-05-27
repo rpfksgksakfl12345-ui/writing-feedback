@@ -155,11 +155,12 @@ function SubmissionNotebookView({
   const submittedAt = formatSubmissionDate(submission.createdAt);
   const hasFeedback = Boolean(submission.finalFeedback?.trim());
   const photoText = getPhotoText(submission);
-  const feedbackText = submission.finalFeedback || "선생님이 글을 확인하고 있어요.";
+  const feedbackText =
+    submission.finalFeedback || "제출했어요. 선생님이 글을 확인하고 있어요.";
   const feedbackBlock = (
     <div className="mt-[38px] border-t border-feedback-pen/25 pt-[19px]">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-feedback-pen">
-        선생님이 남긴 말
+        {hasFeedback ? "선생님이 남긴 말" : "피드백을 기다리는 중"}
       </p>
       <p className="ui-v2-teacher-feedback-note mt-2 whitespace-pre-line text-feedback-pen">
         {feedbackText}
@@ -236,7 +237,9 @@ function SubmissionNotebookView({
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs leading-5 text-ink-500">
-          이 주제는 이미 제출했어요. 선생님 피드백이 도착하면 이 화면에서 함께 볼 수 있습니다.
+          {hasFeedback
+            ? "선생님 피드백을 확인했어요. 다시 책장으로 돌아가 다른 주제도 살펴볼 수 있습니다."
+            : "이 주제는 이미 제출했어요. 피드백이 도착하면 이 화면에서 함께 볼 수 있습니다."}
         </p>
         <Link
           className="inline-flex min-h-11 items-center justify-center rounded-md bg-student-accent px-[18px] py-[13px] text-[15px] font-semibold text-paper-surface shadow-[0_1px_0_rgba(120,60,30,.15),0_2px_6px_rgba(180,90,50,.18)] hover:bg-student-accent/90"
@@ -445,7 +448,7 @@ function StudentUploadContent() {
         ...current.filter((submission) => getSubmissionTopicId(submission) !== Number(topicId)),
       ]);
       setContent("");
-      setMessage("쓴 글이 선생님께 전해졌어요. 책장에서 같은 주제를 열면 제출한 공책을 볼 수 있습니다.");
+      setMessage("제출했어요. 선생님이 글을 확인하고 있어요. 피드백이 도착하면 책장에서 확인할 수 있어요.");
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -492,7 +495,7 @@ function StudentUploadContent() {
         ...current.filter((submission) => getSubmissionTopicId(submission) !== Number(topicId)),
       ]);
       setImage(null);
-      setMessage("공책 사진이 선생님께 전해졌어요. 사진 속 글을 읽어 선생님이 확인할 수 있게 준비할게요.");
+      setMessage("공책 사진을 제출했어요. 선생님이 글을 확인하고 있어요. 피드백이 도착하면 책장에서 확인할 수 있어요.");
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -578,58 +581,105 @@ function StudentUploadContent() {
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-4 rounded-lg border border-ink-100 bg-paper-surface px-4 py-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+          <div className="rounded-xl border border-ink-100 bg-paper-surface px-4 py-4 shadow-sm">
             {selectedSubmission ? (
-              <div>
-                <p className="text-sm font-semibold text-ink-900">내가 제출한 공책 보기</p>
-                <p className="mt-1 text-xs leading-5 text-ink-500">
-                  새 글쓰기 입력창 대신 저장된 원문을 보여줍니다.
-                </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-ink-900">내가 제출한 공책 보기</p>
+                  <p className="mt-1 text-xs leading-5 text-ink-500">
+                    새 글쓰기 입력창 대신 저장된 원문과 선생님 피드백 상태를 보여줍니다.
+                  </p>
+                </div>
+                <span className="text-xs text-ink-500">
+                  {selectedSubmission.finalFeedback
+                    ? "선생님 피드백을 확인할 수 있어요."
+                    : "선생님이 글을 확인하고 있어요."}
+                </span>
               </div>
             ) : (
-              <div className="inline-flex w-fit rounded-md bg-paper-base p-1">
-                {(
-                  [
-                    { id: "TYPED", label: "직접 입력", icon: "Aa" },
-                    { id: "PHOTO", label: "공책 사진", icon: "톡" },
-                  ] satisfies Array<{ id: SubmissionInputType; label: string; icon: string }>
-                ).map((type) => {
-                  const isActive = activeType === type.id;
+              <div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-ink-900">제출 방법 고르기</p>
+                    <p className="kr-keep mt-1 text-xs leading-5 text-ink-500">
+                      공책 사진으로 올려도, 키보드로 바로 입력해도 괜찮아요.
+                    </p>
+                  </div>
+                  <p className="text-xs text-ink-500">
+                    {activeType === "TYPED" ? (
+                      <span className="tabular-nums">
+                        <strong className="text-ink-900">{content.length}</strong>자 · 약{" "}
+                        <strong className="text-ink-900">{estimatedMinutes}</strong>분
+                      </span>
+                    ) : (
+                      <span className="max-w-[320px] truncate">
+                        {image ? image.name : "아직 사진을 고르지 않았어요"}
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {(
+                    [
+                      {
+                        id: "PHOTO",
+                        eyebrow: "공책 그대로",
+                        title: "공책 사진으로 제출",
+                        description: "공책에 쓴 글을 사진으로 올려요.",
+                        actionLabel: "사진 올리기",
+                      },
+                      {
+                        id: "TYPED",
+                        eyebrow: "바로 쓰기",
+                        title: "직접 입력해서 제출",
+                        description: "키보드로 글을 입력해 제출할 수 있어요.",
+                        actionLabel: "글 입력하기",
+                      },
+                    ] satisfies Array<{
+                      id: SubmissionInputType;
+                      eyebrow: string;
+                      title: string;
+                      description: string;
+                      actionLabel: string;
+                    }>
+                  ).map((type) => {
+                    const isActive = activeType === type.id;
 
-                  return (
-                    <button
-                      key={type.id}
-                      className={cx(
-                        "inline-flex min-h-10 items-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-semibold shadow-none",
-                        isActive
-                          ? "bg-paper-surface text-ink-900"
-                          : "bg-transparent text-ink-500 hover:bg-paper-surface/70 hover:text-ink-900",
-                      )}
-                      type="button"
-                      onClick={() => handleTypeChange(type.id)}
-                    >
-                      <span className="text-xs">{type.icon}</span>
-                      {type.label}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={type.id}
+                        className={cx(
+                          "kr-keep rounded-xl border p-4 text-left shadow-sm transition hover:-translate-y-0.5",
+                          isActive
+                            ? "border-student-accent bg-student-soft/75 ring-2 ring-student-accent/20"
+                            : "border-ink-100 bg-paper-surface hover:border-ink-200 hover:bg-paper-base/70",
+                        )}
+                        type="button"
+                        onClick={() => handleTypeChange(type.id)}
+                      >
+                        <span className="text-xs font-semibold text-student-accent">{type.eyebrow}</span>
+                        <span className="mt-2 block text-base font-bold leading-6 text-ink-900">
+                          {type.title}
+                        </span>
+                        <span className="mt-2 block text-sm leading-6 text-ink-700">
+                          {type.description}
+                        </span>
+                        <span
+                          className={cx(
+                            "mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+                            isActive
+                              ? "bg-paper-surface text-student-deep"
+                              : "bg-paper-base text-ink-500",
+                          )}
+                        >
+                          {isActive ? "선택됨" : type.actionLabel}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
-
-            <div className="flex flex-wrap items-center gap-3 text-xs text-ink-500">
-              {selectedSubmission ? (
-                <span>{selectedSubmission.finalFeedback ? "선생님 피드백을 확인할 수 있어요." : "선생님 피드백을 기다리고 있어요."}</span>
-              ) : activeType === "TYPED" ? (
-                <span className="tabular-nums">
-                  <strong className="text-ink-900">{content.length}</strong>자 · 약{" "}
-                  <strong className="text-ink-900">{estimatedMinutes}</strong>분
-                </span>
-              ) : (
-                <span className="max-w-[320px] truncate">
-                  {image ? image.name : "공책 사진을 선택해 제출할 수 있습니다"}
-                </span>
-              )}
-            </div>
           </div>
 
           <div>

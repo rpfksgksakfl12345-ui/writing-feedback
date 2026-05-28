@@ -119,6 +119,10 @@ function getOcrStatusTone(ocrStatus: SubmissionDetail["ocrStatus"]) {
   return "neutral" as const;
 }
 
+function getOcrErrorDescription() {
+  return "사진은 저장되어 있지만 글자를 자동으로 읽지 못했어요. 사진 원본을 보며 글을 확인해 주세요.";
+}
+
 function formatSubmissionDate(createdAt: string) {
   const date = new Date(createdAt);
 
@@ -475,7 +479,11 @@ export default function SubmissionDetailPage() {
 
               {submission.ocrError ? (
                 <div className="mt-4">
-                  <NoticeBanner tone="error" title="사진 속 글 읽기 오류" description={submission.ocrError} />
+                  <NoticeBanner
+                    tone="error"
+                    title="사진 속 글 읽기 오류"
+                    description={getOcrErrorDescription()}
+                  />
                 </div>
               ) : null}
 

@@ -137,6 +137,24 @@ function getResultItemLabel(item: BulkUploadItem) {
   return item.studentName || (item.studentId ? `학생 ${item.studentId}` : "학생 정보 없음");
 }
 
+function isSavedWithOcrIssue(item: BulkUploadItem) {
+  return Boolean(item.submissionId && item.reason?.includes("OCR"));
+}
+
+function getBulkUploadSummary(result: BulkUploadResponse) {
+  const savedWithOcrIssueCount = result.failed.filter(isSavedWithOcrIssue).length;
+  const hardFailedCount = result.failed.length - savedWithOcrIssueCount;
+  const savedCount = result.created.length + savedWithOcrIssueCount;
+
+  if (savedWithOcrIssueCount > 0) {
+    return `${savedCount}개 사진 저장, ${savedWithOcrIssueCount}개 OCR 확인 필요, ${result.skipped.length}개 건너뜀${
+      hardFailedCount > 0 ? `, ${hardFailedCount}개 실패` : ""
+    }`;
+  }
+
+  return `${result.created.length}개 생성, ${result.skipped.length}개 건너뜀, ${result.failed.length}개 실패`;
+}
+
 function TeacherSubmissionsContent() {
   const searchParams = useSearchParams();
   const { token, user, isReady } = useAuth();
@@ -612,8 +630,7 @@ function TeacherSubmissionsContent() {
                 {bulkUploadResult ? (
                   <div className="mt-4 rounded-lg border border-ink-100 bg-paper-surface p-4 text-sm">
                     <p className="font-semibold text-ink-900">
-                      {bulkUploadResult.created.length}개 생성, {bulkUploadResult.skipped.length}개 건너뜀,{" "}
-                      {bulkUploadResult.failed.length}개 실패
+                      {getBulkUploadSummary(bulkUploadResult)}
                     </p>
                     <div className="mt-3 grid gap-3 lg:grid-cols-3">
                       <div>
